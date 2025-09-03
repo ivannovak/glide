@@ -1,0 +1,308 @@
+package sdk
+
+import (
+	"context"
+	"fmt"
+	"sync"
+	"time"
+
+	"github.com/hashicorp/go-plugin"
+	sdk "github.com/ivannovak/glide/pkg/plugin/sdk/v1"
+)
+
+// PluginCache manages plugin process lifecycle and reuse
+type PluginCache struct {
+	mu      sync.RWMutex
+	cache   map[string]*CachedPlugin
+	config  CacheConfig
+	cleanup *time.Timer
+}
+
+// CachedPlugin represents a cached plugin instance
+type CachedPlugin struct {
+	Plugin    *RuntimePlugin
+	LastUsed  time.Time
+	UseCount  int64
+	Process   *plugin.Client
+}
+
+// CacheConfig controls plugin caching behavior
+type CacheConfig struct {
+	MaxIdleTime     time.Duration // How long to keep unused plugins
+	MaxPlugins      int           // Maximum number of cached plugins
+	CleanupInterval time.Duration // How often to clean up expired plugins
+	PreloadPlugins  []string      // Plugins to preload on startup
+}
+
+// NewPluginCache creates a new plugin cache
+func NewPluginCache(config CacheConfig) *PluginCache {
+	if config.MaxIdleTime == 0 {
+		config.MaxIdleTime = 5 * time.Minute
+	}
+	if config.MaxPlugins == 0 {
+		config.MaxPlugins = 10
+	}
+	if config.CleanupInterval == 0 {
+		config.CleanupInterval = 1 * time.Minute
+	}
+
+	cache := &PluginCache{
+		cache:  make(map[string]*CachedPlugin),
+		config: config,
+	}
+
+	// Start cleanup routine
+	cache.startCleanup()
+
+	return cache
+}
+
+// Get retrieves a plugin from cache or loads it
+func (pc *PluginCache) Get(pluginName string, config map[string]interface{}, manager *RuntimePluginManager) (*RuntimePlugin, error) {
+	pc.mu.Lock()
+	defer pc.mu.Unlock()
+
+	// Check if plugin is in cache
+	if cached, exists := pc.cache[pluginName]; exists {
+		// Verify plugin is still alive
+		if pc.isPluginAlive(cached.Plugin) {
+			cached.LastUsed = time.Now()
+			cached.UseCount++
+			return cached.Plugin, nil
+		}
+		
+		// Plugin died, remove from cache
+		delete(pc.cache, pluginName)
+	}
+
+	// Plugin not in cache or died, load it
+	plugin, err := manager.loadPlugin(manager.findPluginPathUncached(pluginName), config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load plugin %s: %w", pluginName, err)
+	}
+
+	// Add to cache if there's room
+	if len(pc.cache) < pc.config.MaxPlugins {
+		pc.cache[pluginName] = &CachedPlugin{
+			Plugin:   plugin,
+			LastUsed: time.Now(),
+			UseCount: 1,
+			Process:  plugin.Client,
+		}
+	}
+
+	return plugin, nil
+}
+
+// isPluginAlive checks if a plugin process is still alive
+func (pc *PluginCache) isPluginAlive(plugin *RuntimePlugin) bool {
+	if plugin.Client == nil {
+		return false
+	}
+
+	// Try a quick health check
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+
+	_, err := plugin.RPC.GetMetadata(ctx)
+	return err == nil
+}
+
+// startCleanup starts the cleanup routine
+func (pc *PluginCache) startCleanup() {
+	pc.cleanup = time.AfterFunc(pc.config.CleanupInterval, func() {
+		pc.cleanupExpired()
+		pc.startCleanup() // Schedule next cleanup
+	})
+}
+
+// cleanupExpired removes expired plugins from cache
+func (pc *PluginCache) cleanupExpired() {
+	pc.mu.Lock()
+	defer pc.mu.Unlock()
+
+	now := time.Now()
+	for name, cached := range pc.cache {
+		if now.Sub(cached.LastUsed) > pc.config.MaxIdleTime {
+			// Plugin has been idle too long, remove it
+			cached.Plugin.Client.Kill()
+			delete(pc.cache, name)
+		}
+	}
+}
+
+// PreloadPlugins loads specified plugins into cache
+func (pc *PluginCache) PreloadPlugins(manager *RuntimePluginManager) error {
+	for _, pluginName := range pc.config.PreloadPlugins {
+		_, err := pc.Get(pluginName, make(map[string]interface{}), manager)
+		if err != nil {
+			// Log warning but continue with other plugins
+			fmt.Printf("Warning: failed to preload plugin %s: %v\n", pluginName, err)
+		}
+	}
+	return nil
+}
+
+// Clear removes all plugins from cache
+func (pc *PluginCache) Clear() {
+	pc.mu.Lock()
+	defer pc.mu.Unlock()
+
+	for name, cached := range pc.cache {
+		cached.Plugin.Client.Kill()
+		delete(pc.cache, name)
+	}
+}
+
+// Stats returns cache statistics
+func (pc *PluginCache) Stats() CacheStats {
+	pc.mu.RLock()
+	defer pc.mu.RUnlock()
+
+	stats := CacheStats{
+		TotalPlugins: len(pc.cache),
+		MaxPlugins:   pc.config.MaxPlugins,
+		Plugins:      make([]PluginStats, 0, len(pc.cache)),
+	}
+
+	for name, cached := range pc.cache {
+		stats.Plugins = append(stats.Plugins, PluginStats{
+			Name:     name,
+			LastUsed: cached.LastUsed,
+			UseCount: cached.UseCount,
+			Alive:    pc.isPluginAlive(cached.Plugin),
+		})
+	}
+
+	return stats
+}
+
+// Shutdown stops the cleanup routine and clears the cache
+func (pc *PluginCache) Shutdown() {
+	if pc.cleanup != nil {
+		pc.cleanup.Stop()
+	}
+	pc.Clear()
+}
+
+// CacheStats provides information about cache state
+type CacheStats struct {
+	TotalPlugins int           `json:"total_plugins"`
+	MaxPlugins   int           `json:"max_plugins"`
+	Plugins      []PluginStats `json:"plugins"`
+}
+
+// PluginStats provides information about a cached plugin
+type PluginStats struct {
+	Name     string    `json:"name"`
+	LastUsed time.Time `json:"last_used"`
+	UseCount int64     `json:"use_count"`
+	Alive    bool      `json:"alive"`
+}
+
+// PluginPool manages a pool of plugin instances for high-throughput scenarios
+type PluginPool struct {
+	mu          sync.RWMutex
+	pools       map[string]*InstancePool
+	maxPoolSize int
+}
+
+// InstancePool manages multiple instances of the same plugin
+type InstancePool struct {
+	available []*RuntimePlugin
+	inUse     []*RuntimePlugin
+	maxSize   int
+}
+
+// NewPluginPool creates a new plugin pool
+func NewPluginPool(maxPoolSize int) *PluginPool {
+	if maxPoolSize == 0 {
+		maxPoolSize = 3
+	}
+
+	return &PluginPool{
+		pools:       make(map[string]*InstancePool),
+		maxPoolSize: maxPoolSize,
+	}
+}
+
+// GetInstance gets a plugin instance from the pool
+func (pp *PluginPool) GetInstance(pluginName string, manager *RuntimePluginManager) (*RuntimePlugin, error) {
+	pp.mu.Lock()
+	defer pp.mu.Unlock()
+
+	pool, exists := pp.pools[pluginName]
+	if !exists {
+		pool = &InstancePool{
+			available: make([]*RuntimePlugin, 0),
+			inUse:     make([]*RuntimePlugin, 0),
+			maxSize:   pp.maxPoolSize,
+		}
+		pp.pools[pluginName] = pool
+	}
+
+	// Try to get an available instance
+	if len(pool.available) > 0 {
+		instance := pool.available[0]
+		pool.available = pool.available[1:]
+		pool.inUse = append(pool.inUse, instance)
+		return instance, nil
+	}
+
+	// No available instances, create new one if under limit
+	if len(pool.inUse) < pool.maxSize {
+		pluginPath, err := manager.findPluginPath(pluginName)
+		if err != nil {
+			return nil, err
+		}
+
+		instance, err := manager.loadPlugin(pluginPath, make(map[string]interface{}))
+		if err != nil {
+			return nil, err
+		}
+
+		pool.inUse = append(pool.inUse, instance)
+		return instance, nil
+	}
+
+	return nil, fmt.Errorf("plugin pool for %s is at maximum capacity", pluginName)
+}
+
+// ReturnInstance returns a plugin instance to the pool
+func (pp *PluginPool) ReturnInstance(pluginName string, instance *RuntimePlugin) {
+	pp.mu.Lock()
+	defer pp.mu.Unlock()
+
+	pool, exists := pp.pools[pluginName]
+	if !exists {
+		return
+	}
+
+	// Remove from in-use list
+	for i, inUse := range pool.inUse {
+		if inUse == instance {
+			pool.inUse = append(pool.inUse[:i], pool.inUse[i+1:]...)
+			break
+		}
+	}
+
+	// Add to available list
+	pool.available = append(pool.available, instance)
+}
+
+// Shutdown closes all pooled instances
+func (pp *PluginPool) Shutdown() {
+	pp.mu.Lock()
+	defer pp.mu.Unlock()
+
+	for _, pool := range pp.pools {
+		for _, instance := range pool.available {
+			instance.Client.Kill()
+		}
+		for _, instance := range pool.inUse {
+			instance.Client.Kill()
+		}
+	}
+
+	pp.pools = make(map[string]*InstancePool)
+}

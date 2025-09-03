@@ -1,0 +1,118 @@
+syntax = "proto3";
+
+package v1;
+
+option go_package = "github.com/ivannovak/glide/pkg/plugin/sdk/v1";
+
+// GlidePlugin service defines the RPC interface for plugins
+service GlidePlugin {
+  // Get plugin metadata
+  rpc GetMetadata(Empty) returns (PluginMetadata);
+  
+  // Configure the plugin
+  rpc Configure(ConfigureRequest) returns (ConfigureResponse);
+  
+  // List available commands
+  rpc ListCommands(Empty) returns (CommandList);
+  
+  // Execute a non-interactive command
+  rpc ExecuteCommand(ExecuteRequest) returns (ExecuteResponse);
+  
+  // Start an interactive session
+  rpc StartInteractive(stream StreamMessage) returns (stream StreamMessage);
+  
+  // Get required capabilities
+  rpc GetCapabilities(Empty) returns (Capabilities);
+}
+
+// Empty message for RPC calls with no parameters
+message Empty {}
+
+message PluginMetadata {
+  string name = 1;
+  string version = 2;
+  string author = 3;
+  string description = 4;
+  string min_sdk = 5;
+  int64 build_time_unix = 6;  // Unix timestamp
+  string homepage = 7;
+  string license = 8;
+  repeated string tags = 9;
+  map<string, string> extra = 10;
+}
+
+message CommandInfo {
+  string name = 1;
+  string description = 2;
+  string category = 3;
+  repeated string aliases = 4;
+  bool interactive = 5;
+  bool hidden = 6;
+  bool requires_tty = 7;
+  bool requires_auth = 8;
+}
+
+message CommandList {
+  repeated CommandInfo commands = 1;
+}
+
+message ConfigureRequest {
+  map<string, string> config = 1;
+}
+
+message ConfigureResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message ExecuteRequest {
+  string command = 1;
+  repeated string args = 2;
+  map<string, string> flags = 3;
+  map<string, string> env = 4;
+  string work_dir = 5;
+  bytes stdin = 6;
+}
+
+message ExecuteResponse {
+  bool success = 1;
+  int32 exit_code = 2;
+  bytes stdout = 3;
+  bytes stderr = 4;
+  string error = 5;
+  bool requires_interactive = 6;
+  map<string, string> extra = 7;
+}
+
+message Capabilities {
+  bool requires_docker = 1;
+  bool requires_network = 2;
+  bool requires_filesystem = 3;
+  bool requires_interactive = 4;
+  repeated string required_commands = 5;
+  repeated string required_paths = 6;
+  repeated string required_env_vars = 7;
+}
+
+message StreamMessage {
+  enum Type {
+    STDIN = 0;
+    STDOUT = 1;
+    STDERR = 2;
+    RESIZE = 3;
+    SIGNAL = 4;
+    EXIT = 5;
+    ERROR = 6;
+    PING = 7;
+    PONG = 8;
+  }
+  
+  Type type = 1;
+  bytes data = 2;
+  string signal = 3;
+  int32 width = 4;
+  int32 height = 5;
+  int32 exit_code = 6;
+  string error = 7;
+  int64 timestamp_unix = 8;  // Unix timestamp
+}

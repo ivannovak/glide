@@ -1,0 +1,332 @@
+package plugin
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/spf13/cobra"
+	"github.com/ivannovak/glide/internal/config"
+	"github.com/ivannovak/glide/internal/context"
+	"github.com/ivannovak/glide/pkg/plugin/sdk"
+	sdkv1 "github.com/ivannovak/glide/pkg/plugin/sdk/v1"
+)
+
+// RuntimePluginIntegration manages both build-time and runtime plugins
+type RuntimePluginIntegration struct {
+	manager     *sdk.RuntimePluginManager
+	host        *sdk.HostImplementation
+	buildTime   *Registry // Existing build-time registry
+}
+
+// NewRuntimePluginIntegration creates a new integrated plugin system
+func NewRuntimePluginIntegration() *RuntimePluginIntegration {
+	manager := sdk.NewRuntimePluginManager()
+	host := sdk.NewHostImplementation()
+	
+	return &RuntimePluginIntegration{
+		manager:   manager,
+		host:      host,
+		buildTime: GetGlobalRegistry(),
+	}
+}
+
+// Initialize sets up the runtime plugin system
+func (rpi *RuntimePluginIntegration) Initialize(cfg *config.Config, ctx *context.ProjectContext) error {
+	// Set context for host implementation
+	rpi.host.SetContext(cfg, ctx)
+	
+	// Auto-load configured runtime plugins
+	if err := rpi.manager.AutoloadPlugins(cfg, ctx); err != nil {
+		return fmt.Errorf("failed to autoload runtime plugins: %w", err)
+	}
+	
+	return nil
+}
+
+// LoadAllPlugins loads both build-time and runtime plugins
+func (rpi *RuntimePluginIntegration) LoadAllPlugins(root *cobra.Command) error {
+	// Load build-time plugins (existing functionality)
+	if err := rpi.buildTime.LoadAll(root); err != nil {
+		return fmt.Errorf("failed to load build-time plugins: %w", err)
+	}
+	
+	// Load runtime plugins
+	if err := rpi.loadRuntimePluginCommands(root); err != nil {
+		return fmt.Errorf("failed to load runtime plugins: %w", err)
+	}
+	
+	return nil
+}
+
+// loadRuntimePluginCommands adds commands from runtime plugins to cobra
+func (rpi *RuntimePluginIntegration) loadRuntimePluginCommands(root *cobra.Command) error {
+	plugins := rpi.manager.ListLoadedPlugins()
+	
+	for _, plugin := range plugins {
+		if err := rpi.addPluginCommands(root, plugin); err != nil {
+			// Log warning but continue with other plugins
+			fmt.Printf("Warning: failed to add commands from plugin %s: %v\n", plugin.Name, err)
+		}
+	}
+	
+	return nil
+}
+
+// addPluginCommands adds all commands from a runtime plugin to cobra
+func (rpi *RuntimePluginIntegration) addPluginCommands(root *cobra.Command, plugin *sdk.RuntimePlugin) error {
+	ctx := context.Background()
+	
+	// Get commands from plugin
+	commands, err := plugin.RPC.ListCommands(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to list commands from plugin %s: %w", plugin.Name, err)
+	}
+	
+	// Add each command to cobra
+	for _, cmdInfo := range commands {
+		cobraCmd := rpi.createCobraCommand(plugin, cmdInfo)
+		
+		// Check for conflicts with existing commands
+		if existingCmd, _, _ := root.Find([]string{cmdInfo.Name}); existingCmd != root {
+			fmt.Printf("Warning: runtime plugin command %s conflicts with existing command\n", cmdInfo.Name)
+			continue
+		}
+		
+		root.AddCommand(cobraCmd)
+		
+		// Add aliases
+		for _, alias := range cmdInfo.Aliases {
+			if existingCmd, _, _ := root.Find([]string{alias}); existingCmd != root {
+				continue // Skip conflicting aliases
+			}
+			
+			aliasCmd := *cobraCmd // Copy command
+			aliasCmd.Use = alias
+			aliasCmd.Hidden = true // Hide aliases from help
+			root.AddCommand(&aliasCmd)
+		}
+	}
+	
+	return nil
+}
+
+// createCobraCommand creates a cobra.Command for a runtime plugin command
+func (rpi *RuntimePluginIntegration) createCobraCommand(plugin *sdk.RuntimePlugin, cmdInfo *sdkv1.CommandInfo) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   cmdInfo.Name,
+		Short: cmdInfo.Description,
+		Long:  cmdInfo.Description,
+	}
+	
+	// Add usage and examples
+	if cmdInfo.Usage != "" {
+		cmd.Use = cmdInfo.Usage
+	}
+	if len(cmdInfo.Examples) > 0 {
+		cmd.Example = fmt.Sprintf("  %s", cmdInfo.Examples[0])
+		if len(cmdInfo.Examples) > 1 {
+			for _, example := range cmdInfo.Examples[1:] {
+				cmd.Example += fmt.Sprintf("\n  %s", example)
+			}
+		}
+	}
+	
+	// Add flags
+	for _, flag := range cmdInfo.Flags {
+		switch flag.Type {
+		case "string":
+			cmd.Flags().String(flag.Name, flag.Default, flag.Description)
+		case "bool":
+			defaultBool := flag.Default == "true"
+			cmd.Flags().Bool(flag.Name, defaultBool, flag.Description)
+		case "int":
+			defaultInt := 0
+			if flag.Default != "" {
+				fmt.Sscanf(flag.Default, "%d", &defaultInt)
+			}
+			cmd.Flags().Int(flag.Name, defaultInt, flag.Description)
+		}
+		
+		if flag.ShortName != "" {
+			// Add short name support (requires more complex flag handling)
+		}
+		
+		if flag.Required {
+			cmd.MarkFlagRequired(flag.Name)
+		}
+	}
+	
+	// Set the run function based on whether command is interactive
+	if cmdInfo.Interactive {
+		cmd.RunE = func(cobraCmd *cobra.Command, args []string) error {
+			return rpi.runInteractiveCommand(plugin, cmdInfo.Name, args, cobraCmd)
+		}
+	} else {
+		cmd.RunE = func(cobraCmd *cobra.Command, args []string) error {
+			return rpi.runCommand(plugin, cmdInfo.Name, args, cobraCmd)
+		}
+	}
+	
+	return cmd
+}
+
+// runCommand executes a non-interactive runtime plugin command
+func (rpi *RuntimePluginIntegration) runCommand(plugin *sdk.RuntimePlugin, command string, args []string, cobraCmd *cobra.Command) error {
+	ctx := context.Background()
+	
+	// Extract flags
+	flags := make(map[string]string)
+	cobraCmd.Flags().VisitAll(func(flag *cobra.Flag) {
+		if flag.Changed {
+			flags[flag.Name] = flag.Value.String()
+		}
+	})
+	
+	// Execute command
+	req := &sdkv1.CommandRequest{
+		Command: command,
+		Args:    args,
+		Flags:   flags,
+		TTY:     false,
+	}
+	
+	response, err := plugin.RPC.ExecuteCommand(ctx, req)
+	if err != nil {
+		return fmt.Errorf("plugin command failed: %w", err)
+	}
+	
+	// Output results
+	if response.Stdout != "" {
+		fmt.Print(response.Stdout)
+	}
+	if response.Stderr != "" {
+		fmt.Fprint(fmt.Errorf("%s", response.Stderr))
+	}
+	if response.Error != "" {
+		return fmt.Errorf("command error: %s", response.Error)
+	}
+	
+	// Exit with plugin's exit code
+	if response.ExitCode != 0 {
+		return fmt.Errorf("command exited with code %d", response.ExitCode)
+	}
+	
+	return nil
+}
+
+// runInteractiveCommand executes an interactive runtime plugin command
+func (rpi *RuntimePluginIntegration) runInteractiveCommand(plugin *sdk.RuntimePlugin, command string, args []string, cobraCmd *cobra.Command) error {
+	// Extract flags
+	flags := make(map[string]string)
+	cobraCmd.Flags().VisitAll(func(flag *cobra.Flag) {
+		if flag.Changed {
+			flags[flag.Name] = flag.Value.String()
+		}
+	})
+	
+	// Execute interactive command
+	req := &sdkv1.CommandRequest{
+		Command: command,
+		Args:    args,
+		Flags:   flags,
+		TTY:     true,
+	}
+	
+	session, err := plugin.RPC.ExecuteInteractive(context.Background(), req)
+	if err != nil {
+		return fmt.Errorf("failed to start interactive session: %w", err)
+	}
+	defer session.Close()
+	
+	// Run interactive loop
+	return rpi.runInteractiveLoop(session)
+}
+
+// runInteractiveLoop handles the interactive session loop
+func (rpi *RuntimePluginIntegration) runInteractiveLoop(session sdkv1.InteractiveSession) error {
+	// This would implement the full interactive loop
+	// For now, return an error indicating it needs implementation
+	return fmt.Errorf("interactive commands require full TTY implementation")
+}
+
+// DiscoverPlugins discovers available runtime plugins
+func (rpi *RuntimePluginIntegration) DiscoverPlugins() ([]*sdk.PluginInfo, error) {
+	return rpi.manager.DiscoverPlugins()
+}
+
+// LoadPlugin loads a specific runtime plugin
+func (rpi *RuntimePluginIntegration) LoadPlugin(nameOrPath string, config map[string]interface{}) error {
+	return rpi.manager.LoadPlugin(nameOrPath, config)
+}
+
+// UnloadPlugin unloads a runtime plugin
+func (rpi *RuntimePluginIntegration) UnloadPlugin(name string) error {
+	return rpi.manager.UnloadPlugin(name)
+}
+
+// ListPlugins returns information about all plugins (build-time and runtime)
+func (rpi *RuntimePluginIntegration) ListPlugins() (*PluginListInfo, error) {
+	info := &PluginListInfo{
+		BuildTime: make([]*BuildTimePluginInfo, 0),
+		Runtime:   make([]*RuntimePluginInfo, 0),
+	}
+	
+	// Get build-time plugins
+	buildTimePlugins := rpi.buildTime.List()
+	for _, p := range buildTimePlugins {
+		metadata := p.Metadata()
+		info.BuildTime = append(info.BuildTime, &BuildTimePluginInfo{
+			Name:        metadata.Name,
+			Version:     metadata.Version,
+			Description: metadata.Description,
+			Commands:    len(metadata.Commands),
+		})
+	}
+	
+	// Get runtime plugins
+	runtimePlugins := rpi.manager.ListLoadedPlugins()
+	for _, p := range runtimePlugins {
+		commands := 0
+		if p.Metadata != nil {
+			commands = len(p.Metadata.Commands)
+		}
+		
+		info.Runtime = append(info.Runtime, &RuntimePluginInfo{
+			Name:        p.Name,
+			Version:     p.Metadata.Version,
+			Description: p.Metadata.Description,
+			Path:        p.Path,
+			Commands:    commands,
+		})
+	}
+	
+	return info, nil
+}
+
+// Shutdown cleanly shuts down all plugin systems
+func (rpi *RuntimePluginIntegration) Shutdown() error {
+	return rpi.manager.Shutdown()
+}
+
+// PluginListInfo contains information about loaded plugins
+type PluginListInfo struct {
+	BuildTime []*BuildTimePluginInfo `json:"build_time"`
+	Runtime   []*RuntimePluginInfo   `json:"runtime"`
+}
+
+// BuildTimePluginInfo contains information about build-time plugins
+type BuildTimePluginInfo struct {
+	Name        string `json:"name"`
+	Version     string `json:"version"`
+	Description string `json:"description"`
+	Commands    int    `json:"commands"`
+}
+
+// RuntimePluginInfo contains information about runtime plugins
+type RuntimePluginInfo struct {
+	Name        string `json:"name"`
+	Version     string `json:"version"`
+	Description string `json:"description"`
+	Path        string `json:"path"`
+	Commands    int    `json:"commands"`
+}

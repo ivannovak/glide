@@ -1,0 +1,330 @@
+package sdk
+
+import (
+	"context"
+	"fmt"
+	"os"
+	"os/exec"
+	"strings"
+	"time"
+
+	sdk "github.com/ivannovak/glide/pkg/plugin/sdk/v1"
+	"github.com/ivannovak/glide/internal/config"
+	projectcontext "github.com/ivannovak/glide/internal/context"
+)
+
+// HostImplementation provides host capabilities to plugins
+type HostImplementation struct {
+	config       *config.Config
+	projectCtx   *projectcontext.ProjectContext
+	dockerClient *DockerClient
+}
+
+// NewHostImplementation creates a new host implementation
+func NewHostImplementation() *HostImplementation {
+	return &HostImplementation{
+		dockerClient: NewDockerClient(),
+	}
+}
+
+// SetContext sets the project context and configuration
+func (h *HostImplementation) SetContext(cfg *config.Config, ctx *context.ProjectContext) {
+	h.config = cfg
+	h.projectCtx = ctx
+}
+
+// GetProjectContext returns project information to plugins
+func (h *HostImplementation) GetProjectContext(ctx context.Context) (*sdk.ProjectContext, error) {
+	if h.projectCtx == nil {
+		return nil, fmt.Errorf("project context not available")
+	}
+
+	// Get current branch
+	currentBranch := ""
+	if output, err := exec.CommandContext(ctx, "git", "rev-parse", "--abbrev-ref", "HEAD").Output(); err == nil {
+		currentBranch = strings.TrimSpace(string(output))
+	}
+
+	// Get git remotes
+	gitRemotes := make(map[string]string)
+	if output, err := exec.CommandContext(ctx, "git", "remote", "-v").Output(); err == nil {
+		lines := strings.Split(string(output), "\n")
+		for _, line := range lines {
+			if strings.Contains(line, "(fetch)") {
+				parts := strings.Fields(line)
+				if len(parts) >= 2 {
+					gitRemotes[parts[0]] = parts[1]
+				}
+			}
+		}
+	}
+
+	return &sdk.ProjectContext{
+		RootPath:        h.projectCtx.RootPath,
+		ProjectName:     h.projectCtx.ProjectName,
+		DevelopmentMode: string(h.projectCtx.DevelopmentMode),
+		CurrentBranch:   currentBranch,
+		WorktreePath:    h.projectCtx.WorktreePath,
+		ConfigPath:      h.projectCtx.ConfigPath,
+		GitRemotes:      gitRemotes,
+		Environment:     getEnvironmentVars(),
+	}, nil
+}
+
+// GetConfiguration returns plugin configuration
+func (h *HostImplementation) GetConfiguration(ctx context.Context, keys []string) (*sdk.ConfigData, error) {
+	values := make(map[string]interface{})
+
+	if h.config != nil && h.config.Plugins != nil {
+		// Extract requested configuration values
+		for _, key := range keys {
+			for pluginName, pluginConfig := range h.config.Plugins {
+				if configMap, ok := pluginConfig.(map[string]interface{}); ok {
+					if value, exists := configMap[key]; exists {
+						values[key] = value
+						break
+					}
+				}
+				_ = pluginName // unused for now
+			}
+		}
+	}
+
+	// Add environment variable overrides
+	for _, key := range keys {
+		envKey := fmt.Sprintf("GLIDE_PLUGIN_%s", strings.ToUpper(strings.ReplaceAll(key, "-", "_")))
+		if envValue := os.Getenv(envKey); envValue != "" {
+			values[key] = envValue
+		}
+	}
+
+	return &sdk.ConfigData{Values: values}, nil
+}
+
+// ExecuteDocker executes Docker commands
+func (h *HostImplementation) ExecuteDocker(ctx context.Context, req *sdk.DockerRequest) (*sdk.DockerResponse, error) {
+	return h.dockerClient.Execute(ctx, req)
+}
+
+// ExecuteDockerInteractive executes interactive Docker commands
+func (h *HostImplementation) ExecuteDockerInteractive(ctx context.Context, req *sdk.DockerRequest) (sdk.InteractiveSession, error) {
+	return h.dockerClient.ExecuteInteractive(ctx, req)
+}
+
+// WriteOutput writes output to the user's terminal
+func (h *HostImplementation) WriteOutput(ctx context.Context, req *sdk.OutputRequest) error {
+	var target *os.File
+	switch req.Stream {
+	case "stdout":
+		target = os.Stdout
+	case "stderr":
+		target = os.Stderr
+	default:
+		target = os.Stdout
+	}
+
+	_, err := target.Write(req.Data)
+	return err
+}
+
+// ReadInput reads input from the user
+func (h *HostImplementation) ReadInput(ctx context.Context, req *sdk.InputRequest) (*sdk.InputResponse, error) {
+	if req.Prompt != "" {
+		fmt.Print(req.Prompt)
+	}
+
+	var input string
+	if req.Hidden {
+		// TODO: Implement hidden input (password) reading
+		// This would require a terminal library like golang.org/x/term
+		return &sdk.InputResponse{
+			Error: "hidden input not yet implemented",
+		}, nil
+	}
+
+	if _, err := fmt.Scanln(&input); err != nil {
+		return &sdk.InputResponse{
+			Error: err.Error(),
+		}, nil
+	}
+
+	return &sdk.InputResponse{
+		Data: input,
+	}, nil
+}
+
+// getEnvironmentVars returns a filtered set of environment variables
+func getEnvironmentVars() map[string]string {
+	env := make(map[string]string)
+	
+	// Only include safe environment variables
+	safeVars := []string{
+		"HOME", "USER", "PATH", "SHELL",
+		"GLIDE_", // All GLIDE_ prefixed vars
+		"AWS_PROFILE", "AWS_REGION", "AWS_DEFAULT_REGION",
+		"DOCKER_HOST", "DOCKER_CERT_PATH", "DOCKER_TLS_VERIFY",
+	}
+	
+	for _, envVar := range os.Environ() {
+		parts := strings.SplitN(envVar, "=", 2)
+		if len(parts) != 2 {
+			continue
+		}
+		
+		key, value := parts[0], parts[1]
+		
+		// Check if this is a safe variable to expose
+		for _, safe := range safeVars {
+			if key == safe || strings.HasPrefix(key, safe) {
+				env[key] = value
+				break
+			}
+		}
+	}
+	
+	return env
+}
+
+// DockerClient handles Docker command execution
+type DockerClient struct{}
+
+// NewDockerClient creates a new Docker client
+func NewDockerClient() *DockerClient {
+	return &DockerClient{}
+}
+
+// Execute runs a Docker command and returns the response
+func (dc *DockerClient) Execute(ctx context.Context, req *sdk.DockerRequest) (*sdk.DockerResponse, error) {
+	startTime := time.Now()
+	
+	// Build the command based on operation
+	var cmd *exec.Cmd
+	switch req.Operation {
+	case "compose":
+		args := append([]string{"compose"}, req.Args...)
+		cmd = exec.CommandContext(ctx, "docker", args...)
+	case "exec":
+		args := append([]string{"exec"}, req.Args...)
+		cmd = exec.CommandContext(ctx, "docker", args...)
+	case "run":
+		args := append([]string{"run"}, req.Args...)
+		cmd = exec.CommandContext(ctx, "docker", args...)
+	case "build":
+		args := append([]string{"build"}, req.Args...)
+		cmd = exec.CommandContext(ctx, "docker", args...)
+	default:
+		// Direct docker command
+		cmd = exec.CommandContext(ctx, "docker", req.Args...)
+	}
+	
+	// Set working directory
+	if req.WorkDir != "" {
+		cmd.Dir = req.WorkDir
+	}
+	
+	// Set environment variables
+	if len(req.Env) > 0 {
+		cmd.Env = os.Environ()
+		for key, value := range req.Env {
+			cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", key, value))
+		}
+	}
+	
+	// Execute command
+	output, err := cmd.CombinedOutput()
+	duration := time.Since(startTime)
+	
+	exitCode := 0
+	if err != nil {
+		if exitError, ok := err.(*exec.ExitError); ok {
+			exitCode = exitError.ExitCode()
+		} else {
+			exitCode = 1
+		}
+	}
+	
+	// Split output into stdout and stderr (simplified)
+	outputStr := string(output)
+	
+	response := &sdk.DockerResponse{
+		ExitCode: exitCode,
+		Stdout:   outputStr,
+		Duration: duration,
+	}
+	
+	if err != nil && exitCode == 1 {
+		response.Error = err.Error()
+		response.Stderr = outputStr
+		response.Stdout = ""
+	}
+	
+	return response, nil
+}
+
+// ExecuteInteractive runs an interactive Docker command
+func (dc *DockerClient) ExecuteInteractive(ctx context.Context, req *sdk.DockerRequest) (sdk.InteractiveSession, error) {
+	// Build the command
+	var cmd *exec.Cmd
+	switch req.Operation {
+	case "compose":
+		args := append([]string{"compose"}, req.Args...)
+		cmd = exec.CommandContext(ctx, "docker", args...)
+	case "exec":
+		args := append([]string{"exec"}, req.Args...)
+		cmd = exec.CommandContext(ctx, "docker", args...)
+	default:
+		cmd = exec.CommandContext(ctx, "docker", req.Args...)
+	}
+	
+	// Set working directory
+	if req.WorkDir != "" {
+		cmd.Dir = req.WorkDir
+	}
+	
+	// Set environment variables
+	if len(req.Env) > 0 {
+		cmd.Env = os.Environ()
+		for key, value := range req.Env {
+			cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", key, value))
+		}
+	}
+	
+	// Create interactive session
+	return NewDockerInteractiveSession(cmd, ctx)
+}
+
+// DockerInteractiveSession implements an interactive Docker session
+type DockerInteractiveSession struct {
+	cmd    *exec.Cmd
+	ctx    context.Context
+	stdin  *os.File
+	stdout *os.File
+	stderr *os.File
+}
+
+// NewDockerInteractiveSession creates a new interactive Docker session
+func NewDockerInteractiveSession(cmd *exec.Cmd, ctx context.Context) (*DockerInteractiveSession, error) {
+	// For now, this is a simplified implementation
+	// A full implementation would use PTY for true interactive support
+	return &DockerInteractiveSession{
+		cmd: cmd,
+		ctx: ctx,
+	}, nil
+}
+
+func (dis *DockerInteractiveSession) Send(msg *sdk.StreamMessage) error {
+	// Simplified implementation - in reality this would handle PTY communication
+	return fmt.Errorf("interactive Docker sessions not fully implemented")
+}
+
+func (dis *DockerInteractiveSession) Recv() (*sdk.StreamMessage, error) {
+	// Simplified implementation - in reality this would handle PTY communication  
+	return nil, fmt.Errorf("interactive Docker sessions not fully implemented")
+}
+
+func (dis *DockerInteractiveSession) Close() error {
+	if dis.cmd != nil && dis.cmd.Process != nil {
+		return dis.cmd.Process.Kill()
+	}
+	return nil
+}

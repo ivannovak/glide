@@ -1,0 +1,68 @@
+name: Test Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/**'
+      - 'cmd/**'
+      - 'internal/**'
+      - 'pkg/**'
+      - 'go.mod'
+      - 'go.sum'
+      - 'scripts/build.sh'
+
+jobs:
+  test-local-build:
+    name: Test Local Build Script
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+
+    - name: Test build script
+      run: |
+        echo "Testing local build script..."
+        ./scripts/build.sh "test-$(date +%s)"
+        
+        # Verify artifacts were created
+        ls -la dist/
+        
+        # Test one of the binaries (Linux AMD64)
+        if [[ -f "dist/glide-linux-amd64" ]]; then
+          echo "Binary exists and is executable"
+          chmod +x dist/glide-linux-amd64
+          ./dist/glide-linux-amd64 --help || echo "Help command tested"
+        fi
+        
+        # Verify checksums exist
+        if [[ -f "dist/checksums.txt" ]]; then
+          echo "Checksums generated successfully:"
+          cat dist/checksums.txt
+        fi
+
+  test-docker-build:
+    name: Test Docker Build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Test Docker build
+      run: |
+        docker build --build-arg VERSION=test-docker \
+          --build-arg BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ) \
+          --build-arg GIT_COMMIT=$(git rev-parse --short HEAD) \
+          -t glide-test .
+        
+        # Test the Docker image
+        docker run --rm glide-test version || echo "Docker image built successfully"

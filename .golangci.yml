@@ -1,0 +1,89 @@
+run:
+  timeout: 5m
+  modules-download-mode: readonly
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+
+  gocritic:
+    enabled-tags:
+      - performance
+      - style
+      - experimental
+    disabled-checks:
+      - whyNoLint
+      - unnamedResult
+
+  gocyclo:
+    min-complexity: 15
+
+  govet:
+    check-shadowing: true
+    enable-all: true
+
+  misspell:
+    locale: US
+
+  nolintlint:
+    allow-leading-space: true
+    require-explanation: true
+    require-specific: true
+
+  revive:
+    min-confidence: 0.8
+
+  staticcheck:
+    go: "1.21"
+
+linters:
+  enable:
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - typecheck
+    - unused
+    - bodyclose
+    - gocritic
+    - gocyclo
+    - gosec
+    - misspell
+    - nolintlint
+    - revive
+    - unconvert
+    - unparam
+
+  disable:
+    - exhaustivestruct
+    - gci
+    - gofmt
+    - gofumpt
+    - goimports
+    - golint
+    - interfacer
+    - maligned
+    - scopelint
+
+issues:
+  exclude-use-default: false
+  exclude-rules:
+    # Exclude some lints from running on tests files
+    - path: _test\.go
+      linters:
+        - gosec
+        - gocritic
+    
+    # Ignore complexity in test files
+    - path: _test\.go
+      linters:
+        - gocyclo
+    
+    # Ignore magic numbers in tests
+    - path: _test\.go
+      text: "mnd:"
+
+  max-issues-per-linter: 0
+  max-same-issues: 0

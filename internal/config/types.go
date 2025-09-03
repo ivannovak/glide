@@ -1,0 +1,119 @@
+package config
+
+// Config represents the global Glide configuration
+type Config struct {
+	Projects       map[string]ProjectConfig `yaml:"projects"`
+	DefaultProject string                   `yaml:"default_project"`
+	Defaults       DefaultsConfig           `yaml:"defaults"`
+	Plugins        map[string]interface{}   `yaml:"plugins"`
+}
+
+// ProjectConfig represents a single project configuration
+type ProjectConfig struct {
+	Path string `yaml:"path"`
+	Mode string `yaml:"mode"` // multi-worktree or single-repo
+}
+
+// DefaultsConfig contains default settings
+type DefaultsConfig struct {
+	Test      TestDefaults      `yaml:"test"`
+	Docker    DockerDefaults    `yaml:"docker"`
+	Colors    ColorDefaults     `yaml:"colors"`
+	Worktree  WorktreeDefaults  `yaml:"worktree"`
+}
+
+// TestDefaults contains default test settings
+type TestDefaults struct {
+	Parallel  bool `yaml:"parallel"`
+	Processes int  `yaml:"processes"`
+	Coverage  bool `yaml:"coverage"`
+	Verbose   bool `yaml:"verbose"`
+}
+
+// DockerDefaults contains default Docker settings
+type DockerDefaults struct {
+	ComposeTimeout int  `yaml:"compose_timeout"`
+	AutoStart      bool `yaml:"auto_start"`
+	RemoveOrphans  bool `yaml:"remove_orphans"`
+}
+
+// ColorDefaults contains color output settings
+type ColorDefaults struct {
+	Enabled string `yaml:"enabled"` // auto, always, never
+}
+
+// WorktreeDefaults contains worktree-related defaults
+type WorktreeDefaults struct {
+	AutoSetup     bool `yaml:"auto_setup"`
+	CopyEnv       bool `yaml:"copy_env"`
+	RunMigrations bool `yaml:"run_migrations"`
+}
+
+// CommandConfig represents runtime configuration with precedence applied
+type CommandConfig struct {
+	// Merged configuration from all sources
+	Test      TestConfig
+	Docker    DockerConfig
+	Colors    ColorConfig
+	Worktree  WorktreeConfig
+	
+	// Currently active project
+	ActiveProject *ProjectConfig
+}
+
+// TestConfig represents runtime test configuration
+type TestConfig struct {
+	Parallel  bool
+	Processes int
+	Coverage  bool
+	Verbose   bool
+	Args      []string // Additional arguments passed through
+}
+
+// DockerConfig represents runtime Docker configuration
+type DockerConfig struct {
+	ComposeTimeout int
+	AutoStart      bool
+	RemoveOrphans  bool
+	ComposeFiles   []string // Resolved compose files
+}
+
+// ColorConfig represents runtime color configuration
+type ColorConfig struct {
+	Enabled bool
+}
+
+// WorktreeConfig represents runtime worktree configuration
+type WorktreeConfig struct {
+	AutoSetup     bool
+	CopyEnv       bool
+	RunMigrations bool
+}
+
+// GetDefaults returns a Config with all default values
+func GetDefaults() Config {
+	return Config{
+		Projects: make(map[string]ProjectConfig),
+		Defaults: DefaultsConfig{
+			Test: TestDefaults{
+				Parallel:  true,
+				Processes: 3,
+				Coverage:  false,
+				Verbose:   false,
+			},
+			Docker: DockerDefaults{
+				ComposeTimeout: 30,
+				AutoStart:      true,
+				RemoveOrphans:  false,
+			},
+			Colors: ColorDefaults{
+				Enabled: "auto",
+			},
+			Worktree: WorktreeDefaults{
+				AutoSetup:     false,
+				CopyEnv:       true,
+				RunMigrations: false,
+			},
+		},
+	}
+}
