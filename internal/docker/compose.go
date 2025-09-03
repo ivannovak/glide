@@ -77,7 +77,7 @@ func (cr *ComposeResolver) findOverrideFile() string {
 		// The override file should be at ../docker-compose.override.yml from vcs/
 		// or ../../docker-compose.override.yml from worktrees/*/
 		var overridePath string
-		
+
 		switch cr.ctx.Location {
 		case context.LocationRoot:
 			overridePath = filepath.Join(cr.ctx.ProjectRoot, "docker-compose.override.yml")
@@ -99,7 +99,7 @@ func (cr *ComposeResolver) findOverrideFile() string {
 	} else {
 		// In single-repo mode, override is in the same directory as main compose file
 		searchPath := cr.getSearchPath()
-		
+
 		// Try standard override file names
 		overrideVariants := []string{
 			"docker-compose.override.yml",
@@ -181,7 +181,7 @@ func (cr *ComposeResolver) BuildComposeCommand(args ...string) []string {
 // GetRelativeComposeFiles returns compose files as relative paths from working directory
 func (cr *ComposeResolver) GetRelativeComposeFiles() []string {
 	var relativeFiles []string
-	
+
 	for _, file := range cr.ctx.ComposeFiles {
 		relPath, err := filepath.Rel(cr.ctx.WorkingDir, file)
 		if err != nil {

@@ -54,7 +54,7 @@ func (c TestConfig) GetPlugin(name string) (map[string]interface{}, bool) {
 	if !exists {
 		return nil, false
 	}
-	
+
 	config, ok := val.(map[string]interface{})
 	return config, ok
 }
@@ -93,7 +93,7 @@ func deepCopyValue(v interface{}) interface{} {
 	if v == nil {
 		return nil
 	}
-	
+
 	switch val := v.(type) {
 	case map[string]interface{}:
 		copy := make(map[string]interface{})
@@ -138,19 +138,19 @@ func (v *ConfigValidator) Validate(config map[string]interface{}) error {
 		if !exists {
 			return fmt.Errorf("missing configuration for plugin: %s", pluginName)
 		}
-		
+
 		pluginMap, ok := pluginConfig.(map[string]interface{})
 		if !ok {
 			return fmt.Errorf("invalid configuration type for plugin %s: expected map, got %T", pluginName, pluginConfig)
 		}
-		
+
 		for _, key := range requiredKeys {
 			if _, exists := pluginMap[key]; !exists {
 				return fmt.Errorf("missing required key '%s' in %s configuration", key, pluginName)
 			}
 		}
 	}
-	
+
 	return nil
 }
 
@@ -180,11 +180,11 @@ var DefaultConfigs = struct {
 	Complete TestConfig
 }{
 	Empty: NewTestConfig(),
-	
+
 	Basic: NewTestConfig().
 		Set("debug", false).
 		Set("verbose", false),
-	
+
 	Complete: NewTestConfig().
 		Set("debug", true).
 		Set("verbose", true).

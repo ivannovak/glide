@@ -56,8 +56,8 @@ Default Configuration:
 To override defaults, pass arguments directly to Pest.`,
 		DisableFlagParsing: true, // Pass all flags through to Pest
 		RunE:               tc.Execute,
-		SilenceUsage:       true,  // Don't show usage on error
-		SilenceErrors:      true,  // Let our error handler handle errors
+		SilenceUsage:       true, // Don't show usage on error
+		SilenceErrors:      true, // Let our error handler handle errors
 	}
 
 	return cmd
@@ -122,23 +122,23 @@ func (c *TestCommand) checkDependencies() error {
 	vendorPath := filepath.Join(c.ctx.ProjectRoot, "vendor")
 	if _, err := os.Stat(vendorPath); os.IsNotExist(err) {
 		output.Warning("Dependencies not installed. Running composer install...")
-		
+
 		spinner := progress.NewSpinner("Installing dependencies")
 		spinner.Start()
-		
+
 		// Run composer install
 		resolver := docker.NewResolver(c.ctx)
 		if err := resolver.Resolve(); err != nil {
 			spinner.Error("Failed to resolve Docker configuration")
 			return err
 		}
-		
+
 		composeCmd := resolver.GetComposeCommand("exec", "php", "composer", "install")
-		
+
 		executor := shell.NewExecutor(shell.Options{
 			Verbose: false,
 		})
-		
+
 		shellCmd := shell.NewCommand("docker", composeCmd...)
 		if _, err := executor.Execute(shellCmd); err != nil {
 			spinner.Error("Failed to install dependencies")
@@ -152,7 +152,7 @@ func (c *TestCommand) checkDependencies() error {
 				),
 			)
 		}
-		
+
 		spinner.Success("Dependencies installed")
 	}
 
@@ -182,7 +182,7 @@ func (c *TestCommand) setupTestDatabase() error {
 	}
 
 	output.Info("Preparing test database...")
-	
+
 	resolver := docker.NewResolver(c.ctx)
 	if err := resolver.Resolve(); err != nil {
 		return err
@@ -257,22 +257,22 @@ func (c *TestCommand) runPestWithProgress(pestArgs []string) error {
 	// Build the complete Docker command
 	dockerArgs := []string{}
 	dockerArgs = append(dockerArgs, resolver.GetComposeCommand("exec")...)
-	
+
 	// Add TTY allocation for interactive output
 	dockerArgs = append(dockerArgs, "-T")
-	
+
 	// Add test environment if .env.testing exists
 	envPath := filepath.Join(c.ctx.ProjectRoot, ".env.testing")
 	if _, err := os.Stat(envPath); err == nil {
 		dockerArgs = append(dockerArgs, "-e", "APP_ENV=testing")
 	}
-	
+
 	dockerArgs = append(dockerArgs, "php", "./vendor/bin/pest")
 	dockerArgs = append(dockerArgs, pestArgs...)
 
 	// Create a pass-through command for real-time output
 	shellCmd := shell.NewPassthroughCommand("docker", dockerArgs[1:]...)
-	
+
 	executor := shell.NewExecutor(shell.Options{
 		Verbose: false,
 	})
@@ -324,7 +324,7 @@ func (c *TestCommand) startDocker() error {
 
 	composeCmd := resolver.GetComposeCommand("up", "-d")
 	shellCmd := shell.NewCommand("docker", composeCmd...)
-	
+
 	if _, err := executor.Execute(shellCmd); err != nil {
 		spinner.Error("Failed to start Docker")
 		return err
@@ -332,16 +332,16 @@ func (c *TestCommand) startDocker() error {
 
 	// Wait for containers to be healthy
 	health := docker.NewHealthMonitor(c.ctx)
-	if err := health.WaitForHealthy(30*time.Second); err != nil {
+	if err := health.WaitForHealthy(30 * time.Second); err != nil {
 		spinner.Error("Docker containers failed health check")
 		return err
 	}
 
 	spinner.Success("Docker containers started")
-	
+
 	// Update context to reflect Docker is now running
 	c.ctx.DockerRunning = true
-	
+
 	return nil
 }
 

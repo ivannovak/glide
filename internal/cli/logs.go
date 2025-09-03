@@ -76,8 +76,8 @@ Tips:
   - Save logs to file: glid logs > logs.txt`,
 		Args:          cobra.MaximumNArgs(1),
 		RunE:          lc.Execute,
-		SilenceUsage:  true,  // Don't show usage on error
-		SilenceErrors: true,  // Let our error handler handle errors
+		SilenceUsage:  true, // Don't show usage on error
+		SilenceErrors: true, // Let our error handler handle errors
 	}
 
 	// Add flags
@@ -221,7 +221,7 @@ func (c *LogsCommand) executeLogs(resolver *docker.Resolver, service string, fol
 
 	// Use os/exec directly for proper signal handling
 	dockerCmd := exec.Command("docker", dockerArgs...)
-	
+
 	// Connect stdout and stderr
 	dockerCmd.Stdout = os.Stdout
 	dockerCmd.Stderr = os.Stderr
@@ -259,7 +259,7 @@ func (c *LogsCommand) executeLogs(resolver *docker.Resolver, service string, fol
 				return nil
 			}
 		}
-		
+
 		// Check for common errors
 		if strings.Contains(err.Error(), "no such service") {
 			return glideErrors.NewConfigError(fmt.Sprintf("service '%s' not found", service),
@@ -271,7 +271,7 @@ func (c *LogsCommand) executeLogs(resolver *docker.Resolver, service string, fol
 				),
 			)
 		}
-		
+
 		return glideErrors.Wrap(err, "failed to get logs",
 			glideErrors.WithSuggestions(
 				"Check if containers are running: glid docker ps",
@@ -288,7 +288,7 @@ func (c *LogsCommand) executeLogs(resolver *docker.Resolver, service string, fol
 func (c *LogsCommand) executeLogsWithGrep(dockerArgs []string, pattern string, follow bool) error {
 	// Create docker command
 	dockerCmd := exec.Command("docker", dockerArgs...)
-	
+
 	// Create grep command
 	grepArgs := []string{"--line-buffered", pattern}
 	if !follow {
@@ -303,7 +303,7 @@ func (c *LogsCommand) executeLogsWithGrep(dockerArgs []string, pattern string, f
 		return glideErrors.Wrap(err, "failed to create pipe for log filtering",
 			glideErrors.WithSuggestions(
 				"Try without grep filter: glid logs",
-				"Use Docker directly: docker compose logs | grep '" + pattern + "'",
+				"Use Docker directly: docker compose logs | grep '"+pattern+"'",
 			),
 		)
 	}

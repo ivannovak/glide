@@ -114,7 +114,7 @@ func (c *GlobalCleanCommand) Execute(cmd *cobra.Command, args []string) error {
 				volumes = false
 			}
 		}
-		
+
 		if volumes {
 			output.Printf("🔍 Checking for unused volumes... ")
 			if err := c.cleanUnusedVolumes(dryRun, stats); err != nil {
@@ -140,7 +140,7 @@ func (c *GlobalCleanCommand) Execute(cmd *cobra.Command, args []string) error {
 	// Summary
 	output.Println()
 	output.Println(strings.Repeat("-", 50))
-	
+
 	if dryRun {
 		output.Warning("🔍 Dry run complete. No changes were made.")
 		c.displayCleanupSummary(stats)
@@ -148,7 +148,7 @@ func (c *GlobalCleanCommand) Execute(cmd *cobra.Command, args []string) error {
 	} else {
 		output.Success("✅ Cleanup complete!")
 		c.displayCleanupSummary(stats)
-		
+
 		if stats.SpaceReclaimed != "" && stats.SpaceReclaimed != "0B" {
 			output.Success("💾 Space reclaimed: %s", stats.SpaceReclaimed)
 		}
@@ -161,15 +161,15 @@ func (c *GlobalCleanCommand) Execute(cmd *cobra.Command, args []string) error {
 func (c *GlobalCleanCommand) promptForCleanup() (orphaned, volumes, images bool) {
 	output.Info("What would you like to clean?")
 	output.Println()
-	
+
 	orphaned, _ = prompt.Confirm("Remove orphaned containers?", true)
 	images, _ = prompt.Confirm("Remove dangling images?", true)
-	
+
 	// For volumes, use destructive confirmation since it can cause data loss
 	if confirmed, _ := prompt.ConfirmDestructive("remove unused volumes"); confirmed {
 		volumes = true
 	}
-	
+
 	output.Println()
 	return
 }
@@ -185,12 +185,12 @@ func (c *GlobalCleanCommand) cleanOrphanedContainers(dryRun bool, stats *Cleanup
 
 	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
 	var orphaned []string
-	
+
 	for _, line := range lines {
 		if line == "" {
 			continue
 		}
-		
+
 		parts := strings.Fields(line)
 		if len(parts) >= 2 {
 			name := parts[1]
@@ -203,7 +203,7 @@ func (c *GlobalCleanCommand) cleanOrphanedContainers(dryRun bool, stats *Cleanup
 
 	if len(orphaned) > 0 {
 		stats.OrphanedContainers = len(orphaned)
-		
+
 		if !dryRun {
 			// Remove the containers
 			args := append([]string{"rm", "-f"}, orphaned...)
@@ -239,7 +239,7 @@ func (c *GlobalCleanCommand) cleanDanglingImages(dryRun bool, stats *CleanupStat
 		// Remove dangling images
 		spinner := progress.NewSpinner("Removing dangling images")
 		spinner.Start()
-		
+
 		pruneCmd := exec.Command("docker", "image", "prune", "-f")
 		if output, err := pruneCmd.Output(); err != nil {
 			spinner.Error("Failed")
@@ -281,7 +281,7 @@ func (c *GlobalCleanCommand) cleanUnusedVolumes(dryRun bool, stats *CleanupStats
 		// Remove unused volumes
 		spinner := progress.NewSpinner("Removing unused volumes")
 		spinner.Start()
-		
+
 		pruneCmd := exec.Command("docker", "volume", "prune", "-f")
 		if err := pruneCmd.Run(); err != nil {
 			spinner.Error("Failed")
@@ -304,12 +304,12 @@ func (c *GlobalCleanCommand) cleanUnusedNetworks(dryRun bool, stats *CleanupStat
 
 	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
 	var unused []string
-	
+
 	for _, line := range lines {
 		if line == "" {
 			continue
 		}
-		
+
 		parts := strings.Fields(line)
 		if len(parts) >= 2 {
 			name := parts[1]
@@ -353,7 +353,7 @@ func (c *GlobalCleanCommand) displayCleanupSummary(stats *CleanupStats) {
 	if stats.UnusedNetworks > 0 {
 		output.Printf("  Unused networks: %d\n", stats.UnusedNetworks)
 	}
-	
+
 	total := stats.OrphanedContainers + stats.DanglingImages + stats.UnusedVolumes + stats.UnusedNetworks
 	if total == 0 {
 		output.Info("  Nothing to clean")

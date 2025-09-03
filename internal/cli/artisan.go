@@ -78,8 +78,8 @@ Environment:
   Use APP_ENV to control the environment (local, staging, production).`,
 		DisableFlagParsing: true, // Pass all flags through to artisan
 		RunE:               ac.Execute,
-		SilenceUsage:       true,  // Don't show usage on error
-		SilenceErrors:      true,  // Let our error handler handle errors
+		SilenceUsage:       true, // Don't show usage on error
+		SilenceErrors:      true, // Let our error handler handle errors
 	}
 
 	return cmd
@@ -170,9 +170,9 @@ func (c *ArtisanCommand) isInteractiveCommand(args []string) bool {
 
 	// Interactive commands that need TTY
 	interactiveCommands := []string{
-		"tinker",      // Laravel REPL
-		"db",          // Database CLI
-		"shell",       // Shell access
+		"tinker", // Laravel REPL
+		"db",     // Database CLI
+		"shell",  // Shell access
 	}
 
 	// Check if the first argument is an interactive command
@@ -455,7 +455,7 @@ func (c *ArtisanCommand) startDocker() error {
 
 	composeCmd := resolver.GetComposeCommand("up", "-d")
 	shellCmd := shell.NewCommand("docker", composeCmd...)
-	
+
 	if _, err := executor.Execute(shellCmd); err != nil {
 		spinner.Error("Failed to start Docker")
 		return err
@@ -469,9 +469,9 @@ func (c *ArtisanCommand) startDocker() error {
 	}
 
 	spinner.Success("Docker containers started")
-	
+
 	// Update context to reflect Docker is now running
 	c.ctx.DockerRunning = true
-	
+
 	return nil
 }

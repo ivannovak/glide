@@ -22,12 +22,12 @@ type GlobalListCommand struct {
 
 // WorktreeInfo contains information about a worktree
 type WorktreeInfo struct {
-	Name         string
-	Path         string
-	Branch       string
-	LastCommit   string
-	CommitDate   time.Time
-	IsClean      bool
+	Name          string
+	Path          string
+	Branch        string
+	LastCommit    string
+	CommitDate    time.Time
+	IsClean       bool
 	HasContainers bool
 }
 
@@ -77,7 +77,7 @@ func (c *GlobalListCommand) Execute(cmd *cobra.Command, args []string) error {
 			}
 
 			worktreePath := filepath.Join(worktreesDir, entry.Name())
-			
+
 			// Check if it's a valid worktree
 			gitFile := filepath.Join(worktreePath, ".git")
 			if _, err := os.Stat(gitFile); err != nil {
@@ -102,7 +102,7 @@ func (c *GlobalListCommand) Execute(cmd *cobra.Command, args []string) error {
 		output.Println()
 		output.Println(strings.Repeat("-", 70))
 		output.Info("Total worktrees: %d", len(worktrees))
-		
+
 		// Count active containers
 		activeCount := 0
 		for _, w := range worktrees {
@@ -242,7 +242,7 @@ func (c *GlobalListCommand) displayJSON(worktrees []WorktreeInfo) {
 // formatRelativeTime formats a time as relative to now
 func (c *GlobalListCommand) formatRelativeTime(t time.Time) string {
 	duration := time.Since(t)
-	
+
 	if duration < time.Minute {
 		return "just now"
 	} else if duration < time.Hour {
@@ -270,7 +270,7 @@ func (c *GlobalListCommand) formatRelativeTime(t time.Time) string {
 		}
 		return fmt.Sprintf("%d months ago", months)
 	}
-	
+
 	years := int(duration.Hours() / 24 / 365)
 	if years == 1 {
 		return "1 year ago"

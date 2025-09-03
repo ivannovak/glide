@@ -26,28 +26,28 @@ type Command struct {
 	// Command and arguments
 	Name string
 	Args []string
-	
+
 	// Execution settings
 	Mode        ExecutionMode
 	WorkingDir  string
 	Environment []string
 	Timeout     time.Duration
-	
+
 	// I/O settings
 	Stdin  io.Reader
 	Stdout io.Writer
 	Stderr io.Writer
-	
+
 	// Options
 	AllocateTTY   bool // Allocate pseudo-TTY for interactive commands
 	InheritEnv    bool // Inherit parent process environment
 	SignalForward bool // Forward signals to subprocess
-	
+
 	// Strategy settings
-	UseStrategy   bool            // Use strategy pattern for execution
-	CaptureOutput bool            // Capture stdout/stderr to Result
-	StreamOutput  bool            // Stream output in real-time
-	Options       CommandOptions  // Additional command options
+	UseStrategy   bool           // Use strategy pattern for execution
+	CaptureOutput bool           // Capture stdout/stderr to Result
+	StreamOutput  bool           // Stream output in real-time
+	Options       CommandOptions // Additional command options
 }
 
 // CommandOptions represents additional command execution options
@@ -73,13 +73,13 @@ type Result struct {
 type Options struct {
 	// Default timeout for all commands
 	DefaultTimeout time.Duration
-	
+
 	// Buffer size for output capture
 	BufferSize int
-	
+
 	// Whether to print commands before execution (debug mode)
 	Verbose bool
-	
+
 	// Custom environment variables to add to all commands
 	GlobalEnv []string
 }

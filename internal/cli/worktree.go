@@ -79,7 +79,7 @@ func (c *WorktreeCommand) Execute(cmd *cobra.Command, args []string) error {
 
 	// Get branch name
 	branchName := args[0]
-	
+
 	// Get flags
 	fromBranch, _ := cmd.Flags().GetString("from")
 	noEnv, _ := cmd.Flags().GetBool("no-env")
@@ -99,7 +99,7 @@ func (c *WorktreeCommand) Execute(cmd *cobra.Command, args []string) error {
 	if _, err := os.Stat(worktreePath); err == nil {
 		return glideErrors.NewConfigError(fmt.Sprintf("worktree already exists at %s", worktreePath),
 			glideErrors.WithSuggestions(
-				"Remove the existing worktree: git worktree remove " + worktreePath,
+				"Remove the existing worktree: git worktree remove "+worktreePath,
 				"Choose a different branch name",
 				"Use 'git worktree list' to see all worktrees",
 			),
@@ -111,7 +111,7 @@ func (c *WorktreeCommand) Execute(cmd *cobra.Command, args []string) error {
 		return glideErrors.NewPermissionError(worktreesDir, "failed to create worktrees directory",
 			glideErrors.WithError(err),
 			glideErrors.WithSuggestions(
-				"Check directory permissions: ls -la " + filepath.Dir(worktreesDir),
+				"Check directory permissions: ls -la "+filepath.Dir(worktreesDir),
 				"Ensure parent directory exists and is writable",
 				"Run with appropriate permissions",
 			),
@@ -162,25 +162,25 @@ func (c *WorktreeCommand) sanitizeName(name string) string {
 		}
 		return '-'
 	}, name)
-	
+
 	// Remove leading/trailing hyphens
 	result = strings.Trim(result, "-")
-	
+
 	// Collapse multiple hyphens
 	for strings.Contains(result, "--") {
 		result = strings.ReplaceAll(result, "--", "-")
 	}
-	
+
 	return result
 }
 
 // fetchLatest fetches the latest changes from origin
 func (c *WorktreeCommand) fetchLatest(vcsDir string) error {
 	output.Printf("📥 Fetching latest changes... ")
-	
+
 	cmd := exec.Command("git", "fetch", "origin")
 	cmd.Dir = vcsDir
-	
+
 	if cmdOutput, err := cmd.CombinedOutput(); err != nil {
 		output.Println()
 		return glideErrors.NewNetworkError("failed to fetch latest changes from origin",
@@ -194,7 +194,7 @@ func (c *WorktreeCommand) fetchLatest(vcsDir string) error {
 			),
 		)
 	}
-	
+
 	output.Success("✓")
 	return nil
 }
@@ -202,11 +202,11 @@ func (c *WorktreeCommand) fetchLatest(vcsDir string) error {
 // createWorktree creates the actual Git worktree
 func (c *WorktreeCommand) createWorktree(vcsDir, worktreePath, branchName, fromBranch, remoteBranch string) error {
 	var cmd *exec.Cmd
-	
+
 	if remoteBranch != "" {
 		// Checkout existing remote branch
 		output.Warning("🔗 Creating worktree from remote branch: %s", remoteBranch)
-		
+
 		// Check if remote branch exists
 		checkCmd := exec.Command("git", "ls-remote", "--heads", "origin", strings.TrimPrefix(remoteBranch, "origin/"))
 		checkCmd.Dir = vcsDir
@@ -221,13 +221,13 @@ func (c *WorktreeCommand) createWorktree(vcsDir, worktreePath, branchName, fromB
 				),
 			)
 		}
-		
+
 		cmd = exec.Command("git", "worktree", "add", worktreePath, "-b", branchName, remoteBranch)
 	} else {
 		// Check if local branch already exists
 		checkCmd := exec.Command("git", "show-ref", "--verify", "--quiet", fmt.Sprintf("refs/heads/%s", branchName))
 		checkCmd.Dir = vcsDir
-		
+
 		if checkCmd.Run() == nil {
 			// Branch exists locally
 			output.Warning("📌 Using existing local branch: %s", branchName)
@@ -238,7 +238,7 @@ func (c *WorktreeCommand) createWorktree(vcsDir, worktreePath, branchName, fromB
 			cmd = exec.Command("git", "worktree", "add", worktreePath, "-b", branchName, fromBranch)
 		}
 	}
-	
+
 	cmd.Dir = vcsDir
 	if output, err := cmd.CombinedOutput(); err != nil {
 		return glideErrors.NewCommandError("git worktree add", 1,
@@ -252,7 +252,7 @@ func (c *WorktreeCommand) createWorktree(vcsDir, worktreePath, branchName, fromB
 			),
 		)
 	}
-	
+
 	return nil
 }
 
@@ -260,7 +260,7 @@ func (c *WorktreeCommand) createWorktree(vcsDir, worktreePath, branchName, fromB
 func (c *WorktreeCommand) copyEnvFile(vcsDir, worktreePath string) error {
 	envSource := filepath.Join(vcsDir, ".env")
 	envDest := filepath.Join(worktreePath, ".env")
-	
+
 	// Check if source exists
 	if _, err := os.Stat(envSource); os.IsNotExist(err) {
 		return glideErrors.NewFileNotFoundError(envSource,
@@ -271,9 +271,9 @@ func (c *WorktreeCommand) copyEnvFile(vcsDir, worktreePath string) error {
 			),
 		)
 	}
-	
+
 	output.Printf("📋 Copying .env file... ")
-	
+
 	// Read source file
 	data, err := os.ReadFile(envSource)
 	if err != nil {
@@ -281,26 +281,26 @@ func (c *WorktreeCommand) copyEnvFile(vcsDir, worktreePath string) error {
 		return glideErrors.NewPermissionError(envSource, "failed to read .env file",
 			glideErrors.WithError(err),
 			glideErrors.WithSuggestions(
-				"Check file permissions: ls -la " + envSource,
+				"Check file permissions: ls -la "+envSource,
 				"Ensure you have read access to the file",
 				"Verify the file is not corrupted",
 			),
 		)
 	}
-	
+
 	// Write to destination
 	if err := os.WriteFile(envDest, data, 0644); err != nil {
 		output.Println()
 		return glideErrors.NewPermissionError(envDest, "failed to write .env file",
 			glideErrors.WithError(err),
 			glideErrors.WithSuggestions(
-				"Check destination directory permissions: ls -la " + filepath.Dir(envDest),
+				"Check destination directory permissions: ls -la "+filepath.Dir(envDest),
 				"Ensure the directory exists and is writable",
 				"Check available disk space",
 			),
 		)
 	}
-	
+
 	output.Success("✓")
 	return nil
 }
@@ -316,7 +316,7 @@ func (c *WorktreeCommand) showSummary(worktreePath, branchName, remoteBranch str
 		output.Printf("🔗 Tracking: %s\n", remoteBranch)
 	}
 	output.Println()
-	
+
 	output.Info("📝 Next steps:")
 	output.Printf("  cd %s\n", worktreePath)
 	output.Println("  glid up                    # Start Docker containers")

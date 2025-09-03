@@ -111,7 +111,7 @@ func (suc *SelfUpdateCommand) execute(cmd *cobra.Command, args []string, force b
 
 	// Perform the update
 	output.Info("Downloading update...")
-	
+
 	updater := update.NewUpdater(currentVersion)
 	ctx2, cancel2 := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel2()

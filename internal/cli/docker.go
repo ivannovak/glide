@@ -65,8 +65,8 @@ Signal Handling:
   Ctrl+C and other signals are properly forwarded to docker-compose.`,
 		DisableFlagParsing: true, // Pass all flags through to docker-compose
 		RunE:               dc.Execute,
-		SilenceUsage:       true,  // Don't show usage on error
-		SilenceErrors:      true,  // Let our error handler handle errors
+		SilenceUsage:       true, // Don't show usage on error
+		SilenceErrors:      true, // Let our error handler handle errors
 	}
 
 	return cmd
@@ -201,7 +201,7 @@ func (c *DockerCommand) executeDockerCommand(dockerArgs []string, isInteractive 
 		result *shell.Result
 		err    error
 	}
-	
+
 	resultChan := make(chan execResult, 1)
 	go func() {
 		result, err := executor.Execute(shellCmd)
@@ -219,7 +219,7 @@ func (c *DockerCommand) executeDockerCommand(dockerArgs []string, isInteractive 
 			}
 			return result.err
 		}
-		
+
 		if result.result.ExitCode != 0 {
 			// Don't print error message for expected non-zero exits (like docker ps when no containers)
 			if !c.isExpectedNonZeroExit(dockerArgs, result.result.ExitCode) {
@@ -233,14 +233,14 @@ func (c *DockerCommand) executeDockerCommand(dockerArgs []string, isInteractive 
 				)
 			}
 		}
-		
+
 		return nil
 
 	case sig := <-sigChan:
 		// Signal received, forward it to docker-compose
 		// The shell executor should handle this, but we'll ensure cleanup
 		output.Warning("\nReceived signal %v, stopping docker-compose...", sig)
-		
+
 		// Wait a bit for graceful shutdown
 		select {
 		case result := <-resultChan:
@@ -251,7 +251,7 @@ func (c *DockerCommand) executeDockerCommand(dockerArgs []string, isInteractive 
 			// Force kill if needed
 			return glideErrors.NewCommandError("docker", 130) // Standard SIGINT exit code
 		}
-		
+
 		return nil
 	}
 }
@@ -328,7 +328,6 @@ func (c *DockerCommand) isExpectedNonZeroExit(args []string, exitCode int) bool 
 	if len(args) > 1 && args[1] == "ps" && exitCode == 1 {
 		return true
 	}
-	
+
 	return false
 }
-

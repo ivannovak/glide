@@ -31,11 +31,11 @@ func (m *Manager) Initialize(ctx *context.ProjectContext) error {
 	if err != nil {
 		return err
 	}
-	
+
 	m.config = config
 	m.activeProject = project
 	m.commandConfig = m.buildCommandConfig()
-	
+
 	return nil
 }
 
@@ -44,7 +44,7 @@ func (m *Manager) ApplyFlags(cmd *cobra.Command) {
 	if m.commandConfig == nil {
 		m.commandConfig = m.buildCommandConfig()
 	}
-	
+
 	// Test flags
 	if cmd.Flags().Changed("parallel") {
 		val, _ := cmd.Flags().GetBool("parallel")
@@ -62,7 +62,7 @@ func (m *Manager) ApplyFlags(cmd *cobra.Command) {
 		val, _ := cmd.Flags().GetBool("verbose")
 		m.commandConfig.Test.Verbose = val
 	}
-	
+
 	// Docker flags
 	if cmd.Flags().Changed("timeout") {
 		val, _ := cmd.Flags().GetInt("timeout")
@@ -74,7 +74,7 @@ func (m *Manager) ApplyFlags(cmd *cobra.Command) {
 	if cmd.Flags().Changed("remove-orphans") {
 		m.commandConfig.Docker.RemoveOrphans = true
 	}
-	
+
 	// Color flags
 	if cmd.Flags().Changed("color") {
 		val, _ := cmd.Flags().GetString("color")
@@ -83,7 +83,7 @@ func (m *Manager) ApplyFlags(cmd *cobra.Command) {
 	if cmd.Flags().Changed("no-color") {
 		m.commandConfig.Colors.Enabled = false
 	}
-	
+
 	// Worktree flags
 	if cmd.Flags().Changed("auto-setup") {
 		m.commandConfig.Worktree.AutoSetup = true
@@ -102,19 +102,19 @@ func (m *Manager) buildCommandConfig() *CommandConfig {
 		defaults := GetDefaults()
 		m.config = &defaults
 	}
-	
+
 	cc := &CommandConfig{
 		ActiveProject: m.activeProject,
 	}
-	
+
 	// Apply configuration precedence: defaults < config < environment
-	
+
 	// Test configuration
 	cc.Test.Parallel = m.config.Defaults.Test.Parallel
 	cc.Test.Processes = m.config.Defaults.Test.Processes
 	cc.Test.Coverage = m.config.Defaults.Test.Coverage
 	cc.Test.Verbose = m.config.Defaults.Test.Verbose
-	
+
 	// Check environment variables
 	if val := os.Getenv("GLIDE_TEST_PARALLEL"); val != "" {
 		cc.Test.Parallel = val == "true" || val == "1"
@@ -127,12 +127,12 @@ func (m *Manager) buildCommandConfig() *CommandConfig {
 	if val := os.Getenv("GLIDE_TEST_COVERAGE"); val != "" {
 		cc.Test.Coverage = val == "true" || val == "1"
 	}
-	
+
 	// Docker configuration
 	cc.Docker.ComposeTimeout = m.config.Defaults.Docker.ComposeTimeout
 	cc.Docker.AutoStart = m.config.Defaults.Docker.AutoStart
 	cc.Docker.RemoveOrphans = m.config.Defaults.Docker.RemoveOrphans
-	
+
 	if val := os.Getenv("GLIDE_DOCKER_TIMEOUT"); val != "" {
 		if n, err := strconv.Atoi(val); err == nil {
 			cc.Docker.ComposeTimeout = n
@@ -141,19 +141,19 @@ func (m *Manager) buildCommandConfig() *CommandConfig {
 	if val := os.Getenv("GLIDE_DOCKER_AUTO_START"); val != "" {
 		cc.Docker.AutoStart = val == "true" || val == "1"
 	}
-	
+
 	// Color configuration
 	cc.Colors.Enabled = m.determineColorEnabled(m.config.Defaults.Colors.Enabled)
-	
+
 	// Worktree configuration
 	cc.Worktree.AutoSetup = m.config.Defaults.Worktree.AutoSetup
 	cc.Worktree.CopyEnv = m.config.Defaults.Worktree.CopyEnv
 	cc.Worktree.RunMigrations = m.config.Defaults.Worktree.RunMigrations
-	
+
 	if val := os.Getenv("GLIDE_WORKTREE_AUTO_SETUP"); val != "" {
 		cc.Worktree.AutoSetup = val == "true" || val == "1"
 	}
-	
+
 	return cc
 }
 
@@ -166,7 +166,7 @@ func (m *Manager) determineColorEnabled(mode string) bool {
 	if val := os.Getenv("NO_COLOR"); val != "" {
 		return false
 	}
-	
+
 	switch strings.ToLower(mode) {
 	case "always", "true", "1":
 		return true
@@ -215,12 +215,12 @@ func (m *Manager) GetProjectByName(name string) (*ProjectConfig, bool) {
 	if m.config == nil {
 		return nil, false
 	}
-	
+
 	project, ok := m.config.Projects[name]
 	if !ok {
 		return nil, false
 	}
-	
+
 	return &project, true
 }
 
@@ -229,11 +229,11 @@ func (m *Manager) SetDefaultProject(name string) error {
 	if m.config == nil {
 		return fmt.Errorf("no configuration loaded")
 	}
-	
+
 	if _, ok := m.config.Projects[name]; !ok {
 		return fmt.Errorf("project %s does not exist", name)
 	}
-	
+
 	m.config.DefaultProject = name
 	return m.loader.Save(m.config)
 }

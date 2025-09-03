@@ -10,8 +10,8 @@ import (
 	"github.com/ivannovak/glide/internal/docker"
 	"github.com/ivannovak/glide/internal/shell"
 	glideErrors "github.com/ivannovak/glide/pkg/errors"
-	"github.com/ivannovak/glide/pkg/progress"
 	"github.com/ivannovak/glide/pkg/output"
+	"github.com/ivannovak/glide/pkg/progress"
 	"github.com/spf13/cobra"
 )
 
@@ -81,8 +81,8 @@ Tips:
   - Use --dry-run first to preview changes
   - Add to pre-commit hooks for automation
   - Custom rules can be added to config file`,
-		RunE:         lc.Execute,
-		SilenceUsage: true,
+		RunE:          lc.Execute,
+		SilenceUsage:  true,
 		SilenceErrors: true,
 	}
 
@@ -177,7 +177,7 @@ func (c *LintCommand) runPhpCsFixer(resolver *docker.Resolver, paths []string, f
 	} else if dryRun {
 		action = "Analyzing"
 	}
-	
+
 	spinner := progress.NewSpinner(fmt.Sprintf("%s code style issues", action))
 	spinner.Start()
 
@@ -200,7 +200,7 @@ func (c *LintCommand) runPhpCsFixer(resolver *docker.Resolver, paths []string, f
 	if !diff && !verbose {
 		if err != nil || result.ExitCode != 0 {
 			spinner.Error("Style issues found")
-			
+
 			// PHP CS Fixer returns different exit codes
 			// 0 = no issues or issues fixed
 			// 1 = general error
@@ -209,7 +209,7 @@ func (c *LintCommand) runPhpCsFixer(resolver *docker.Resolver, paths []string, f
 			// 16 = configuration error
 			// 32 = fixing error
 			// 64 = exception
-			
+
 			if result.ExitCode == 4 {
 				output.Warning("\nCode style issues detected!")
 				if !fix {
@@ -221,7 +221,7 @@ func (c *LintCommand) runPhpCsFixer(resolver *docker.Resolver, paths []string, f
 				spinner.Success("Code style issues fixed")
 				return nil
 			}
-			
+
 			return glideErrors.NewCommandError("PHP CS Fixer", result.ExitCode,
 				glideErrors.WithSuggestions(
 					"Check PHP CS Fixer configuration file",
@@ -229,7 +229,7 @@ func (c *LintCommand) runPhpCsFixer(resolver *docker.Resolver, paths []string, f
 					"Verify PHP CS Fixer is properly installed",
 				))
 		}
-		
+
 		if fix && !dryRun {
 			spinner.Success("Code style fixed")
 		} else {
@@ -246,7 +246,7 @@ func (c *LintCommand) buildFixerCommand(paths []string, fix, dryRun, diff bool, 
 
 	// Check for vendor binary vs global
 	args = append(args, "./vendor/bin/php-cs-fixer")
-	
+
 	// Command (fix is the only command now)
 	args = append(args, "fix")
 
@@ -350,17 +350,17 @@ func (c *LintCommand) startDocker() error {
 
 	composeCmd := resolver.GetComposeCommand("up", "-d")
 	shellCmd := shell.NewCommand("docker", composeCmd...)
-	
+
 	if _, err := executor.Execute(shellCmd); err != nil {
 		spinner.Error("Failed to start Docker")
 		return err
 	}
 
 	spinner.Success("Docker containers started")
-	
+
 	// Update context
 	c.ctx.DockerRunning = true
-	
+
 	return nil
 }
 
@@ -394,11 +394,11 @@ func fileExists(path string) bool {
 // showFixSuggestion shows how to fix issues
 func (c *LintCommand) showFixSuggestion(paths []string) {
 	output.Println("\nTo automatically fix these issues, run:")
-	
+
 	cmd := "glid lint --fix"
 	if len(paths) > 0 {
 		cmd += " " + strings.Join(paths, " ")
 	}
-	
+
 	output.Info("  %s", cmd)
 }

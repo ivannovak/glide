@@ -23,13 +23,13 @@ const (
 
 // HealthCheck represents a container health check result
 type HealthCheck struct {
-	Service      string        `json:"service"`
-	Container    string        `json:"container"`
-	Status       HealthStatus  `json:"status"`
-	FailingCount int           `json:"failing_count"`
-	Log          []string      `json:"log"`
-	LastChecked  time.Time     `json:"last_checked"`
-	Error        string        `json:"error,omitempty"`
+	Service      string       `json:"service"`
+	Container    string       `json:"container"`
+	Status       HealthStatus `json:"status"`
+	FailingCount int          `json:"failing_count"`
+	Log          []string     `json:"log"`
+	LastChecked  time.Time    `json:"last_checked"`
+	Error        string       `json:"error,omitempty"`
 }
 
 // ServiceHealth represents the overall health of a service
@@ -82,7 +82,7 @@ func (hm *HealthMonitor) CheckHealth() ([]ServiceHealth, error) {
 		for _, container := range serviceContainers {
 			check := hm.checkContainerHealth(container)
 			health.Containers = append(health.Containers, check)
-			
+
 			if check.Status != HealthHealthy && check.Status != HealthNone {
 				health.Healthy = false
 			}
@@ -115,7 +115,7 @@ func (hm *HealthMonitor) checkContainerHealth(container Container) HealthCheck {
 	// Get health status from Docker
 	cmd := exec.Command("docker", "inspect", "--format",
 		"{{json .State.Health}}", container.ID)
-	
+
 	output, err := cmd.Output()
 	if err != nil {
 		check.Error = fmt.Sprintf("Failed to inspect container: %v", err)
@@ -200,11 +200,11 @@ func (hm *HealthMonitor) WaitForHealthy(timeout time.Duration, services ...strin
 				// Check if service is healthy
 				if !serviceHealth.Healthy {
 					allHealthy = false
-					
+
 					// Check for critical failures
 					for _, container := range serviceHealth.Containers {
 						if container.Status == HealthUnhealthy && container.FailingCount > 3 {
-							return fmt.Errorf("service %s is unhealthy after %d attempts", 
+							return fmt.Errorf("service %s is unhealthy after %d attempts",
 								serviceHealth.Service, container.FailingCount)
 						}
 					}

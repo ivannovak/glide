@@ -12,14 +12,14 @@ import (
 func ShowSpinner(message string, operation func() error) error {
 	spinner := NewSpinner(message)
 	spinner.Start()
-	
+
 	err := operation()
-	
+
 	if err != nil {
 		spinner.Error(message + " failed")
 		return err
 	}
-	
+
 	spinner.Success(message + " completed")
 	return nil
 }
@@ -28,12 +28,12 @@ func ShowSpinner(message string, operation func() error) error {
 func ShowSpinnerWithTimeout(message string, timeout time.Duration, operation func() error) error {
 	spinner := NewSpinner(message)
 	spinner.Start()
-	
+
 	done := make(chan error, 1)
 	go func() {
 		done <- operation()
 	}()
-	
+
 	select {
 	case err := <-done:
 		if err != nil {
@@ -42,7 +42,7 @@ func ShowSpinnerWithTimeout(message string, timeout time.Duration, operation fun
 		}
 		spinner.Success(message + " completed")
 		return nil
-		
+
 	case <-time.After(timeout):
 		spinner.Error(message + " timed out")
 		return fmt.Errorf("operation timed out after %v", timeout)
@@ -53,7 +53,7 @@ func ShowSpinnerWithTimeout(message string, timeout time.Duration, operation fun
 func ShowProgress(total int, message string, processor func(i int) error) error {
 	bar := NewBar(total, message)
 	bar.Start()
-	
+
 	for i := 0; i < total; i++ {
 		if err := processor(i); err != nil {
 			bar.Error(fmt.Sprintf("%s failed at item %d", message, i+1))
@@ -61,7 +61,7 @@ func ShowProgress(total int, message string, processor func(i int) error) error 
 		}
 		bar.Update(i + 1)
 	}
-	
+
 	bar.Success(message + " completed")
 	return nil
 }
@@ -71,19 +71,19 @@ func RunWithProgress(operations []Operation) error {
 	if len(operations) == 0 {
 		return nil
 	}
-	
+
 	bar := NewBar(len(operations), "Running operations")
 	bar.Start()
-	
+
 	for i, op := range operations {
 		bar.Update(i)
-		
+
 		if err := op.Run(); err != nil {
 			bar.Error(fmt.Sprintf("Operation '%s' failed", op.Name()))
 			return err
 		}
 	}
-	
+
 	bar.Finish()
 	bar.Success("All operations completed")
 	return nil
@@ -124,18 +124,18 @@ func Concurrent(operations []Operation) error {
 	if len(operations) == 0 {
 		return nil
 	}
-	
+
 	multi := NewMulti()
-	
+
 	// Add a spinner for each operation
 	spinners := make([]*Spinner, len(operations))
 	for i, op := range operations {
 		spinners[i] = multi.AddSpinner(op.Name())
 	}
-	
+
 	multi.Start()
 	defer multi.Stop()
-	
+
 	// Run operations concurrently
 	errors := make(chan error, len(operations))
 	for i, op := range operations {
@@ -149,7 +149,7 @@ func Concurrent(operations []Operation) error {
 			errors <- err
 		}(i, op)
 	}
-	
+
 	// Wait for all operations
 	var firstError error
 	for i := 0; i < len(operations); i++ {
@@ -157,7 +157,7 @@ func Concurrent(operations []Operation) error {
 			firstError = err
 		}
 	}
-	
+
 	multi.Complete()
 	return firstError
 }
@@ -165,18 +165,18 @@ func Concurrent(operations []Operation) error {
 // WithElapsedTime runs an operation and reports elapsed time
 func WithElapsedTime(message string, operation func() error) error {
 	start := time.Now()
-	
+
 	spinner := NewSpinner(message)
 	spinner.Start()
-	
+
 	err := operation()
 	elapsed := time.Since(start)
-	
+
 	if err != nil {
 		spinner.Error(fmt.Sprintf("%s failed (%s)", message, formatDuration(elapsed)))
 		return err
 	}
-	
+
 	spinner.Success(fmt.Sprintf("%s completed (%s)", message, formatDuration(elapsed)))
 	return nil
 }
@@ -188,7 +188,7 @@ func examples() {
 		time.Sleep(2 * time.Second)
 		return nil
 	})
-	
+
 	// Progress bar for items
 	items := []string{"file1.txt", "file2.txt", "file3.txt"}
 	_ = ShowProgress(len(items), "Processing files", func(i int) error {
@@ -196,7 +196,7 @@ func examples() {
 		time.Sleep(500 * time.Millisecond)
 		return nil
 	})
-	
+
 	// Multiple operations with progress
 	ops := []Operation{
 		NewOperation("Download dependencies", func() error {
@@ -213,7 +213,7 @@ func examples() {
 		}),
 	}
 	_ = RunWithProgress(ops)
-	
+
 	// Concurrent operations
 	_ = Concurrent(ops)
 }

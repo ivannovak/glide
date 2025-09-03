@@ -182,7 +182,7 @@ export -f start_process stop_process cleanup_all
 `
 			require.NoError(t, os.WriteFile("process_manager.sh", []byte(processTracker), 0755))
 
-			// Create test process script  
+			// Create test process script
 			testProcess := `#!/bin/bash
 # Test process that responds to signals
 
@@ -507,15 +507,15 @@ run_migrations
 			// Create sample migrations
 			sampleMigrations := []string{
 				"001_create_users.sql",
-				"002_create_posts.sql", 
+				"002_create_posts.sql",
 				"003_add_indexes.sql",
 				"004_add_triggers.sql",
 			}
 
 			for _, migration := range sampleMigrations {
-				migrationContent := fmt.Sprintf("-- Migration: %s\n-- Created: %s\n\nSELECT 'Running %s';\n", 
+				migrationContent := fmt.Sprintf("-- Migration: %s\n-- Created: %s\n\nSELECT 'Running %s';\n",
 					migration, time.Now().Format(time.RFC3339), migration)
-				require.NoError(t, os.WriteFile(filepath.Join("database/migrations", migration), 
+				require.NoError(t, os.WriteFile(filepath.Join("database/migrations", migration),
 					[]byte(migrationContent), 0644))
 			}
 

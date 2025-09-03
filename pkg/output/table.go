@@ -20,7 +20,7 @@ func NewTableFormatter(w io.Writer, noColor, quiet bool) *TableFormatter {
 	if w == nil {
 		w = os.Stdout
 	}
-	
+
 	return &TableFormatter{
 		BaseFormatter: NewBaseFormatter(w, noColor, quiet),
 		writer:        tabwriter.NewWriter(w, 0, 0, 2, ' ', 0),
@@ -115,7 +115,7 @@ func (f *TableFormatter) displayTable(data []map[string]interface{}) error {
 // displayReflect uses reflection to display structs
 func (f *TableFormatter) displayReflect(data interface{}) error {
 	v := reflect.ValueOf(data)
-	
+
 	// Handle pointers
 	if v.Kind() == reflect.Ptr {
 		v = v.Elem()
@@ -135,16 +135,16 @@ func (f *TableFormatter) displayReflect(data interface{}) error {
 // displayStruct displays a struct as key-value pairs
 func (f *TableFormatter) displayStruct(v reflect.Value) error {
 	t := v.Type()
-	
+
 	for i := 0; i < v.NumField(); i++ {
 		field := t.Field(i)
 		value := v.Field(i)
-		
+
 		// Skip unexported fields
 		if !field.IsExported() {
 			continue
 		}
-		
+
 		// Get field name or json tag
 		name := field.Name
 		if tag := field.Tag.Get("json"); tag != "" && tag != "-" {
@@ -153,13 +153,13 @@ func (f *TableFormatter) displayStruct(v reflect.Value) error {
 				name = parts[0]
 			}
 		}
-		
+
 		line := fmt.Sprintf("%s:\t%v\n", Bold("%s", name), value.Interface())
 		if err := f.write(line); err != nil {
 			return err
 		}
 	}
-	
+
 	return f.writer.Flush()
 }
 
@@ -193,7 +193,7 @@ func (f *TableFormatter) displaySlice(v reflect.Value) error {
 		if !field.IsExported() {
 			continue
 		}
-		
+
 		name := field.Name
 		if tag := field.Tag.Get("json"); tag != "" && tag != "-" {
 			parts := strings.Split(tag, ",")
@@ -206,7 +206,7 @@ func (f *TableFormatter) displaySlice(v reflect.Value) error {
 	}
 
 	// Write headers
-	if err := f.write(Bold("%s", strings.Join(headers, "\t") + "\n")); err != nil {
+	if err := f.write(Bold("%s", strings.Join(headers, "\t")+"\n")); err != nil {
 		return err
 	}
 
@@ -225,7 +225,7 @@ func (f *TableFormatter) displaySlice(v reflect.Value) error {
 		if elem.Kind() == reflect.Ptr {
 			elem = elem.Elem()
 		}
-		
+
 		var values []string
 		for _, idx := range fieldIndices {
 			values = append(values, fmt.Sprintf("%v", elem.Field(idx).Interface()))

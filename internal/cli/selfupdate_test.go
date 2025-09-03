@@ -132,10 +132,10 @@ func TestSelfUpdateCommand_ChecksCurrentVersion(t *testing.T) {
 	}()
 
 	testCases := []struct {
-		name            string
-		currentVersion  string
-		expectError     bool
-		errorContains   string
+		name           string
+		currentVersion string
+		expectError    bool
+		errorContains  string
 	}{
 		{
 			name:           "Dev version",
@@ -216,7 +216,7 @@ func TestSelfUpdateCommand_Integration(t *testing.T) {
 
 	// This would be a full integration test with mock servers
 	// Similar to the updater integration test but testing the full command flow
-	
+
 	// Save original version
 	oldVersion := version.Version
 	defer func() {

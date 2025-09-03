@@ -87,9 +87,9 @@ func TestGetCompletionPath(t *testing.T) {
 	}()
 
 	tests := []struct {
-		name      string
-		shell     string
-		expected  string
+		name     string
+		shell    string
+		expected string
 	}{
 		{
 			name:     "bash completion path",
@@ -184,10 +184,10 @@ func TestBrandingCustomization(t *testing.T) {
 	assert.Equal(t, "ACME Corp deployment tool", GetShortDescription())
 	assert.Contains(t, GetFullDescription(), "Acme")
 	assert.Contains(t, GetFullDescription(), "modern development CLI")
-	
+
 	homeDir, _ := os.UserHomeDir()
 	assert.Equal(t, filepath.Join(homeDir, ".acme.yml"), GetConfigPath())
-	
+
 	assert.True(t, strings.HasSuffix(GetCompletionPath("bash"), "/acme"))
 }
 

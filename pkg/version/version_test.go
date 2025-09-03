@@ -11,9 +11,9 @@ import (
 func TestSetBuildInfo(t *testing.T) {
 	// Save original values
 	originalVersion := Version
-	originalBuildDate := BuildDate  
+	originalBuildDate := BuildDate
 	originalGitCommit := GitCommit
-	
+
 	// Restore original values after test
 	defer func() {
 		Version = originalVersion
@@ -23,7 +23,7 @@ func TestSetBuildInfo(t *testing.T) {
 
 	// Test setting build info
 	SetBuildInfo("v1.2.3", "2025-01-01", "abc123def")
-	
+
 	assert.Equal(t, "v1.2.3", Version)
 	assert.Equal(t, "2025-01-01", BuildDate)
 	assert.Equal(t, "abc123def", GitCommit)
@@ -56,9 +56,9 @@ func TestGet(t *testing.T) {
 func TestGetBuildInfo(t *testing.T) {
 	// Save original values
 	originalVersion := Version
-	originalBuildDate := BuildDate  
+	originalBuildDate := BuildDate
 	originalGitCommit := GitCommit
-	
+
 	// Restore original values after test
 	defer func() {
 		Version = originalVersion
@@ -72,9 +72,9 @@ func TestGetBuildInfo(t *testing.T) {
 	GitCommit = "testcommit"
 
 	info := GetBuildInfo()
-	
+
 	assert.Equal(t, "v1.0.0", info.Version)
-	assert.Equal(t, "2025-01-01", info.BuildDate)  
+	assert.Equal(t, "2025-01-01", info.BuildDate)
 	assert.Equal(t, "testcommit", info.GitCommit)
 	assert.Equal(t, runtime.Version(), info.GoVersion)
 	assert.Equal(t, runtime.GOOS, info.OS)
@@ -116,14 +116,14 @@ func TestGetVersionString(t *testing.T) {
 
 func TestGetSystemInfo(t *testing.T) {
 	info := GetSystemInfo()
-	
+
 	// Should contain OS, Architecture, and Go version
 	assert.Contains(t, info, runtime.GOOS)
-	assert.Contains(t, info, runtime.GOARCH) 
+	assert.Contains(t, info, runtime.GOARCH)
 	assert.Contains(t, info, "Go:")
 	assert.Contains(t, info, "OS:")
 	assert.Contains(t, info, "Architecture:")
-	
+
 	// Should be properly formatted
 	parts := strings.Split(info, ", ")
 	assert.Len(t, parts, 3) // OS, Architecture, Go
@@ -136,10 +136,10 @@ func TestBuildInfoStruct(t *testing.T) {
 		GitCommit:    "abc123",
 		GoVersion:    "go1.21",
 		OS:           "linux",
-		Architecture: "amd64", 
+		Architecture: "amd64",
 		Compiler:     "gc",
 	}
-	
+
 	assert.Equal(t, "v1.0.0", info.Version)
 	assert.Equal(t, "2025-01-01", info.BuildDate)
 	assert.Equal(t, "abc123", info.GitCommit)

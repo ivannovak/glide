@@ -9,7 +9,7 @@ import (
 // BenchmarkNewDetector benchmarks detector creation
 func BenchmarkNewDetector(b *testing.B) {
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		detector, err := NewDetector()
 		if err != nil {
@@ -25,10 +25,10 @@ func BenchmarkDetector_Detect(b *testing.B) {
 	if err != nil {
 		b.Fatal(err)
 	}
-	
+
 	b.ResetTimer()
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		ctx, _ := detector.Detect()
 		_ = ctx
@@ -42,10 +42,10 @@ func BenchmarkProjectRootFinder_FindRoot(b *testing.B) {
 	if err != nil {
 		b.Fatal(err)
 	}
-	
+
 	b.ResetTimer()
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		_, _ = finder.FindRoot(wd)
 	}
@@ -55,10 +55,10 @@ func BenchmarkProjectRootFinder_FindRoot(b *testing.B) {
 func BenchmarkDevelopmentModeDetector_DetectMode(b *testing.B) {
 	detector := NewStandardDevelopmentModeDetector()
 	projectRoot := "/home/user/project"
-	
+
 	b.ResetTimer()
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		mode := detector.DetectMode(projectRoot)
 		_ = mode
@@ -71,15 +71,15 @@ func BenchmarkLocationIdentifier_IdentifyLocation(b *testing.B) {
 	workingDir := "/home/user/project/vcs"
 	projectRoot := "/home/user/project"
 	mode := ModeMultiWorktree
-	
+
 	ctx := &ProjectContext{
 		ProjectRoot:     projectRoot,
 		DevelopmentMode: mode,
 	}
-	
+
 	b.ResetTimer()
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		locType := identifier.IdentifyLocation(ctx, workingDir)
 		_ = locType
@@ -89,7 +89,7 @@ func BenchmarkLocationIdentifier_IdentifyLocation(b *testing.B) {
 // BenchmarkComposeFileResolver_ResolveFiles benchmarks compose file resolution
 func BenchmarkComposeFileResolver_ResolveFiles(b *testing.B) {
 	resolver := NewStandardComposeFileResolver()
-	
+
 	// Create temporary test environment
 	tempDir := b.TempDir()
 	composeFile := filepath.Join(tempDir, "docker-compose.yml")
@@ -97,15 +97,15 @@ func BenchmarkComposeFileResolver_ResolveFiles(b *testing.B) {
 	if err != nil {
 		b.Fatal(err)
 	}
-	
+
 	ctx := &ProjectContext{
 		ProjectRoot: tempDir,
 		Location:    LocationProject,
 	}
-	
+
 	b.ResetTimer()
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		files := resolver.ResolveFiles(ctx)
 		_ = files
@@ -115,7 +115,7 @@ func BenchmarkComposeFileResolver_ResolveFiles(b *testing.B) {
 // BenchmarkProjectContext_Creation benchmarks project context creation
 func BenchmarkProjectContext_Creation(b *testing.B) {
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		ctx := &ProjectContext{
 			WorkingDir:      "/home/user/project",
@@ -141,10 +141,10 @@ func BenchmarkProjectContext_IsValid(b *testing.B) {
 		ProjectRoot: "/home/user/project",
 		Error:       nil,
 	}
-	
+
 	b.ResetTimer()
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		valid := ctx.IsValid()
 		_ = valid
@@ -160,10 +160,10 @@ func BenchmarkProjectContext_GetComposeCommand(b *testing.B) {
 			"docker-compose.local.yml",
 		},
 	}
-	
+
 	b.ResetTimer()
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		cmd := ctx.GetComposeCommand()
 		_ = cmd
@@ -175,10 +175,10 @@ func BenchmarkProjectContext_CanUseGlobalCommands(b *testing.B) {
 	ctx := &ProjectContext{
 		DevelopmentMode: ModeMultiWorktree,
 	}
-	
+
 	b.ResetTimer()
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		canUse := ctx.CanUseGlobalCommands()
 		_ = canUse
@@ -191,7 +191,7 @@ func BenchmarkDetector_DetectWithCaching(b *testing.B) {
 	if err != nil {
 		b.Fatal(err)
 	}
-	
+
 	// Create temporary directory structure for consistent benchmarking
 	tempDir := b.TempDir()
 	gitDir := filepath.Join(tempDir, ".git")
@@ -199,28 +199,28 @@ func BenchmarkDetector_DetectWithCaching(b *testing.B) {
 	if err != nil {
 		b.Fatal(err)
 	}
-	
+
 	vcsDir := filepath.Join(tempDir, "vcs")
 	err = os.Mkdir(vcsDir, 0755)
 	if err != nil {
 		b.Fatal(err)
 	}
-	
+
 	// Change to test directory for consistent results
 	originalDir, err := os.Getwd()
 	if err != nil {
 		b.Fatal(err)
 	}
 	defer os.Chdir(originalDir)
-	
+
 	err = os.Chdir(vcsDir)
 	if err != nil {
 		b.Fatal(err)
 	}
-	
+
 	b.ResetTimer()
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		ctx, _ := detector.Detect()
 		_ = ctx
@@ -230,7 +230,7 @@ func BenchmarkDetector_DetectWithCaching(b *testing.B) {
 // BenchmarkContainerStatus_Creation benchmarks container status creation
 func BenchmarkContainerStatus_Creation(b *testing.B) {
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		status := ContainerStatus{
 			Name:   "test-container",
@@ -245,10 +245,10 @@ func BenchmarkContainerStatus_Creation(b *testing.B) {
 // BenchmarkDevelopmentMode_String benchmarks development mode string conversion
 func BenchmarkDevelopmentMode_String(b *testing.B) {
 	mode := ModeMultiWorktree
-	
+
 	b.ResetTimer()
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		str := string(mode)
 		_ = str
@@ -258,10 +258,10 @@ func BenchmarkDevelopmentMode_String(b *testing.B) {
 // BenchmarkLocationType_String benchmarks location type string conversion
 func BenchmarkLocationType_String(b *testing.B) {
 	locType := LocationWorktree
-	
+
 	b.ResetTimer()
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		str := string(locType)
 		_ = str

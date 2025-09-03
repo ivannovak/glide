@@ -18,7 +18,7 @@ func NewPlainFormatter(w io.Writer, noColor, quiet bool) *PlainFormatter {
 	if w == nil {
 		w = os.Stdout
 	}
-	
+
 	// Plain formatter always has colors disabled (ignores noColor parameter)
 	return &PlainFormatter{
 		BaseFormatter: NewBaseFormatter(w, true, quiet),
@@ -76,7 +76,7 @@ func (f *PlainFormatter) displaySliceOfMaps(data []map[string]interface{}) error
 // displayReflect uses reflection to display structs
 func (f *PlainFormatter) displayReflect(data interface{}) error {
 	v := reflect.ValueOf(data)
-	
+
 	// Handle pointers
 	if v.Kind() == reflect.Ptr {
 		v = v.Elem()
@@ -96,16 +96,16 @@ func (f *PlainFormatter) displayReflect(data interface{}) error {
 // displayStruct displays a struct as plain key-value pairs
 func (f *PlainFormatter) displayStruct(v reflect.Value) error {
 	t := v.Type()
-	
+
 	for i := 0; i < v.NumField(); i++ {
 		field := t.Field(i)
 		value := v.Field(i)
-		
+
 		// Skip unexported fields
 		if !field.IsExported() {
 			continue
 		}
-		
+
 		// Get field name or json tag
 		name := field.Name
 		if tag := field.Tag.Get("json"); tag != "" && tag != "-" {
@@ -114,13 +114,13 @@ func (f *PlainFormatter) displayStruct(v reflect.Value) error {
 				name = parts[0]
 			}
 		}
-		
+
 		line := fmt.Sprintf("%s: %v\n", name, value.Interface())
 		if err := f.write(line); err != nil {
 			return err
 		}
 	}
-	
+
 	return nil
 }
 
@@ -128,14 +128,14 @@ func (f *PlainFormatter) displayStruct(v reflect.Value) error {
 func (f *PlainFormatter) displaySlice(v reflect.Value) error {
 	for i := 0; i < v.Len(); i++ {
 		elem := v.Index(i)
-		
+
 		// Add separator between items
 		if i > 0 {
 			if err := f.write("\n"); err != nil {
 				return err
 			}
 		}
-		
+
 		// Display each element
 		if err := f.displayReflect(elem.Interface()); err != nil {
 			return err

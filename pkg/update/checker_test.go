@@ -33,7 +33,7 @@ func TestCheckForUpdate_DevVersion(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			checker := NewChecker(tt.version)
 			ctx := context.Background()
-			
+
 			info, err := checker.CheckForUpdate(ctx)
 			require.NoError(t, err)
 			assert.False(t, info.Available)

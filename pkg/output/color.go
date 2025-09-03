@@ -153,7 +153,7 @@ const (
 	IconInfo    = "ℹ"
 	IconBullet  = "•"
 	IconArrow   = "→"
-	
+
 	// ASCII fallbacks
 	IconSuccessASCII = "[OK]"
 	IconErrorASCII   = "[ERROR]"

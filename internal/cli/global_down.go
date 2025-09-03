@@ -41,12 +41,12 @@ func (c *GlobalDownCommand) Execute(cmd *cobra.Command, args []string) error {
 	// Get flags
 	removeOrphans, _ := cmd.Flags().GetBool("remove-orphans")
 	removeVolumes, _ := cmd.Flags().GetBool("volumes")
-	
+
 	// Confirm if removing volumes
 	if removeVolumes {
 		output.Warning("⚠️  Warning: --volumes will delete all Docker volumes (data loss!)")
 		output.Printf("Are you sure you want to continue? [y/N]: ")
-		
+
 		var response string
 		fmt.Scanln(&response)
 		if strings.ToLower(response) != "y" {
@@ -88,7 +88,7 @@ func (c *GlobalDownCommand) Execute(cmd *cobra.Command, args []string) error {
 			}
 
 			worktreePath := filepath.Join(worktreesDir, entry.Name())
-			
+
 			// Check if it's a valid worktree
 			gitFile := filepath.Join(worktreePath, ".git")
 			if _, err := os.Stat(gitFile); err != nil {
@@ -96,7 +96,7 @@ func (c *GlobalDownCommand) Execute(cmd *cobra.Command, args []string) error {
 			}
 
 			output.Printf("📍 Worktree %s: ", entry.Name())
-			
+
 			if err := c.stopContainers(worktreePath, removeOrphans, removeVolumes); err != nil {
 				// Check if it's just "no containers" error
 				if strings.Contains(err.Error(), "no containers") || strings.Contains(err.Error(), "no such service") {
@@ -116,7 +116,7 @@ func (c *GlobalDownCommand) Execute(cmd *cobra.Command, args []string) error {
 	// Summary
 	output.Println()
 	output.Println(strings.Repeat("-", 50))
-	
+
 	if failureCount == 0 {
 		output.Success("✅ Successfully stopped containers in %d location(s)", successCount)
 		if removeVolumes {
@@ -163,17 +163,17 @@ func (c *GlobalDownCommand) stopContainers(dir string, removeOrphans bool, remov
 
 	// Get compose command
 	args := resolver.GetComposeCommand(downArgs...)
-	
+
 	// Execute docker compose down
 	execCmd := exec.Command("docker", args...)
 	execCmd.Dir = dir
-	
+
 	// Run with progress indicator
 	spinner := progress.NewSpinner("Stopping containers")
 	spinner.Start()
-	
+
 	output, err := execCmd.CombinedOutput()
-	
+
 	if err != nil {
 		spinner.Error("Failed")
 		// Check if it's just "no containers" error
@@ -191,7 +191,7 @@ func (c *GlobalDownCommand) stopContainers(dir string, removeOrphans bool, remov
 			),
 		)
 	}
-	
+
 	spinner.Success("Stopped")
 	return nil
 }

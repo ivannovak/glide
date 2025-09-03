@@ -126,7 +126,7 @@ func (r *Resolver) ValidateSetup() error {
 func (r *Resolver) GetComposeProjectName() string {
 	// Get base project name from project root
 	baseName := filepath.Base(r.ctx.ProjectRoot)
-	
+
 	// In multi-worktree mode, use worktree name if available
 	if r.ctx.DevelopmentMode == context.ModeMultiWorktree && r.ctx.WorktreeName != "" {
 		// Sanitize worktree name for docker-compose

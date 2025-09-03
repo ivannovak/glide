@@ -14,7 +14,7 @@ import (
 func TestNewApplication(t *testing.T) {
 	t.Run("creates application with defaults", func(t *testing.T) {
 		app := NewApplication()
-		
+
 		assert.NotNil(t, app)
 		assert.NotNil(t, app.OutputManager)
 		assert.NotNil(t, app.ShellExecutor)
@@ -50,14 +50,14 @@ func TestApplicationOptions(t *testing.T) {
 	t.Run("WithOutputManager", func(t *testing.T) {
 		manager := output.NewManager(output.FormatYAML, false, false, nil)
 		app := NewApplication(WithOutputManager(manager))
-		
+
 		assert.Equal(t, manager, app.OutputManager)
 		assert.Equal(t, output.FormatYAML, app.OutputManager.GetFormat())
 	})
 
 	t.Run("WithOutputFormat", func(t *testing.T) {
 		app := NewApplication(WithOutputFormat(output.FormatJSON, true, false))
-		
+
 		assert.NotNil(t, app.OutputManager)
 		assert.Equal(t, output.FormatJSON, app.OutputManager.GetFormat())
 		assert.True(t, app.OutputManager.IsQuiet())
@@ -70,7 +70,7 @@ func TestApplicationOptions(t *testing.T) {
 			DevelopmentMode: context.ModeMultiWorktree,
 		}
 		app := NewApplication(WithProjectContext(ctx))
-		
+
 		assert.Equal(t, ctx, app.ProjectContext)
 	})
 
@@ -85,7 +85,7 @@ func TestApplicationOptions(t *testing.T) {
 			},
 		}
 		app := NewApplication(WithConfig(cfg))
-		
+
 		assert.Equal(t, cfg, app.Config)
 	})
 
@@ -95,7 +95,7 @@ func TestApplicationOptions(t *testing.T) {
 			WithOutputFormat(output.FormatTable, false, false),
 			WithWriter(buf),
 		)
-		
+
 		assert.Equal(t, buf, app.Writer)
 		// Verify the writer was propagated to OutputManager
 		app.OutputManager.Raw("test")
@@ -107,7 +107,7 @@ func TestGetDockerResolver(t *testing.T) {
 	t.Run("returns nil when no context", func(t *testing.T) {
 		app := NewApplication()
 		resolver := app.GetDockerResolver()
-		
+
 		assert.Nil(t, resolver)
 	})
 
@@ -117,7 +117,7 @@ func TestGetDockerResolver(t *testing.T) {
 			WorkingDir:  "/test/project",
 		}
 		app := NewApplication(WithProjectContext(ctx))
-		
+
 		resolver := app.GetDockerResolver()
 		assert.NotNil(t, resolver)
 		assert.Equal(t, resolver, app.DockerResolver) // Should cache it
@@ -128,10 +128,10 @@ func TestGetDockerResolver(t *testing.T) {
 			ProjectRoot: "/test/project",
 		}
 		app := NewApplication(WithProjectContext(ctx))
-		
+
 		resolver1 := app.GetDockerResolver()
 		resolver2 := app.GetDockerResolver()
-		
+
 		assert.Same(t, resolver1, resolver2)
 	})
 }
@@ -140,7 +140,7 @@ func TestGetContainerManager(t *testing.T) {
 	t.Run("returns nil when no context", func(t *testing.T) {
 		app := NewApplication()
 		manager := app.GetContainerManager()
-		
+
 		assert.Nil(t, manager)
 	})
 
@@ -150,7 +150,7 @@ func TestGetContainerManager(t *testing.T) {
 			WorkingDir:  "/test/project",
 		}
 		app := NewApplication(WithProjectContext(ctx))
-		
+
 		manager := app.GetContainerManager()
 		assert.NotNil(t, manager)
 		assert.Equal(t, manager, app.ContainerManager) // Should cache it
@@ -161,7 +161,7 @@ func TestGetShellExecutor(t *testing.T) {
 	t.Run("returns default executor", func(t *testing.T) {
 		app := NewApplication()
 		executor := app.GetShellExecutor()
-		
+
 		assert.NotNil(t, executor)
 	})
 }
@@ -170,17 +170,17 @@ func TestGetConfigLoader(t *testing.T) {
 	t.Run("creates loader when needed", func(t *testing.T) {
 		app := NewApplication()
 		loader := app.GetConfigLoader()
-		
+
 		assert.NotNil(t, loader)
 		assert.Equal(t, loader, app.ConfigLoader) // Should cache it
 	})
 
 	t.Run("returns existing loader", func(t *testing.T) {
 		app := NewApplication()
-		
+
 		loader1 := app.GetConfigLoader()
 		loader2 := app.GetConfigLoader()
-		
+
 		assert.Same(t, loader1, loader2)
 	})
 }

@@ -32,7 +32,7 @@ func (h *Handler) Handle(err error) int {
 	if err == nil {
 		return 0
 	}
-	
+
 	// Check if it's a GlideError
 	glideErr, ok := err.(*GlideError)
 	if !ok {
@@ -40,20 +40,20 @@ func (h *Handler) Handle(err error) int {
 		h.displayGenericError(err)
 		return 1
 	}
-	
+
 	// Display the error
 	h.displayError(glideErr)
-	
+
 	// Display suggestions if available
 	if glideErr.HasSuggestions() {
 		h.displaySuggestions(glideErr.Suggestions)
 	}
-	
+
 	// Display context if verbose mode
 	if h.Verbose && len(glideErr.Context) > 0 {
 		h.displayContext(glideErr.Context)
 	}
-	
+
 	// Return the appropriate exit code
 	if glideErr.Code > 0 {
 		return glideErr.Code
@@ -65,23 +65,23 @@ func (h *Handler) Handle(err error) int {
 func (h *Handler) displayError(err *GlideError) {
 	icon := h.getErrorIcon(err.Type)
 	typeStr := h.getErrorTypeString(err.Type)
-	
+
 	// Build the error message
 	var msg strings.Builder
-	
+
 	// Error header
 	if h.NoColor {
 		fmt.Fprintf(&msg, "%s %s: ", icon, typeStr)
 	} else {
 		fmt.Fprintf(&msg, "%s %s: ", icon, color.RedString(typeStr))
 	}
-	
+
 	// Error message
 	msg.WriteString(err.Message)
-	
+
 	// Write to output
 	fmt.Fprintln(h.Writer, msg.String())
-	
+
 	// If there's an underlying error and we're in verbose mode, show it
 	if h.Verbose && err.Err != nil {
 		if h.NoColor {
@@ -97,7 +97,7 @@ func (h *Handler) displayGenericError(err error) {
 	if h.NoColor {
 		fmt.Fprintf(h.Writer, "✗ Error: %v\n", err)
 	} else {
-		fmt.Fprintf(h.Writer, "%s %s: %v\n", 
+		fmt.Fprintf(h.Writer, "%s %s: %v\n",
 			color.RedString("✗"),
 			color.RedString("Error"),
 			err)
@@ -109,26 +109,26 @@ func (h *Handler) displaySuggestions(suggestions []string) {
 	if len(suggestions) == 0 {
 		return
 	}
-	
+
 	fmt.Fprintln(h.Writer)
 	if h.NoColor {
 		fmt.Fprintln(h.Writer, "Possible solutions:")
 	} else {
 		fmt.Fprintln(h.Writer, color.YellowString("Possible solutions:"))
 	}
-	
+
 	for _, suggestion := range suggestions {
 		if h.NoColor {
 			fmt.Fprintf(h.Writer, "  • %s\n", suggestion)
 		} else {
 			// Check if it's a command (starts with common command words)
-			if strings.HasPrefix(suggestion, "Run:") || 
-			   strings.HasPrefix(suggestion, "Check:") || 
-			   strings.HasPrefix(suggestion, "Fix:") {
+			if strings.HasPrefix(suggestion, "Run:") ||
+				strings.HasPrefix(suggestion, "Check:") ||
+				strings.HasPrefix(suggestion, "Fix:") {
 				parts := strings.SplitN(suggestion, ":", 2)
 				if len(parts) == 2 {
-					fmt.Fprintf(h.Writer, "  • %s: %s\n", 
-						parts[0], 
+					fmt.Fprintf(h.Writer, "  • %s: %s\n",
+						parts[0],
 						color.CyanString(strings.TrimSpace(parts[1])))
 				} else {
 					fmt.Fprintf(h.Writer, "  • %s\n", color.YellowString(suggestion))
@@ -148,12 +148,12 @@ func (h *Handler) displayContext(context map[string]string) {
 	} else {
 		fmt.Fprintln(h.Writer, color.HiBlackString("Context:"))
 	}
-	
+
 	for key, value := range context {
 		if h.NoColor {
 			fmt.Fprintf(h.Writer, "  %s: %s\n", key, value)
 		} else {
-			fmt.Fprintf(h.Writer, "  %s: %s\n", 
+			fmt.Fprintf(h.Writer, "  %s: %s\n",
 				color.HiBlackString(key),
 				value)
 		}

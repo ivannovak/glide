@@ -161,7 +161,7 @@ func (i *StandardLocationIdentifier) IdentifyLocation(ctx *ProjectContext, worki
 			return LocationMainRepo
 		} else if strings.HasPrefix(relPath, "worktrees/") {
 			ctx.IsWorktree = true
-			
+
 			// Extract worktree name
 			parts := strings.Split(relPath, "/")
 			if len(parts) >= 2 {
@@ -198,7 +198,7 @@ func (r *StandardComposeFileResolver) ResolveFiles(ctx *ProjectContext) []string
 		if _, err := os.Stat(composePath); err == nil {
 			files = append(files, composePath)
 		}
-		
+
 		overridePath := filepath.Join(ctx.ProjectRoot, "docker-compose.override.yml")
 		if _, err := os.Stat(overridePath); err == nil {
 			ctx.ComposeOverride = overridePath
@@ -212,7 +212,7 @@ func (r *StandardComposeFileResolver) ResolveFiles(ctx *ProjectContext) []string
 		if _, err := os.Stat(composePath); err == nil {
 			files = append(files, composePath)
 		}
-		
+
 		overridePath := filepath.Join(ctx.ProjectRoot, "docker-compose.override.yml")
 		if _, err := os.Stat(overridePath); err == nil {
 			ctx.ComposeOverride = overridePath
@@ -225,7 +225,7 @@ func (r *StandardComposeFileResolver) ResolveFiles(ctx *ProjectContext) []string
 		if _, err := os.Stat(composePath); err == nil {
 			files = append(files, composePath)
 		}
-		
+
 		overridePath := filepath.Join(ctx.ProjectRoot, "docker-compose.override.yml")
 		if _, err := os.Stat(overridePath); err == nil {
 			ctx.ComposeOverride = overridePath

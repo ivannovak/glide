@@ -37,7 +37,7 @@ func TestVersionCommand_Basic(t *testing.T) {
 	// Execute command - output goes to stdout not the buffer
 	err := cmd.Execute()
 	require.NoError(t, err)
-	
+
 	// The command prints to stdout via output package, not to the buffer
 	// We can verify the command structure itself
 	assert.Equal(t, "version [flags]", cmd.Use)
@@ -76,7 +76,7 @@ func TestVersionCommand_Structure(t *testing.T) {
 	assert.Contains(t, cmd.Long, "Go version")
 	assert.Contains(t, cmd.Long, "Operating system")
 	assert.Contains(t, cmd.Long, "check-update")
-	
+
 	// Verify silence settings
 	assert.True(t, cmd.SilenceUsage)
 	assert.True(t, cmd.SilenceErrors)
@@ -102,7 +102,7 @@ func TestVersionCommand_DevVersion(t *testing.T) {
 
 	// Execute with check-update flag
 	cmd.SetArgs([]string{"--check-update"})
-	
+
 	// Should execute without error even with dev version
 	err := cmd.Execute()
 	require.NoError(t, err)

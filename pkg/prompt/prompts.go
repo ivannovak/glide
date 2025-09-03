@@ -42,7 +42,7 @@ func (p *DefaultPrompter) Confirm(message string, defaultValue bool) (bool, erro
 	}
 
 	// Format the prompt
-	prompt := fmt.Sprintf("%s %s [%s]: ", 
+	prompt := fmt.Sprintf("%s %s [%s]: ",
 		color.YellowString("?"),
 		message,
 		defaultStr,
@@ -88,7 +88,7 @@ func (p *DefaultPrompter) Select(message string, options []string, defaultIndex 
 	}
 
 	// Display the prompt message
-	fmt.Fprintf(p.writer, "%s %s\n", 
+	fmt.Fprintf(p.writer, "%s %s\n",
 		color.YellowString("?"),
 		message,
 	)
@@ -103,7 +103,7 @@ func (p *DefaultPrompter) Select(message string, options []string, defaultIndex 
 	}
 
 	// Show input prompt
-	fmt.Fprintf(p.writer, "\n%s Enter choice [1-%d] (default: %d): ", 
+	fmt.Fprintf(p.writer, "\n%s Enter choice [1-%d] (default: %d): ",
 		color.YellowString("›"),
 		len(options),
 		defaultIndex+1,
@@ -129,8 +129,8 @@ func (p *DefaultPrompter) Select(message string, options []string, defaultIndex 
 		// Try to match by string
 		inputLower := strings.ToLower(input)
 		for i, option := range options {
-			if strings.ToLower(option) == inputLower || 
-			   strings.HasPrefix(strings.ToLower(option), inputLower) {
+			if strings.ToLower(option) == inputLower ||
+				strings.HasPrefix(strings.ToLower(option), inputLower) {
 				return i, option, nil
 			}
 		}
@@ -155,7 +155,7 @@ func (p *DefaultPrompter) Input(message string, defaultValue string, validator I
 		defaultStr = fmt.Sprintf(" (default: %s)", defaultValue)
 	}
 
-	prompt := fmt.Sprintf("%s %s%s: ", 
+	prompt := fmt.Sprintf("%s %s%s: ",
 		color.YellowString("?"),
 		message,
 		defaultStr,
@@ -181,7 +181,7 @@ func (p *DefaultPrompter) Input(message string, defaultValue string, validator I
 		// Validate input if validator provided
 		if validator != nil {
 			if err := validator(input); err != nil {
-				fmt.Fprintf(p.writer, "%s %s\n", 
+				fmt.Fprintf(p.writer, "%s %s\n",
 					color.RedString("✗"),
 					err.Error(),
 				)
@@ -196,7 +196,7 @@ func (p *DefaultPrompter) Input(message string, defaultValue string, validator I
 // Password displays a password input prompt (note: input is visible in terminal)
 func (p *DefaultPrompter) Password(message string) (string, error) {
 	// Note: For production use, consider using golang.org/x/term for hidden input
-	fmt.Fprintf(p.writer, "%s %s: ", 
+	fmt.Fprintf(p.writer, "%s %s: ",
 		color.YellowString("?"),
 		message,
 	)
@@ -244,12 +244,12 @@ func PathValidator(input string) error {
 	if input == "" {
 		return fmt.Errorf("path cannot be empty")
 	}
-	
+
 	// Check for invalid characters
 	if strings.ContainsAny(input, "\x00") {
 		return fmt.Errorf("path contains invalid characters")
 	}
-	
+
 	return nil
 }
 
@@ -292,24 +292,24 @@ func Password(message string) (string, error) {
 // ConfirmDestructive displays a confirmation prompt for destructive operations
 // It requires explicit confirmation and shows a warning
 func ConfirmDestructive(operation string) (bool, error) {
-	fmt.Fprintf(os.Stdout, "\n%s This is a destructive operation!\n", 
+	fmt.Fprintf(os.Stdout, "\n%s This is a destructive operation!\n",
 		color.RedString("⚠"),
 	)
-	
+
 	message := fmt.Sprintf("Are you sure you want to %s?", operation)
-	
+
 	// Default to false for destructive operations
 	confirmed, err := Confirm(message, false)
 	if err != nil {
 		return false, err
 	}
-	
+
 	if !confirmed {
-		fmt.Fprintf(os.Stdout, "%s Operation cancelled\n", 
+		fmt.Fprintf(os.Stdout, "%s Operation cancelled\n",
 			color.YellowString("→"),
 		)
 	}
-	
+
 	return confirmed, nil
 }
 
@@ -318,7 +318,7 @@ func SelectProject(projects []string, current string) (string, error) {
 	if len(projects) == 0 {
 		return "", fmt.Errorf("no projects available")
 	}
-	
+
 	// Find current project index
 	currentIndex := 0
 	for i, p := range projects {
@@ -327,7 +327,7 @@ func SelectProject(projects []string, current string) (string, error) {
 			break
 		}
 	}
-	
+
 	_, selected, err := Select("Select a project", projects, currentIndex)
 	return selected, err
 }

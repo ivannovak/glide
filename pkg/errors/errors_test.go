@@ -10,7 +10,7 @@ import (
 
 func TestNew(t *testing.T) {
 	err := New(TypeDocker, "test message")
-	
+
 	assert.Equal(t, TypeDocker, err.Type)
 	assert.Equal(t, "test message", err.Message)
 	assert.Equal(t, 1, err.Code) // Default exit code
@@ -21,14 +21,14 @@ func TestNew(t *testing.T) {
 
 func TestNewWithOptions(t *testing.T) {
 	underlying := fmt.Errorf("underlying error")
-	
+
 	err := New(TypeNetwork, "test message",
 		WithError(underlying),
 		WithExitCode(99),
 		WithSuggestions("suggestion 1", "suggestion 2"),
 		WithContext("key", "value"),
 	)
-	
+
 	assert.Equal(t, TypeNetwork, err.Type)
 	assert.Equal(t, "test message", err.Message)
 	assert.Equal(t, 99, err.Code)
@@ -39,7 +39,7 @@ func TestNewWithOptions(t *testing.T) {
 
 func TestNewDockerError(t *testing.T) {
 	err := NewDockerError("docker daemon not running")
-	
+
 	assert.Equal(t, TypeDocker, err.Type)
 	assert.Equal(t, "docker daemon not running", err.Message)
 	assert.Equal(t, 125, err.Code) // Docker's standard exit code
@@ -47,7 +47,7 @@ func TestNewDockerError(t *testing.T) {
 
 func TestNewContainerError(t *testing.T) {
 	err := NewContainerError("mycontainer", "container failed to start")
-	
+
 	assert.Equal(t, TypeContainer, err.Type)
 	assert.Equal(t, "container failed to start", err.Message)
 	assert.Equal(t, 125, err.Code)
@@ -56,7 +56,7 @@ func TestNewContainerError(t *testing.T) {
 
 func TestNewPermissionError(t *testing.T) {
 	err := NewPermissionError("/tmp/test", "access denied")
-	
+
 	assert.Equal(t, TypePermission, err.Type)
 	assert.Equal(t, "access denied", err.Message)
 	assert.Equal(t, 126, err.Code) // Standard permission denied exit code
@@ -67,7 +67,7 @@ func TestNewPermissionError(t *testing.T) {
 
 func TestNewFileNotFoundError(t *testing.T) {
 	err := NewFileNotFoundError("/missing/file.txt")
-	
+
 	assert.Equal(t, TypeFileNotFound, err.Type)
 	assert.Equal(t, "file not found: /missing/file.txt", err.Message)
 	assert.Equal(t, 127, err.Code)
@@ -78,7 +78,7 @@ func TestNewFileNotFoundError(t *testing.T) {
 
 func TestNewDependencyError(t *testing.T) {
 	err := NewDependencyError("docker", "docker not installed")
-	
+
 	assert.Equal(t, TypeDependency, err.Type)
 	assert.Equal(t, "docker not installed", err.Message)
 	assert.Equal(t, 127, err.Code)
@@ -87,7 +87,7 @@ func TestNewDependencyError(t *testing.T) {
 
 func TestNewConfigError(t *testing.T) {
 	err := NewConfigError("invalid configuration")
-	
+
 	assert.Equal(t, TypeConfig, err.Type)
 	assert.Equal(t, "invalid configuration", err.Message)
 	assert.Equal(t, 78, err.Code) // EX_CONFIG from sysexits.h
@@ -97,7 +97,7 @@ func TestNewConfigError(t *testing.T) {
 
 func TestNewNetworkError(t *testing.T) {
 	err := NewNetworkError("connection failed")
-	
+
 	assert.Equal(t, TypeNetwork, err.Type)
 	assert.Equal(t, "connection failed", err.Message)
 	assert.Equal(t, 69, err.Code) // EX_UNAVAILABLE from sysexits.h
@@ -105,7 +105,7 @@ func TestNewNetworkError(t *testing.T) {
 
 func TestNewDatabaseError(t *testing.T) {
 	err := NewDatabaseError("cannot connect to database")
-	
+
 	assert.Equal(t, TypeDatabase, err.Type)
 	assert.Equal(t, "cannot connect to database", err.Message)
 	assert.Equal(t, 69, err.Code)
@@ -115,7 +115,7 @@ func TestNewDatabaseError(t *testing.T) {
 
 func TestNewModeError(t *testing.T) {
 	err := NewModeError("standard", "multi-worktree", "glid commit")
-	
+
 	assert.Equal(t, TypeMode, err.Type)
 	assert.Contains(t, err.Message, "glid commit")
 	assert.Contains(t, err.Message, "standard mode")
@@ -128,7 +128,7 @@ func TestNewModeError(t *testing.T) {
 
 func TestNewCommandError(t *testing.T) {
 	err := NewCommandError("npm install", 1)
-	
+
 	assert.Equal(t, TypeCommand, err.Type)
 	assert.Equal(t, "command failed: npm install", err.Message)
 	assert.Equal(t, 1, err.Code)
@@ -137,7 +137,7 @@ func TestNewCommandError(t *testing.T) {
 
 func TestNewTimeoutError(t *testing.T) {
 	err := NewTimeoutError("database migration")
-	
+
 	assert.Equal(t, TypeTimeout, err.Type)
 	assert.Equal(t, "operation timed out: database migration", err.Message)
 	assert.Equal(t, 124, err.Code) // Standard timeout exit code
@@ -147,7 +147,7 @@ func TestNewTimeoutError(t *testing.T) {
 
 func TestNewRuntimeError(t *testing.T) {
 	err := NewRuntimeError("out of memory")
-	
+
 	assert.Equal(t, TypeRuntime, err.Type)
 	assert.Equal(t, "out of memory", err.Message)
 	assert.Equal(t, 71, err.Code) // EX_OSERR from sysexits.h
@@ -161,7 +161,7 @@ func TestWrapNilError(t *testing.T) {
 func TestWrapStandardError(t *testing.T) {
 	originalErr := fmt.Errorf("original error")
 	wrapped := Wrap(originalErr, "wrapped message")
-	
+
 	require.NotNil(t, wrapped)
 	assert.Equal(t, TypeUnknown, wrapped.Type)
 	assert.Equal(t, "wrapped message", wrapped.Message)
@@ -172,16 +172,16 @@ func TestWrapGlideError(t *testing.T) {
 	original := NewDockerError("docker failed")
 	original.AddSuggestion("restart docker")
 	original.AddContext("service", "mysql")
-	
+
 	wrapped := Wrap(original, "deployment failed")
-	
+
 	require.NotNil(t, wrapped)
 	assert.Equal(t, TypeDocker, wrapped.Type) // Preserves type
 	assert.Equal(t, "deployment failed", wrapped.Message)
 	assert.Equal(t, original, wrapped.Err)
 	assert.Equal(t, original.Suggestions, wrapped.Suggestions) // Preserves suggestions
-	assert.Equal(t, original.Context, wrapped.Context) // Preserves context
-	assert.Equal(t, original.Code, wrapped.Code) // Preserves exit code
+	assert.Equal(t, original.Context, wrapped.Context)         // Preserves context
+	assert.Equal(t, original.Code, wrapped.Code)               // Preserves exit code
 }
 
 func TestIsFunction(t *testing.T) {
@@ -262,7 +262,7 @@ func TestGlideErrorUnwrap(t *testing.T) {
 		Message: "wrapper",
 		Err:     underlying,
 	}
-	
+
 	assert.Equal(t, underlying, err.Unwrap())
 }
 
@@ -309,7 +309,7 @@ func TestGlideErrorIs(t *testing.T) {
 func TestGlideErrorHasSuggestions(t *testing.T) {
 	errWithSuggestions := NewPermissionError("/tmp/test", "access denied") // Has default suggestions
 	errWithoutSuggestions := &GlideError{Message: "no suggestions"}
-	
+
 	assert.True(t, errWithSuggestions.HasSuggestions())
 	assert.False(t, errWithoutSuggestions.HasSuggestions())
 }
@@ -321,14 +321,14 @@ func TestGlideErrorGetContext(t *testing.T) {
 			"key2": "value2",
 		},
 	}
-	
+
 	value, ok := err.GetContext("key1")
 	assert.True(t, ok)
 	assert.Equal(t, "value1", value)
-	
+
 	_, ok = err.GetContext("nonexistent")
 	assert.False(t, ok)
-	
+
 	// Test nil context
 	errNoContext := &GlideError{}
 	_, ok = errNoContext.GetContext("key")
@@ -337,23 +337,23 @@ func TestGlideErrorGetContext(t *testing.T) {
 
 func TestGlideErrorAddSuggestion(t *testing.T) {
 	err := &GlideError{Message: "test"}
-	
+
 	result := err.AddSuggestion("suggestion 1")
 	assert.Equal(t, err, result) // Should return same instance
 	assert.Equal(t, []string{"suggestion 1"}, err.Suggestions)
-	
+
 	err.AddSuggestion("suggestion 2")
 	assert.Equal(t, []string{"suggestion 1", "suggestion 2"}, err.Suggestions)
 }
 
 func TestGlideErrorAddContext(t *testing.T) {
 	err := &GlideError{Message: "test"}
-	
+
 	result := err.AddContext("key1", "value1")
 	assert.Equal(t, err, result) // Should return same instance
 	require.NotNil(t, err.Context)
 	assert.Equal(t, "value1", err.Context["key1"])
-	
+
 	err.AddContext("key2", "value2")
 	assert.Equal(t, "value1", err.Context["key1"])
 	assert.Equal(t, "value2", err.Context["key2"])
@@ -361,7 +361,7 @@ func TestGlideErrorAddContext(t *testing.T) {
 
 func TestGlideErrorWithCode(t *testing.T) {
 	err := &GlideError{Message: "test", Code: 1}
-	
+
 	result := err.WithCode(99)
 	assert.Equal(t, err, result) // Should return same instance
 	assert.Equal(t, 99, err.Code)
@@ -369,7 +369,7 @@ func TestGlideErrorWithCode(t *testing.T) {
 
 func TestErrorOptions(t *testing.T) {
 	underlying := fmt.Errorf("underlying")
-	
+
 	err := New(TypeNetwork, "test message",
 		WithError(underlying),
 		WithExitCode(42),
@@ -377,7 +377,7 @@ func TestErrorOptions(t *testing.T) {
 		WithContext("key1", "value1"),
 		WithContext("key2", "value2"),
 	)
-	
+
 	assert.Equal(t, underlying, err.Err)
 	assert.Equal(t, 42, err.Code)
 	assert.Equal(t, []string{"suggestion 1", "suggestion 2"}, err.Suggestions)
@@ -390,7 +390,7 @@ func TestCommonErrorMatches(t *testing.T) {
 		Pattern: "permission denied",
 		Type:    TypePermission,
 	}
-	
+
 	tests := []struct {
 		name     string
 		message  string
@@ -417,7 +417,7 @@ func TestCommonErrorMatches(t *testing.T) {
 			expected: false,
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := commonErr.Matches(tt.message)

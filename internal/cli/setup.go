@@ -19,19 +19,19 @@ import (
 
 // SetupCommand handles the interactive setup process
 type SetupCommand struct {
-	ctx      *context.ProjectContext
-	cfg      *config.Config
-	verbose  bool
+	ctx            *context.ProjectContext
+	cfg            *config.Config
+	verbose        bool
 	nonInteractive bool
-	mode     string
-	location string
+	mode           string
+	location       string
 }
 
 // NewSetupCommand creates a new setup command
 func NewSetupCommand(ctx *context.ProjectContext, cfg *config.Config) *cobra.Command {
 	setup := &SetupCommand{
-		ctx:     ctx,
-		cfg:     cfg,
+		ctx: ctx,
+		cfg: cfg,
 	}
 
 	cmd := &cobra.Command{
@@ -192,7 +192,7 @@ func (s *SetupCommand) checkExistingInstallation() (context.DevelopmentMode, *co
 		return context.ModeUnknown, nil
 	}
 	ctx, _ := detector.Detect()
-	
+
 	if ctx != nil && ctx.DevelopmentMode != context.ModeUnknown {
 		// Found existing project structure
 		return ctx.DevelopmentMode, nil
@@ -203,7 +203,7 @@ func (s *SetupCommand) checkExistingInstallation() (context.DevelopmentMode, *co
 		for _, project := range s.cfg.Projects {
 			absPath, _ := filepath.Abs(project.Path)
 			currentPath, _ := filepath.Abs(s.ctx.WorkingDir)
-			
+
 			if strings.HasPrefix(currentPath, absPath) {
 				return context.DevelopmentMode(project.Mode), &project
 			}
@@ -215,7 +215,7 @@ func (s *SetupCommand) checkExistingInstallation() (context.DevelopmentMode, *co
 
 func (s *SetupCommand) handleExistingInstallation(project *config.ProjectConfig, mode context.DevelopmentMode) error {
 	output.Warning("⚠️  Existing Glide installation detected!")
-	
+
 	if project != nil {
 		output.Printf("Path: %s\n", project.Path)
 		output.Printf("Mode: %s\n", project.Mode)
@@ -242,7 +242,7 @@ func (s *SetupCommand) handleExistingInstallation(project *config.ProjectConfig,
 		"Reconfigure current setup",
 		"Exit",
 	}
-	
+
 	idx, _, err := prompt.Select("What would you like to do?", options, 2)
 	if err != nil {
 		return glideErrors.Wrap(err, "failed to get user choice",
@@ -252,7 +252,7 @@ func (s *SetupCommand) handleExistingInstallation(project *config.ProjectConfig,
 			),
 		)
 	}
-	
+
 	switch idx {
 	case 0:
 		return s.convertMode(project, mode)
@@ -312,7 +312,7 @@ func (s *SetupCommand) convertMode(project *config.ProjectConfig, currentMode co
 
 func (s *SetupCommand) reconfigure(project *config.ProjectConfig, mode context.DevelopmentMode) error {
 	output.Info("\n♻️  Reconfiguring existing setup...")
-	
+
 	projectPath := s.ctx.WorkingDir
 	if project != nil {
 		projectPath = project.Path
@@ -332,12 +332,12 @@ func (s *SetupCommand) getProjectLocation() (string, error) {
 	}
 
 	cwd, _ := os.Getwd()
-	
+
 	input, err := prompt.InputPath("📁 Project location", cwd)
 	if err != nil {
 		return "", err
 	}
-	
+
 	if input == "" {
 		return cwd, nil
 	}
@@ -391,7 +391,7 @@ func (s *SetupCommand) selectDevelopmentMode() (context.DevelopmentMode, error) 
 		"Multi-worktree (recommended)",
 		"Single-repository",
 	}
-	
+
 	idx, _, err := prompt.Select("Select development mode", options, 0)
 	if err != nil {
 		return context.ModeUnknown, glideErrors.Wrap(err, "failed to select development mode",
@@ -401,7 +401,7 @@ func (s *SetupCommand) selectDevelopmentMode() (context.DevelopmentMode, error) 
 			),
 		)
 	}
-	
+
 	switch idx {
 	case 0:
 		return context.ModeMultiWorktree, nil
@@ -488,28 +488,28 @@ This is a multi-worktree development environment managed by Glide.
 ## Quick Start
 
 1. Clone your repository into vcs/:
-   ` + "```bash" + `
+   `+"```bash"+`
    git clone <your-repo-url> vcs
-   ` + "```" + `
+   `+"```"+`
 
 2. Create a new worktree:
-   ` + "```bash" + `
+   `+"```bash"+`
    glid worktree feature/my-feature
-   ` + "```" + `
+   `+"```"+`
 
 3. Start Docker:
-   ` + "```bash" + `
+   `+"```bash"+`
    cd worktrees/feature-my-feature
    glid up
-   ` + "```" + `
+   `+"```"+`
 
 ## Commands
 
-- ` + "`glid worktree <branch>`" + `: Create a new worktree
-- ` + "`glid status`" + `: Show Docker status across all worktrees
-- ` + "`glid down-all`" + `: Stop all Docker containers
+- `+"`glid worktree <branch>`"+`: Create a new worktree
+- `+"`glid status`"+`: Show Docker status across all worktrees
+- `+"`glid down-all`"+`: Stop all Docker containers
 `, filepath.Base(projectPath))
-			
+
 			if err := os.WriteFile(readmePath, []byte(readmeContent), 0644); err != nil {
 				return glideErrors.NewPermissionError(readmePath, "failed to create README.md",
 					glideErrors.WithError(err),
@@ -583,7 +583,7 @@ func (s *SetupCommand) updateConfiguration(projectPath string, mode context.Deve
 
 	// Save configuration
 	configPath := filepath.Join(os.Getenv("HOME"), ".glide.yml")
-	
+
 	data, err := yaml.Marshal(cfg)
 	if err != nil {
 		return glideErrors.NewConfigError("failed to marshal configuration",
@@ -636,11 +636,11 @@ func (s *SetupCommand) printSuccessMessage(projectPath string, mode context.Deve
 		output.Warning("Could not install shell completions: %v", err)
 		output.Info("You can install manually with: glid completion [bash|zsh|fish]")
 	}
-	
+
 	output.Println()
 	output.Success("✅ Setup complete!")
 	output.Println()
-	
+
 	output.Info("Your project is configured at:", projectPath)
 	output.Printf("Development mode: %s\n", mode)
 	output.Println()
@@ -673,4 +673,3 @@ func (s *SetupCommand) printSuccessMessage(projectPath string, mode context.Deve
 	output.Info("💡 Pro tip: Tab completion is now available! Restart your shell to enable it.")
 	output.Info("Run 'glid --help' to see available commands")
 }
-

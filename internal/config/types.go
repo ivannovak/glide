@@ -16,10 +16,10 @@ type ProjectConfig struct {
 
 // DefaultsConfig contains default settings
 type DefaultsConfig struct {
-	Test      TestDefaults      `yaml:"test"`
-	Docker    DockerDefaults    `yaml:"docker"`
-	Colors    ColorDefaults     `yaml:"colors"`
-	Worktree  WorktreeDefaults  `yaml:"worktree"`
+	Test     TestDefaults     `yaml:"test"`
+	Docker   DockerDefaults   `yaml:"docker"`
+	Colors   ColorDefaults    `yaml:"colors"`
+	Worktree WorktreeDefaults `yaml:"worktree"`
 }
 
 // TestDefaults contains default test settings
@@ -52,11 +52,11 @@ type WorktreeDefaults struct {
 // CommandConfig represents runtime configuration with precedence applied
 type CommandConfig struct {
 	// Merged configuration from all sources
-	Test      TestConfig
-	Docker    DockerConfig
-	Colors    ColorConfig
-	Worktree  WorktreeConfig
-	
+	Test     TestConfig
+	Docker   DockerConfig
+	Colors   ColorConfig
+	Worktree WorktreeConfig
+
 	// Currently active project
 	ActiveProject *ProjectConfig
 }

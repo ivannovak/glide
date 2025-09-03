@@ -60,8 +60,8 @@ Container Health:
 Project Isolation:
   In multi-worktree mode, containers are isolated by project name to
   allow multiple worktrees to run simultaneously.`,
-		RunE: uc.Execute,
-		SilenceUsage: true,  // Don't show usage on error
+		RunE:          uc.Execute,
+		SilenceUsage:  true, // Don't show usage on error
 		SilenceErrors: true, // Let our error handler handle errors
 	}
 
@@ -313,11 +313,11 @@ func (c *UpCommand) shouldAutoWait() bool {
 // showStartupMessage shows what we're about to do
 func (c *UpCommand) showStartupMessage(resolver *docker.Resolver) {
 	output.Info("Starting Docker containers...")
-	
+
 	if c.ctx.IsWorktree {
 		output.Info("Project: %s", resolver.GetComposeProjectName())
 	}
-	
+
 	// Show compose files being used (in verbose mode)
 	if c.cfg != nil && c.cfg.Defaults.Test.Verbose {
 		output.Info("Using compose files:")
@@ -330,7 +330,7 @@ func (c *UpCommand) showStartupMessage(resolver *docker.Resolver) {
 // showSuccessMessage shows success information
 func (c *UpCommand) showSuccessMessage(detached bool) {
 	output.Success("\n✓ Docker containers started successfully")
-	
+
 	if detached {
 		output.Info("\nUseful commands:")
 		output.Info("  glid docker ps          # Check container status")

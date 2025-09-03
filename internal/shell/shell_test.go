@@ -118,7 +118,7 @@ func TestJoinArgs(t *testing.T) {
 
 func TestNewCommand(t *testing.T) {
 	cmd := NewCommand("echo", "hello")
-	
+
 	assert.Equal(t, "echo", cmd.Name)
 	assert.Equal(t, []string{"hello"}, cmd.Args)
 	assert.Equal(t, ModeCapture, cmd.Mode)
@@ -128,7 +128,7 @@ func TestNewCommand(t *testing.T) {
 
 func TestNewPassthroughCommand(t *testing.T) {
 	cmd := NewPassthroughCommand("docker", "ps")
-	
+
 	assert.Equal(t, "docker", cmd.Name)
 	assert.Equal(t, []string{"ps"}, cmd.Args)
 	assert.Equal(t, ModePassthrough, cmd.Mode)
@@ -136,7 +136,7 @@ func TestNewPassthroughCommand(t *testing.T) {
 
 func TestNewInteractiveCommand(t *testing.T) {
 	cmd := NewInteractiveCommand("bash")
-	
+
 	assert.Equal(t, "bash", cmd.Name)
 	assert.Equal(t, ModeInteractive, cmd.Mode)
 	assert.True(t, cmd.AllocateTTY)
@@ -153,7 +153,7 @@ func TestExecutor_Execute(t *testing.T) {
 	t.Run("capture mode", func(t *testing.T) {
 		cmd := NewCommand("echo", "hello")
 		result, err := executor.Execute(cmd)
-		
+
 		require.NoError(t, err)
 		assert.Equal(t, 0, result.ExitCode)
 		assert.Contains(t, string(result.Stdout), "hello")
@@ -162,7 +162,7 @@ func TestExecutor_Execute(t *testing.T) {
 	t.Run("command with timeout", func(t *testing.T) {
 		cmd := NewCommand("sleep", "0.1")
 		cmd.WithTimeout(1 * time.Second)
-		
+
 		result, err := executor.Execute(cmd)
 		require.NoError(t, err)
 		assert.Equal(t, 0, result.ExitCode)
@@ -170,15 +170,15 @@ func TestExecutor_Execute(t *testing.T) {
 	})
 
 	t.Run("command timeout exceeded", func(t *testing.T) {
-		cmd := NewCommand("sleep", "1") // Reduce sleep time 
+		cmd := NewCommand("sleep", "1")        // Reduce sleep time
 		cmd.WithTimeout(50 * time.Millisecond) // Very short timeout to ensure it triggers
-		
+
 		result, err := executor.Execute(cmd)
 		assert.NoError(t, err) // Timeout doesn't return error, sets result.Timeout instead
-		
+
 		// Debug output to understand what's happening
 		t.Logf("Timeout: %v, Error: %v, ExitCode: %d, err: %v", result.Timeout, result.Error, result.ExitCode, err)
-		
+
 		assert.True(t, result.Timeout)
 		assert.NotNil(t, result.Error) // Error should be in result.Error field
 	})

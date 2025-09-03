@@ -67,8 +67,8 @@ Tips:
   - All project files are mounted in the container`,
 		Args:          cobra.MaximumNArgs(2),
 		RunE:          sc.Execute,
-		SilenceUsage:  true,  // Don't show usage on error
-		SilenceErrors: true,  // Let our error handler handle errors
+		SilenceUsage:  true, // Don't show usage on error
+		SilenceErrors: true, // Let our error handler handle errors
 	}
 
 	return cmd
@@ -172,13 +172,13 @@ func (c *ShellCommand) checkServiceRunning(service string) error {
 				serviceList = append(serviceList, container.Service)
 			}
 		}
-		
+
 		suggestions := []string{
 			fmt.Sprintf("Service '%s' not found in docker-compose.yml", service),
 			"Available services: " + strings.Join(serviceList, ", "),
 			"Use default: glid shell",
 		}
-		
+
 		return glideErrors.NewConfigError(fmt.Sprintf("service '%s' not found", service),
 			glideErrors.WithSuggestions(suggestions...),
 		)
@@ -232,7 +232,7 @@ func (c *ShellCommand) executeShell(resolver *docker.Resolver, service, shellCmd
 
 	// Use os/exec directly for proper TTY handling
 	dockerCmd := exec.Command("docker", dockerArgs...)
-	
+
 	// Connect stdin, stdout, stderr
 	dockerCmd.Stdin = os.Stdin
 	dockerCmd.Stdout = os.Stdout
@@ -258,7 +258,7 @@ func (c *ShellCommand) executeShell(resolver *docker.Resolver, service, shellCmd
 			glideErrors.WithSuggestions(
 				"Check if the container is still running: glid docker ps",
 				"Verify the shell exists in the container",
-				"Try a different shell: glid shell " + service + " sh",
+				"Try a different shell: glid shell "+service+" sh",
 			),
 		)
 	}

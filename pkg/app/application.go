@@ -17,13 +17,13 @@ type Application struct {
 	OutputManager  *output.Manager
 	ProjectContext *context.ProjectContext
 	Config         *config.Config
-	
+
 	// Service dependencies
 	DockerResolver   *docker.Resolver
 	ContainerManager *docker.ContainerManager
 	ShellExecutor    *shell.Executor
 	ConfigLoader     *config.Loader
-	
+
 	// Configuration options
 	Writer io.Writer
 }
@@ -36,12 +36,12 @@ func NewApplication(opts ...Option) *Application {
 	app := &Application{
 		Writer: os.Stdout,
 	}
-	
+
 	// Apply options
 	for _, opt := range opts {
 		opt(app)
 	}
-	
+
 	// Initialize output manager if not provided
 	if app.OutputManager == nil {
 		app.OutputManager = output.NewManager(
@@ -51,12 +51,12 @@ func NewApplication(opts ...Option) *Application {
 			app.Writer,
 		)
 	}
-	
+
 	// Initialize shell executor if not provided
 	if app.ShellExecutor == nil {
 		app.ShellExecutor = shell.NewExecutor(shell.Options{})
 	}
-	
+
 	return app
 }
 

@@ -180,7 +180,7 @@ func (c *StatusCommand) showStatus(resolver *docker.Resolver, showHealth, showPo
 		}
 		return output.Display(data)
 	}
-	
+
 	// Default table display
 	return c.displayTable(resolver, containers, healthStatus, showPorts, showVolumes)
 }
@@ -223,7 +223,7 @@ func (c *StatusCommand) displayContainerInfo(container docker.Container, healthS
 	// Basic info
 	output.Printf("   State: %s\n", c.colorizeState(container.State))
 	output.Printf("   Status: %s\n", container.Status)
-	
+
 	// Health info if available
 	health := c.findHealthStatus(container.Service, healthStatus)
 	if health != nil && len(health.Containers) > 0 {
@@ -315,7 +315,7 @@ func (c *StatusCommand) showSummary(containers []docker.Container, healthStatus 
 	for _, container := range containers {
 		if container.State == "running" {
 			running++
-			
+
 			// Check health
 			health := c.findHealthStatus(container.Service, healthStatus)
 			if health != nil && !health.Healthy {
@@ -380,4 +380,3 @@ func (c *StatusCommand) clearScreen() {
 	// ANSI escape codes to clear screen and move cursor to top
 	output.Raw("\033[2J\033[H")
 }
-

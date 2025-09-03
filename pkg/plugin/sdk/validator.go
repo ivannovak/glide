@@ -11,8 +11,8 @@ import (
 
 // Validator validates plugin binaries for security
 type Validator struct {
-	strict         bool
-	trustedPaths   []string
+	strict           bool
+	trustedPaths     []string
 	allowedChecksums map[string]string
 }
 
@@ -36,29 +36,29 @@ func (v *Validator) Validate(path string) error {
 	if err != nil {
 		return fmt.Errorf("plugin not found: %w", err)
 	}
-	
+
 	// 2. Check file is not a directory
 	if info.IsDir() {
 		return fmt.Errorf("plugin path is a directory")
 	}
-	
+
 	// 3. Check file permissions (must be executable)
 	if info.Mode()&0111 == 0 {
 		return fmt.Errorf("plugin is not executable")
 	}
-	
+
 	// 4. In strict mode, check if file is not world-writable
 	if v.strict {
 		if info.Mode()&0022 != 0 {
 			return fmt.Errorf("plugin must not be world-writable in strict mode")
 		}
 	}
-	
+
 	// 5. Check if path is in trusted location
 	if !v.isInTrustedPath(path) && v.strict {
 		return fmt.Errorf("plugin is not in a trusted location")
 	}
-	
+
 	// 6. Verify checksum if available
 	if expectedChecksum, exists := v.allowedChecksums[path]; exists {
 		actualChecksum, err := v.calculateChecksum(path)
@@ -69,12 +69,12 @@ func (v *Validator) Validate(path string) error {
 			return fmt.Errorf("checksum verification failed")
 		}
 	}
-	
+
 	// 7. Basic binary validation
 	if !v.isValidBinary(path) {
 		return fmt.Errorf("invalid plugin binary format")
 	}
-	
+
 	return nil
 }
 
@@ -94,19 +94,19 @@ func (v *Validator) isInTrustedPath(pluginPath string) bool {
 	if err != nil {
 		return false
 	}
-	
+
 	for _, trustedPath := range v.trustedPaths {
 		trustedAbs, err := filepath.Abs(trustedPath)
 		if err != nil {
 			continue
 		}
-		
+
 		// Check if plugin is within trusted path
 		if strings.HasPrefix(absPath, trustedAbs) {
 			return true
 		}
 	}
-	
+
 	return false
 }
 
@@ -117,12 +117,12 @@ func (v *Validator) calculateChecksum(path string) (string, error) {
 		return "", err
 	}
 	defer file.Close()
-	
+
 	hasher := sha256.New()
 	if _, err := io.Copy(hasher, file); err != nil {
 		return "", err
 	}
-	
+
 	return fmt.Sprintf("%x", hasher.Sum(nil)), nil
 }
 
@@ -133,37 +133,37 @@ func (v *Validator) isValidBinary(path string) bool {
 		return false
 	}
 	defer file.Close()
-	
+
 	// Read first few bytes to check for valid executable
 	header := make([]byte, 4)
 	if _, err := file.Read(header); err != nil {
 		return false
 	}
-	
+
 	// Check for common executable formats
 	// ELF (Linux/Unix)
 	if header[0] == 0x7f && header[1] == 'E' && header[2] == 'L' && header[3] == 'F' {
 		return true
 	}
-	
+
 	// Mach-O (macOS) - both 32-bit and 64-bit
 	if (header[0] == 0xfe && header[1] == 0xed && header[2] == 0xfa && header[3] == 0xce) ||
-	   (header[0] == 0xfe && header[1] == 0xed && header[2] == 0xfa && header[3] == 0xcf) ||
-	   (header[0] == 0xce && header[1] == 0xfa && header[2] == 0xed && header[3] == 0xfe) ||
-	   (header[0] == 0xcf && header[1] == 0xfa && header[2] == 0xed && header[3] == 0xfe) {
+		(header[0] == 0xfe && header[1] == 0xed && header[2] == 0xfa && header[3] == 0xcf) ||
+		(header[0] == 0xce && header[1] == 0xfa && header[2] == 0xed && header[3] == 0xfe) ||
+		(header[0] == 0xcf && header[1] == 0xfa && header[2] == 0xed && header[3] == 0xfe) {
 		return true
 	}
-	
+
 	// PE (Windows)
 	if header[0] == 'M' && header[1] == 'Z' {
 		return true
 	}
-	
+
 	// Shebang scripts (#!/...)
 	if header[0] == '#' && header[1] == '!' {
 		return true
 	}
-	
+
 	return false
 }
 
@@ -173,7 +173,7 @@ func (v *Validator) ValidateManifest(manifestPath string) error {
 	if _, err := os.Stat(manifestPath); err != nil {
 		return fmt.Errorf("manifest not found: %w", err)
 	}
-	
+
 	// In strict mode, ensure manifest is not world-writable
 	if v.strict {
 		info, err := os.Stat(manifestPath)
@@ -184,7 +184,7 @@ func (v *Validator) ValidateManifest(manifestPath string) error {
 			return fmt.Errorf("manifest must not be world-writable in strict mode")
 		}
 	}
-	
+
 	return nil
 }
 

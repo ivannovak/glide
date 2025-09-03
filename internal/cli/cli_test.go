@@ -23,9 +23,9 @@ func TestNewCLI(t *testing.T) {
 				DefaultProject: "test",
 			}),
 		)
-		
+
 		cli := New(application)
-		
+
 		assert.NotNil(t, cli)
 		assert.NotNil(t, cli.app)
 		assert.Equal(t, application, cli.app)
@@ -64,19 +64,19 @@ func TestCLICommandCreation(t *testing.T) {
 func TestCLIAddLocalCommands(t *testing.T) {
 	application := createTestApplication()
 	cli := New(application)
-	
+
 	rootCmd := &cobra.Command{
 		Use: "test",
 	}
-	
+
 	cli.AddLocalCommands(rootCmd)
-	
+
 	// Check that commands were added
 	commandNames := make([]string, 0)
 	for _, cmd := range rootCmd.Commands() {
 		commandNames = append(commandNames, cmd.Name())
 	}
-	
+
 	// Verify some expected commands
 	assert.Contains(t, commandNames, "context")
 	assert.Contains(t, commandNames, "config")
@@ -97,18 +97,18 @@ func TestCLIShowContext(t *testing.T) {
 			DockerRunning:   true,
 			ComposeFiles:    []string{"docker-compose.yml"},
 		}
-		
+
 		application := app.NewApplication(
 			app.WithProjectContext(ctx),
 			app.WithWriter(buf),
 		)
 		cli := New(application)
-		
+
 		cmd := &cobra.Command{}
 		cmd.SetOut(buf)
-		
+
 		cli.showContext(cmd)
-		
+
 		output := buf.String()
 		assert.Contains(t, output, "Project Context")
 		assert.Contains(t, output, "/test/working")
@@ -124,12 +124,12 @@ func TestCLIShowContext(t *testing.T) {
 			app.WithWriter(buf),
 		)
 		cli := New(application)
-		
+
 		cmd := &cobra.Command{}
 		cmd.SetOut(buf)
-		
+
 		cli.showContext(cmd)
-		
+
 		output := buf.String()
 		assert.Contains(t, output, "No project context available")
 	})
@@ -143,18 +143,18 @@ func TestCLIShowContext(t *testing.T) {
 			IsWorktree:      true,
 			WorktreeName:    "feature-branch",
 		}
-		
+
 		application := app.NewApplication(
 			app.WithProjectContext(ctx),
 			app.WithWriter(buf),
 		)
 		cli := New(application)
-		
+
 		cmd := &cobra.Command{}
 		cmd.SetOut(buf)
-		
+
 		cli.showContext(cmd)
-		
+
 		output := buf.String()
 		assert.Contains(t, output, "multi-worktree")
 		assert.Contains(t, output, "Is Worktree: true")
@@ -187,18 +187,18 @@ func TestCLIShowConfig(t *testing.T) {
 				},
 			},
 		}
-		
+
 		application := app.NewApplication(
 			app.WithConfig(cfg),
 			app.WithWriter(buf),
 		)
 		cli := New(application)
-		
+
 		cmd := &cobra.Command{}
 		cmd.SetOut(buf)
-		
+
 		cli.showConfig(cmd)
-		
+
 		output := buf.String()
 		assert.Contains(t, output, "Configuration")
 		assert.Contains(t, output, "myproject")
@@ -214,12 +214,12 @@ func TestCLIShowConfig(t *testing.T) {
 			app.WithWriter(buf),
 		)
 		cli := New(application)
-		
+
 		cmd := &cobra.Command{}
 		cmd.SetOut(buf)
-		
+
 		cli.showConfig(cmd)
-		
+
 		output := buf.String()
 		assert.Contains(t, output, "No configuration loaded")
 	})
@@ -233,10 +233,10 @@ func TestCLIDependencyInjection(t *testing.T) {
 			app.WithOutputFormat(output.FormatJSON, false, false),
 		)
 		cli := New(application)
-		
+
 		// Test that the CLI uses the injected output manager
 		assert.Equal(t, output.FormatJSON, cli.app.OutputManager.GetFormat())
-		
+
 		// Output should go to our buffer
 		cli.app.OutputManager.Info("test message")
 		assert.Contains(t, buf.String(), "test message")
@@ -249,13 +249,13 @@ func TestCLIDependencyInjection(t *testing.T) {
 		cfg := &config.Config{
 			DefaultProject: "shared",
 		}
-		
+
 		application := app.NewApplication(
 			app.WithProjectContext(ctx),
 			app.WithConfig(cfg),
 		)
 		cli := New(application)
-		
+
 		// All commands should see the same context and config
 		assert.Same(t, ctx, cli.app.ProjectContext)
 		assert.Same(t, cfg, cli.app.Config)
@@ -272,13 +272,13 @@ func TestCLITestShell(t *testing.T) {
 			}),
 		)
 		cli := New(application)
-		
+
 		cmd := &cobra.Command{}
 		cmd.SetOut(buf)
-		
+
 		// This should run without errors
 		cli.testShell(cmd, []string{})
-		
+
 		output := buf.String()
 		assert.Contains(t, output, "Shell Execution Test")
 		assert.Contains(t, output, "Test 1: Capture output")
@@ -322,40 +322,40 @@ func TestCLIIntegration(t *testing.T) {
 				},
 			},
 		}
-		
+
 		application := app.NewApplication(
 			app.WithProjectContext(ctx),
 			app.WithConfig(cfg),
 			app.WithWriter(buf),
 			app.WithOutputFormat(output.FormatTable, false, false),
 		)
-		
+
 		cli := New(application)
 		require.NotNil(t, cli)
-		
+
 		// Create root command and add commands
 		rootCmd := &cobra.Command{
 			Use:   "glid",
 			Short: "Test CLI",
 		}
 		rootCmd.SetOut(buf)
-		
+
 		cli.AddLocalCommands(rootCmd)
-		
+
 		// Verify commands were added
 		assert.True(t, rootCmd.HasSubCommands())
-		
+
 		// Test that we can execute a command
 		contextCmd, _, err := rootCmd.Find([]string{"context"})
 		require.NoError(t, err)
 		require.NotNil(t, contextCmd)
-		
+
 		// Execute the context command with proper setup
 		buf.Reset()
 		contextCmd.SetOut(buf)
 		contextCmd.SetErr(buf)
 		contextCmd.Run(contextCmd, []string{})
-		
+
 		output := buf.String()
 		assert.Contains(t, output, "Project Context")
 		assert.Contains(t, output, "/test/project")

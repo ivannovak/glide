@@ -21,11 +21,11 @@ type Spinner struct {
 
 // Common spinner styles
 var (
-	SpinnerDots = []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"}
-	SpinnerLine = []string{"-", "\\", "|", "/"}
-	SpinnerArrow = []string{"←", "↖", "↑", "↗", "→", "↘", "↓", "↙"}
+	SpinnerDots   = []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"}
+	SpinnerLine   = []string{"-", "\\", "|", "/"}
+	SpinnerArrow  = []string{"←", "↖", "↑", "↗", "→", "↘", "↓", "↙"}
 	SpinnerSimple = []string{".", "..", "...", "....", ".....", "......"}
-	
+
 	// ASCII fallback
 	SpinnerASCII = []string{"-", "\\", "|", "/"}
 )
@@ -37,7 +37,7 @@ func NewSpinner(message string) *Spinner {
 	if os.Getenv("GLIDE_ASCII_ICONS") != "" || os.Getenv("TERM") == "dumb" {
 		frames = SpinnerASCII
 	}
-	
+
 	return &Spinner{
 		frames:  frames,
 		message: message,
@@ -58,7 +58,7 @@ func (s *Spinner) Start() {
 	go func() {
 		ticker := time.NewTicker(100 * time.Millisecond)
 		defer ticker.Stop()
-		
+
 		i := 0
 		for {
 			select {
@@ -79,7 +79,7 @@ func (s *Spinner) Start() {
 func (s *Spinner) Stop() {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	
+
 	if !s.stopped {
 		close(s.stop)
 		s.stopped = true
@@ -119,15 +119,15 @@ func NewProgressBar(total int, message string) *ProgressBar {
 func (p *ProgressBar) Update(current int) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	
+
 	p.current = current
-	
+
 	// Throttle updates to max 10 per second
 	if time.Since(p.lastDraw) < 100*time.Millisecond {
 		return
 	}
 	p.lastDraw = time.Now()
-	
+
 	p.draw()
 }
 
@@ -141,14 +141,14 @@ func (p *ProgressBar) draw() {
 	if p.total <= 0 {
 		return
 	}
-	
+
 	percent := float64(p.current) / float64(p.total)
 	filled := int(percent * float64(p.width))
-	
+
 	// Build the bar
 	bar := strings.Builder{}
 	bar.WriteString("[")
-	
+
 	for i := 0; i < p.width; i++ {
 		if i < filled {
 			bar.WriteString("=")
@@ -158,9 +158,9 @@ func (p *ProgressBar) draw() {
 			bar.WriteString(" ")
 		}
 	}
-	
+
 	bar.WriteString("]")
-	
+
 	// Format the output
 	output := fmt.Sprintf("\r%s %s %3d%% (%d/%d)",
 		p.message,
@@ -169,9 +169,9 @@ func (p *ProgressBar) draw() {
 		p.current,
 		p.total,
 	)
-	
+
 	_, _ = fmt.Fprint(p.writer, output)
-	
+
 	// Add newline when complete
 	if p.current >= p.total {
 		_, _ = fmt.Fprintln(p.writer)
@@ -182,7 +182,7 @@ func (p *ProgressBar) draw() {
 func (p *ProgressBar) Clear() {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	
+
 	// Clear the line
 	_, _ = fmt.Fprintf(p.writer, "\r%s\r", strings.Repeat(" ", p.width+len(p.message)+20))
 }
@@ -222,11 +222,11 @@ func (p *IndeterminateProgress) Start() {
 	go func() {
 		ticker := time.NewTicker(200 * time.Millisecond)
 		defer ticker.Stop()
-		
+
 		width := 40
 		position := 0
 		direction := 1
-		
+
 		for {
 			select {
 			case <-p.stop:
@@ -237,7 +237,7 @@ func (p *IndeterminateProgress) Start() {
 				// Build the progress indicator
 				bar := strings.Builder{}
 				bar.WriteString("[")
-				
+
 				for i := 0; i < width; i++ {
 					if i >= position && i < position+5 {
 						bar.WriteString("=")
@@ -245,11 +245,11 @@ func (p *IndeterminateProgress) Start() {
 						bar.WriteString(" ")
 					}
 				}
-				
+
 				bar.WriteString("]")
-				
+
 				_, _ = fmt.Fprintf(p.writer, "\r%s %s", p.message, bar.String())
-				
+
 				// Update position
 				position += direction
 				if position >= width-5 || position <= 0 {
@@ -264,7 +264,7 @@ func (p *IndeterminateProgress) Start() {
 func (p *IndeterminateProgress) Stop() {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	
+
 	if !p.stopped {
 		close(p.stop)
 		p.stopped = true

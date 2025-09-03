@@ -15,7 +15,7 @@ func ShowModeError(currentMode context.DevelopmentMode, requiredMode context.Dev
 	output.Println()
 	output.Printf("Current mode: %s\n", string(currentMode))
 	output.Println()
-	
+
 	switch requiredMode {
 	case context.ModeMultiWorktree:
 		output.Println("To enable multi-worktree mode, run:")
@@ -31,7 +31,7 @@ func ShowModeError(currentMode context.DevelopmentMode, requiredMode context.Dev
 		output.Println("  - Global commands (glid g status, glid g down-all)")
 		output.Println("  - Worktree management")
 		output.Println("  - Cross-worktree operations")
-		
+
 	case context.ModeSingleRepo:
 		output.Println("To use single-repo mode, run:")
 		output.Info("  glid setup")
@@ -46,7 +46,7 @@ func ShowModeError(currentMode context.DevelopmentMode, requiredMode context.Dev
 		output.Println("  - Direct repository access")
 		output.Println("  - Simplified workflow")
 	}
-	
+
 	return glideErrors.NewModeError(string(currentMode), string(requiredMode), commandName,
 		glideErrors.WithSuggestions(
 			"Run 'glid setup' to change development mode",
@@ -63,7 +63,7 @@ func ValidateMultiWorktreeMode(ctx *context.ProjectContext, commandName string) 
 	return nil
 }
 
-// ValidateSingleRepoMode checks if we're in single-repo mode  
+// ValidateSingleRepoMode checks if we're in single-repo mode
 func ValidateSingleRepoMode(ctx *context.ProjectContext, commandName string) error {
 	if ctx.DevelopmentMode != context.ModeSingleRepo {
 		return ShowModeError(ctx.DevelopmentMode, context.ModeSingleRepo, commandName)
@@ -75,7 +75,7 @@ func ValidateSingleRepoMode(ctx *context.ProjectContext, commandName string) err
 func ShowAvailableCommands(mode context.DevelopmentMode) {
 	output.Println()
 	output.Info("Available commands in %s mode:", string(mode))
-	
+
 	switch mode {
 	case context.ModeMultiWorktree:
 		output.Println("\n🌐 Global Commands (glid g/global):")
@@ -84,24 +84,24 @@ func ShowAvailableCommands(mode context.DevelopmentMode) {
 		output.Println("  worktree       Create and manage worktrees")
 		output.Println("  list-worktrees List all active worktrees")
 		output.Println("  clean          Clean up orphaned resources")
-		
+
 		output.Println("\n📁 Local Commands:")
 		output.Println("  up, down       Container lifecycle")
 		output.Println("  shell, mysql   Interactive access")
 		output.Println("  status, logs   Monitoring")
 		output.Println("  test, lint     Development tools")
-		
+
 	case context.ModeSingleRepo:
 		output.Println("\n📁 Available Commands:")
 		output.Println("  up, down       Container lifecycle")
-		output.Println("  shell, mysql   Interactive access") 
+		output.Println("  shell, mysql   Interactive access")
 		output.Println("  status, logs   Monitoring")
 		output.Println("  test, lint     Development tools")
 		output.Println("  docker         Pass-through to docker-compose")
 		output.Println("  composer       Package management")
 		output.Println("  artisan        Laravel commands")
 	}
-	
+
 	output.Println("\n⚙️ Always Available:")
 	output.Println("  setup          Configure development mode")
 	output.Println("  config         Manage configuration")
@@ -114,7 +114,7 @@ func ShowAvailableCommands(mode context.DevelopmentMode) {
 func ShowCommandSuggestion(attemptedCommand string, suggestions []string, ctx *context.ProjectContext) error {
 	output.Error("❌ Unknown command: '%s'", attemptedCommand)
 	output.Raw("\n")
-	
+
 	if len(suggestions) == 1 {
 		output.Info("💡 Did you mean: %s", suggestions[0])
 		output.Printf("  glid %s\n", suggestions[0])
@@ -124,10 +124,10 @@ func ShowCommandSuggestion(attemptedCommand string, suggestions []string, ctx *c
 			output.Printf("  glid %s\n", suggestion)
 		}
 	}
-	
+
 	output.Raw("\n")
 	output.Raw("For all available commands: glid help\n")
-	
+
 	return glideErrors.NewConfigError("unknown command",
 		glideErrors.WithSuggestions(append(suggestions, "help")...),
 	)
@@ -137,7 +137,7 @@ func ShowCommandSuggestion(attemptedCommand string, suggestions []string, ctx *c
 func ShowUnknownCommandError(command string, ctx *context.ProjectContext, cfg *config.Config) error {
 	output.Error("❌ Unknown command: '%s'", command)
 	output.Raw("\n")
-	
+
 	// Provide context-aware suggestions
 	switch ctx.DevelopmentMode {
 	case context.ModeMultiWorktree:
@@ -151,25 +151,25 @@ func ShowUnknownCommandError(command string, ctx *context.ProjectContext, cfg *c
 			output.Raw("  glid test                # Run tests\n")
 			output.Raw("  glid shell               # Access container\n")
 		}
-		
+
 	case context.ModeSingleRepo:
 		output.Info("💡 Available commands in single-repo mode:")
 		output.Raw("  glid up                  # Start containers\n")
 		output.Raw("  glid test                # Run tests\n")
 		output.Raw("  glid docker              # Docker commands\n")
 		output.Raw("  glid composer            # Package management\n")
-		
+
 	default:
 		output.Info("💡 To get started:")
 		output.Raw("  glid setup               # Configure project\n")
 		output.Raw("  glid help getting-started # Complete guide\n")
 	}
-	
+
 	output.Raw("\n")
 	output.Raw("📚 Get help:\n")
 	output.Raw("  glid help                # Context-aware help\n")
 	output.Raw("  glid help workflows      # Common patterns\n")
-	
+
 	// Check for common typos
 	commonCommands := []string{"up", "down", "test", "shell", "mysql", "status", "logs"}
 	for _, cmd := range commonCommands {
@@ -179,7 +179,7 @@ func ShowUnknownCommandError(command string, ctx *context.ProjectContext, cfg *c
 			break
 		}
 	}
-	
+
 	return glideErrors.NewConfigError("unknown command: "+command,
 		glideErrors.WithSuggestions("help", "setup"),
 	)

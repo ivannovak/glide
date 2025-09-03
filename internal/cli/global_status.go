@@ -64,7 +64,7 @@ func (c *GlobalStatusCommand) Execute(cmd *cobra.Command, args []string) error {
 			}
 
 			worktreePath := filepath.Join(worktreesDir, entry.Name())
-			
+
 			// Check if it's a valid worktree (has .git file)
 			gitFile := filepath.Join(worktreePath, ".git")
 			if _, err := os.Stat(gitFile); err != nil {
@@ -73,7 +73,7 @@ func (c *GlobalStatusCommand) Execute(cmd *cobra.Command, args []string) error {
 
 			// Get branch name
 			branchName := c.getBranchName(worktreePath)
-			
+
 			output.Printf("📍 Worktree: %s", entry.Name())
 			if branchName != "" {
 				output.Info(" (%s)", branchName)
@@ -126,11 +126,11 @@ func (c *GlobalStatusCommand) getDockerStatus(dir string, name string) (string, 
 
 	// Get compose command
 	args := resolver.GetComposeCommand("ps", "--format", "table")
-	
+
 	// Execute docker compose ps
 	cmd := exec.Command("docker", args...)
 	cmd.Dir = dir
-	
+
 	cmdOutput, err := cmd.Output()
 	if err != nil {
 		return output.ErrorText("  ❌ Error checking status: %v\n", err), false
@@ -138,23 +138,23 @@ func (c *GlobalStatusCommand) getDockerStatus(dir string, name string) (string, 
 
 	outputStr := string(cmdOutput)
 	lines := strings.Split(strings.TrimSpace(outputStr), "\n")
-	
+
 	// Check if any containers are running
 	hasRunning := false
 	var result strings.Builder
-	
+
 	if len(lines) <= 1 || (len(lines) == 2 && strings.Contains(lines[0], "NAME")) {
 		result.WriteString(output.WarningText("  ⚠️  No containers\n"))
 	} else {
 		// Parse container status
 		runningCount := 0
 		stoppedCount := 0
-		
+
 		for i, line := range lines {
 			if i == 0 || line == "" {
 				continue // Skip header
 			}
-			
+
 			if strings.Contains(line, "Up") || strings.Contains(line, "running") {
 				runningCount++
 				hasRunning = true
@@ -162,7 +162,7 @@ func (c *GlobalStatusCommand) getDockerStatus(dir string, name string) (string, 
 				stoppedCount++
 			}
 		}
-		
+
 		if runningCount > 0 {
 			result.WriteString(output.SuccessText("  🟢 %d running", runningCount))
 		}
@@ -175,12 +175,12 @@ func (c *GlobalStatusCommand) getDockerStatus(dir string, name string) (string, 
 			result.WriteString(output.WarningText("🟡 %d stopped", stoppedCount))
 		}
 		result.WriteString("\n")
-		
+
 		// Show container details if verbose flag is set
 		// Note: cmd here is the exec.Cmd, not cobra.Command
 		// We'd need to pass the verbose flag from Execute method
 	}
-	
+
 	return result.String(), hasRunning
 }
 
@@ -188,10 +188,10 @@ func (c *GlobalStatusCommand) getDockerStatus(dir string, name string) (string, 
 func (c *GlobalStatusCommand) getBranchName(worktreePath string) string {
 	cmd := exec.Command("git", "branch", "--show-current")
 	cmd.Dir = worktreePath
-	
+
 	if cmdOutput, err := cmd.Output(); err == nil {
 		return strings.TrimSpace(string(cmdOutput))
 	}
-	
+
 	return ""
 }

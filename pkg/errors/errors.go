@@ -11,11 +11,11 @@ func New(errType ErrorType, message string, opts ...ErrorOption) *GlideError {
 		Message: message,
 		Code:    1, // Default exit code
 	}
-	
+
 	for _, opt := range opts {
 		opt(e)
 	}
-	
+
 	return e
 }
 
@@ -172,7 +172,7 @@ func Wrap(err error, message string, opts ...ErrorOption) *GlideError {
 	if err == nil {
 		return nil
 	}
-	
+
 	// If it's already a GlideError, preserve its properties
 	if glideErr, ok := err.(*GlideError); ok {
 		// Create a new error with the wrapped message
@@ -184,15 +184,15 @@ func Wrap(err error, message string, opts ...ErrorOption) *GlideError {
 			Context:     glideErr.Context,
 			Code:        glideErr.Code,
 		}
-		
+
 		// Apply any new options
 		for _, opt := range opts {
 			opt(wrapped)
 		}
-		
+
 		return wrapped
 	}
-	
+
 	// Create a new GlideError wrapping the original
 	return New(TypeUnknown, message, append(opts, WithError(err))...)
 }
@@ -202,11 +202,11 @@ func Is(err error, errType ErrorType) bool {
 	if err == nil {
 		return false
 	}
-	
+
 	glideErr, ok := err.(*GlideError)
 	if !ok {
 		return false
 	}
-	
+
 	return glideErr.Type == errType
 }

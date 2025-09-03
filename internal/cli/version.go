@@ -88,7 +88,7 @@ func (vc *VersionCommand) execute(cmd *cobra.Command, args []string, checkUpdate
 
 	// For now, just show text output until we have proper injection
 	// TODO: Get format from injected manager once commands are migrated
-	
+
 	// For table/plain output, display formatted text
 	output.Info(version.GetVersionString())
 	output.Raw("\n")
@@ -104,7 +104,7 @@ func (vc *VersionCommand) execute(cmd *cobra.Command, args []string, checkUpdate
 	if checkUpdate {
 		output.Raw("\n")
 		output.Info("Checking for updates...")
-		
+
 		checker := update.NewChecker(buildInfo.Version)
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()

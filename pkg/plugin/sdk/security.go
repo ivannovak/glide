@@ -294,7 +294,7 @@ func (cv *CapabilityValidator) validateCommand(command string) error {
 	return fmt.Errorf("command %s is not in allowed list", command)
 }
 
-// Capabilities represents plugin capability requirements  
+// Capabilities represents plugin capability requirements
 type Capabilities struct {
 	RequiresDocker     bool     `json:"requires_docker"`
 	RequiresNetwork    bool     `json:"requires_network"`
@@ -307,10 +307,10 @@ type Capabilities struct {
 
 // PluginManifest represents a plugin manifest file
 type PluginManifest struct {
-	APIVersion string          `yaml:"apiVersion"`
-	Kind       string          `yaml:"kind"`
-	Metadata   ManifestMeta    `yaml:"metadata"`
-	Spec       ManifestSpec    `yaml:"spec"`
+	APIVersion string       `yaml:"apiVersion"`
+	Kind       string       `yaml:"kind"`
+	Metadata   ManifestMeta `yaml:"metadata"`
+	Spec       ManifestSpec `yaml:"spec"`
 }
 
 // ManifestMeta contains plugin metadata

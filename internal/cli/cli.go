@@ -57,7 +57,7 @@ func (c *CLI) NewGlobalCommand() *cobra.Command {
 func (c *CLI) AddGlobalCommands(cmd *cobra.Command) {
 	// Add all global subcommands to the parent global command
 	globalCmd := NewGlobalCommand(c.app.ProjectContext, c.app.Config)
-	
+
 	// Add each subcommand directly to the provided command
 	for _, subCmd := range globalCmd.Commands() {
 		cmd.AddCommand(subCmd)
@@ -81,7 +81,7 @@ func (c *CLI) AddLocalCommands(cmd *cobra.Command) {
 			c.showContext(cmd)
 		},
 	})
-	
+
 	// Add config debug command
 	cmd.AddCommand(&cobra.Command{
 		Use:          "config",
@@ -91,7 +91,7 @@ func (c *CLI) AddLocalCommands(cmd *cobra.Command) {
 			c.showConfig(cmd)
 		},
 	})
-	
+
 	// Add shell test command (debug)
 	cmd.AddCommand(&cobra.Command{
 		Use:          "shell-test",
@@ -121,31 +121,30 @@ func (c *CLI) AddLocalCommands(cmd *cobra.Command) {
 			c.testContainerManagement(cmd, args)
 		},
 	})
-	
-	
+
 	// Add completion command
 	cmd.AddCommand(c.NewCompletionCommand())
-	
+
 	// Add test command
 	cmd.AddCommand(NewTestCommand(c.app.ProjectContext, c.app.Config))
-	
+
 	// Add docker command
 	cmd.AddCommand(NewDockerCommand(c.app.ProjectContext, c.app.Config))
-	
+
 	// Add composer command
 	cmd.AddCommand(NewComposerCommand(c.app.ProjectContext, c.app.Config))
-	
+
 	// Add artisan command
 	cmd.AddCommand(NewArtisanCommand(c.app.ProjectContext, c.app.Config))
-	
+
 	// Add container lifecycle commands
 	cmd.AddCommand(NewUpCommand(c.app.ProjectContext, c.app.Config))
 	cmd.AddCommand(NewDownCommand(c.app.ProjectContext, c.app.Config))
-	
+
 	// Add interactive commands
 	cmd.AddCommand(NewShellCommand(c.app.ProjectContext, c.app.Config))
 	cmd.AddCommand(NewLogsCommand(c.app.ProjectContext, c.app.Config))
-	
+
 	// Add utility commands
 	cmd.AddCommand(NewStatusCommand(c.app.ProjectContext, c.app.Config))
 	cmd.AddCommand(NewLintCommand(c.app.ProjectContext, c.app.Config))
@@ -161,13 +160,13 @@ func (c *CLI) showContext(cmd *cobra.Command) {
 		cmd.Println("No project context available")
 		return
 	}
-	
+
 	cmd.Println("=== Project Context ===")
 	cmd.Printf("Working Directory: %s\n", ctx.WorkingDir)
 	cmd.Printf("Project Root: %s\n", ctx.ProjectRoot)
 	cmd.Printf("Development Mode: %s\n", ctx.DevelopmentMode)
 	cmd.Printf("Location: %s\n", ctx.Location)
-	
+
 	if ctx.DevelopmentMode == context.ModeMultiWorktree {
 		cmd.Printf("Is Root: %v\n", ctx.IsRoot)
 		cmd.Printf("Is Main Repo: %v\n", ctx.IsMainRepo)
@@ -176,20 +175,20 @@ func (c *CLI) showContext(cmd *cobra.Command) {
 			cmd.Printf("Worktree Name: %s\n", ctx.WorktreeName)
 		}
 	}
-	
+
 	cmd.Printf("\nDocker Running: %v\n", ctx.DockerRunning)
-	
+
 	if len(ctx.ComposeFiles) > 0 {
 		cmd.Println("\nCompose Files:")
 		for _, file := range ctx.ComposeFiles {
 			cmd.Printf("  - %s\n", file)
 		}
 	}
-	
+
 	if ctx.ComposeOverride != "" {
 		cmd.Printf("Override File: %s\n", ctx.ComposeOverride)
 	}
-	
+
 	if ctx.Error != nil {
 		cmd.Printf("\nContext Error: %v\n", ctx.Error)
 	}
@@ -198,40 +197,40 @@ func (c *CLI) showContext(cmd *cobra.Command) {
 // showConfig displays the loaded configuration
 func (c *CLI) showConfig(cmd *cobra.Command) {
 	cmd.Println("=== Configuration ===")
-	
+
 	if c.app.Config == nil {
 		cmd.Println("No configuration loaded")
 		return
 	}
-	
+
 	cfg := c.app.Config
-	
+
 	cmd.Println("\nProjects:")
 	for name, project := range cfg.Projects {
 		cmd.Printf("  %s:\n", name)
 		cmd.Printf("    Path: %s\n", project.Path)
 		cmd.Printf("    Mode: %s\n", project.Mode)
 	}
-	
+
 	if cfg.DefaultProject != "" {
 		cmd.Printf("\nDefault Project: %s\n", cfg.DefaultProject)
 	}
-	
+
 	cmd.Println("\nDefaults:")
 	cmd.Println("  Test:")
 	cmd.Printf("    Parallel: %v\n", cfg.Defaults.Test.Parallel)
 	cmd.Printf("    Processes: %d\n", cfg.Defaults.Test.Processes)
 	cmd.Printf("    Coverage: %v\n", cfg.Defaults.Test.Coverage)
 	cmd.Printf("    Verbose: %v\n", cfg.Defaults.Test.Verbose)
-	
+
 	cmd.Println("  Docker:")
 	cmd.Printf("    Compose Timeout: %d\n", cfg.Defaults.Docker.ComposeTimeout)
 	cmd.Printf("    Auto Start: %v\n", cfg.Defaults.Docker.AutoStart)
 	cmd.Printf("    Remove Orphans: %v\n", cfg.Defaults.Docker.RemoveOrphans)
-	
+
 	cmd.Println("  Colors:")
 	cmd.Printf("    Enabled: %s\n", cfg.Defaults.Colors.Enabled)
-	
+
 	cmd.Println("  Worktree:")
 	cmd.Printf("    Auto Setup: %v\n", cfg.Defaults.Worktree.AutoSetup)
 	cmd.Printf("    Copy Env: %v\n", cfg.Defaults.Worktree.CopyEnv)
@@ -241,11 +240,11 @@ func (c *CLI) showConfig(cmd *cobra.Command) {
 // testShell tests the shell execution framework
 func (c *CLI) testShell(cmd *cobra.Command, args []string) {
 	cmd.Println("=== Shell Execution Test ===")
-	
+
 	executor := shell.NewExecutor(shell.Options{
 		Verbose: true,
 	})
-	
+
 	// Test 1: Simple command capture
 	cmd.Println("Test 1: Capture output")
 	capturedOutput, err := executor.RunCapture("echo", "Hello from Glide!")
@@ -254,7 +253,7 @@ func (c *CLI) testShell(cmd *cobra.Command, args []string) {
 	} else {
 		c.app.OutputManager.Success("Success: %s", capturedOutput)
 	}
-	
+
 	// Test 2: Command with timeout
 	cmd.Println("\nTest 2: Command with timeout")
 	err = executor.RunWithTimeout(2*time.Second, "sleep", "1")
@@ -263,14 +262,14 @@ func (c *CLI) testShell(cmd *cobra.Command, args []string) {
 	} else {
 		c.app.OutputManager.Success("Success: Command completed within timeout")
 	}
-	
+
 	// Test 3: Progress indicator
 	cmd.Println("\nTest 3: Progress indicator")
 	spinner := progress.NewSpinner("Running test command")
 	spinner.Start()
 	time.Sleep(2 * time.Second)
 	spinner.Success("Test completed")
-	
+
 	// Test 4: Docker check
 	ctx := c.app.ProjectContext
 	if ctx != nil && len(ctx.ComposeFiles) > 0 {
@@ -278,7 +277,7 @@ func (c *CLI) testShell(cmd *cobra.Command, args []string) {
 		docker := shell.NewDockerExecutor(ctx)
 		if docker.IsRunning() {
 			c.app.OutputManager.Success("Docker is running")
-			
+
 			status, err := docker.GetContainerStatus()
 			if err == nil && len(status) > 0 {
 				cmd.Println("Container status:")
@@ -290,12 +289,12 @@ func (c *CLI) testShell(cmd *cobra.Command, args []string) {
 			c.app.OutputManager.Warning("Docker is not running")
 		}
 	}
-	
+
 	// Test 5: Pass-through (if args provided)
 	if len(args) > 0 {
 		cmd.Println("\nTest 5: Pass-through execution")
 		cmd.Printf("Running: %v\n", args)
-		
+
 		shellCmd := shell.NewPassthroughCommand(args[0], args[1:]...)
 		result, err := executor.Execute(shellCmd)
 		if err != nil {
@@ -405,7 +404,7 @@ func (c *CLI) testContainerManagement(cmd *cobra.Command, args []string) {
 	containers, err := manager.GetStatus()
 	if err != nil {
 		c.app.OutputManager.Error("  Error: %s", errorHandler.Handle(err))
-		
+
 		// Show suggestions
 		suggestions := errorHandler.SuggestFix(err)
 		if len(suggestions) > 0 {
@@ -469,7 +468,7 @@ func (c *CLI) testContainerManagement(cmd *cobra.Command, args []string) {
 
 	// Test 5: Error handling
 	cmd.Println("\nTest 5: Error Handling")
-	testErr := docker.ParseDockerError("test", "Cannot connect to the Docker daemon", 
+	testErr := docker.ParseDockerError("test", "Cannot connect to the Docker daemon",
 		glideErrors.NewDockerError("connection refused",
 			glideErrors.WithSuggestions(
 				"Start Docker Desktop application",
@@ -477,7 +476,7 @@ func (c *CLI) testContainerManagement(cmd *cobra.Command, args []string) {
 			),
 		))
 	cmd.Printf("  Parsed error: %s\n", errorHandler.Handle(testErr))
-	
+
 	if docker.IsRetryable(testErr) {
 		c.app.OutputManager.Success("  This error is retryable")
 	} else {

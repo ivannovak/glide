@@ -64,8 +64,8 @@ Performance Notes:
   - Consider running 'composer install' during container build for production`,
 		DisableFlagParsing: true, // Pass all flags through to composer
 		RunE:               cc.Execute,
-		SilenceUsage:       true,  // Don't show usage on error
-		SilenceErrors:      true,  // Let our error handler handle errors
+		SilenceUsage:       true, // Don't show usage on error
+		SilenceErrors:      true, // Let our error handler handle errors
 	}
 
 	return cmd
@@ -157,14 +157,14 @@ func (c *ComposerCommand) isInteractiveCommand(args []string) bool {
 	if len(args) > 0 && args[0] == "init" {
 		return true
 	}
-	
+
 	// Check for explicit interaction flags
 	for _, arg := range args {
 		if arg == "--interactive" || arg == "-i" {
 			return true
 		}
 	}
-	
+
 	return false
 }
 
@@ -177,7 +177,7 @@ func (c *ComposerCommand) shouldShowCommand(args []string) bool {
 			return true
 		}
 	}
-	
+
 	// Otherwise check verbose setting
 	return c.cfg != nil && c.cfg.Defaults.Test.Verbose
 }
@@ -232,7 +232,7 @@ func (c *ComposerCommand) executeWithProgress(dockerArgs []string, composerArgs 
 				"Check the composer output above for specific errors",
 				"Verify composer.json is valid: glid composer validate",
 				"Clear composer cache: glid composer clear-cache",
-				"Try with verbose mode: glid composer " + composerArgs[0] + " -vvv",
+				"Try with verbose mode: glid composer "+composerArgs[0]+" -vvv",
 			),
 		)
 	}
@@ -331,12 +331,12 @@ func (c *ComposerCommand) isExpectedNonZeroExit(args []string, exitCode int) boo
 
 	if composerCmdIndex >= 0 && composerCmdIndex+1 < len(args) {
 		composerCmd := args[composerCmdIndex+1]
-		
+
 		// 'outdated' returns 1 if packages are outdated (expected)
 		if composerCmd == "outdated" && exitCode == 1 {
 			return true
 		}
-		
+
 		// 'validate' returns non-zero if composer.json is invalid (expected)
 		if composerCmd == "validate" && exitCode != 0 {
 			// Still show the validation errors, but don't treat as unexpected error
@@ -365,7 +365,7 @@ func (c *ComposerCommand) startDocker() error {
 
 	composeCmd := resolver.GetComposeCommand("up", "-d")
 	shellCmd := shell.NewCommand("docker", composeCmd...)
-	
+
 	if _, err := executor.Execute(shellCmd); err != nil {
 		spinner.Error("Failed to start Docker")
 		return err
@@ -379,10 +379,10 @@ func (c *ComposerCommand) startDocker() error {
 	}
 
 	spinner.Success("Docker containers started")
-	
+
 	// Update context to reflect Docker is now running
 	c.ctx.DockerRunning = true
-	
+
 	return nil
 }
 

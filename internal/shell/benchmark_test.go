@@ -10,7 +10,7 @@ import (
 // BenchmarkCommand_Creation benchmarks command creation
 func BenchmarkCommand_Creation(b *testing.B) {
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		cmd := NewCommand("echo", "hello", "world")
 		_ = cmd
@@ -22,7 +22,7 @@ func BenchmarkCommand_String(b *testing.B) {
 	cmd := NewCommand("echo", "hello", "world", "with", "many", "arguments")
 	b.ResetTimer()
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		_ = cmd.String()
 	}
@@ -36,7 +36,7 @@ func BenchmarkJoinArgs(b *testing.B) {
 	}
 	b.ResetTimer()
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		_ = JoinArgs(args)
 	}
@@ -56,10 +56,10 @@ func BenchmarkBasicStrategy_Execute(b *testing.B) {
 			CaptureOutput: true,
 		},
 	}
-	
+
 	b.ResetTimer()
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		result, err := strategy.Execute(context.Background(), cmd)
 		if err != nil {
@@ -86,10 +86,10 @@ func BenchmarkTimeoutStrategy_Execute(b *testing.B) {
 			Timeout:       1 * time.Second,
 		},
 	}
-	
+
 	b.ResetTimer()
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		result, err := strategy.Execute(context.Background(), cmd)
 		if err != nil {
@@ -110,14 +110,14 @@ func BenchmarkStreamingStrategy_Execute(b *testing.B) {
 	stdout := &bytes.Buffer{}
 	stderr := &bytes.Buffer{}
 	strategy := NewStreamingStrategy(stdout, stderr)
-	
+
 	b.ResetTimer()
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		stdout.Reset()
 		stderr.Reset()
-		
+
 		cmd := &Command{
 			Name: "echo",
 			Args: []string{"streaming", "benchmark"},
@@ -127,7 +127,7 @@ func BenchmarkStreamingStrategy_Execute(b *testing.B) {
 				ErrorWriter:  stderr,
 			},
 		}
-		
+
 		result, err := strategy.Execute(context.Background(), cmd)
 		if err != nil {
 			b.Fatal(err)
@@ -145,10 +145,10 @@ func BenchmarkPipeStrategy_Execute(b *testing.B) {
 	}
 
 	strategy := NewPipeStrategy(nil)
-	
+
 	b.ResetTimer()
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		input := bytes.NewBufferString("benchmark input data\n")
 		cmd := &Command{
@@ -158,7 +158,7 @@ func BenchmarkPipeStrategy_Execute(b *testing.B) {
 				CaptureOutput: true,
 			},
 		}
-		
+
 		result, err := strategy.Execute(context.Background(), cmd)
 		if err != nil {
 			b.Fatal(err)
@@ -172,7 +172,7 @@ func BenchmarkPipeStrategy_Execute(b *testing.B) {
 // BenchmarkStrategySelector_Select benchmarks strategy selection
 func BenchmarkStrategySelector_Select(b *testing.B) {
 	selector := NewStrategySelector()
-	
+
 	// Test different command scenarios
 	commands := []*Command{
 		{
@@ -201,10 +201,10 @@ func BenchmarkStrategySelector_Select(b *testing.B) {
 			Stdin: bytes.NewBufferString("input"),
 		},
 	}
-	
+
 	b.ResetTimer()
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		cmd := commands[i%len(commands)]
 		strategy := selector.Select(cmd)
@@ -220,10 +220,10 @@ func BenchmarkExecutor_Execute(b *testing.B) {
 
 	executor := NewExecutor(Options{})
 	cmd := NewCommand("echo", "executor", "benchmark")
-	
+
 	b.ResetTimer()
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		result, err := executor.Execute(cmd)
 		if err != nil {
@@ -247,10 +247,10 @@ func BenchmarkExecutor_ExecuteWithStrategy(b *testing.B) {
 	cmd.Options = CommandOptions{
 		CaptureOutput: true,
 	}
-	
+
 	b.ResetTimer()
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		result, err := executor.Execute(cmd)
 		if err != nil {
@@ -265,10 +265,10 @@ func BenchmarkExecutor_ExecuteWithStrategy(b *testing.B) {
 // BenchmarkCommand_WithMethods benchmarks command builder methods
 func BenchmarkCommand_WithMethods(b *testing.B) {
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		cmd := NewCommand("test")
-		cmd.WithTimeout(5 * time.Second).
+		cmd.WithTimeout(5*time.Second).
 			WithWorkingDir("/tmp").
 			WithEnv("FOO=bar", "BAZ=qux")
 		_ = cmd
@@ -279,10 +279,10 @@ func BenchmarkCommand_WithMethods(b *testing.B) {
 func BenchmarkResult_Creation(b *testing.B) {
 	stdout := []byte("test output")
 	stderr := []byte("test error")
-	
+
 	b.ResetTimer()
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		result := &Result{
 			ExitCode: 0,
@@ -300,10 +300,10 @@ func BenchmarkResult_Creation(b *testing.B) {
 func BenchmarkCommandOptions_Creation(b *testing.B) {
 	stdout := &bytes.Buffer{}
 	stderr := &bytes.Buffer{}
-	
+
 	b.ResetTimer()
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		opts := CommandOptions{
 			CaptureOutput: true,

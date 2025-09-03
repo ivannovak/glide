@@ -9,7 +9,7 @@ func Detect() *ProjectContext {
 			Error:      err,
 		}
 	}
-	
+
 	ctx, err := detector.Detect()
 	if err != nil {
 		// Even if detection fails, return the context with basic info

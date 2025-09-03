@@ -10,47 +10,47 @@ type ErrorType string
 
 const (
 	// Docker related errors
-	TypeDocker       ErrorType = "docker"
-	TypeContainer    ErrorType = "container"
-	
+	TypeDocker    ErrorType = "docker"
+	TypeContainer ErrorType = "container"
+
 	// File system errors
 	TypePermission   ErrorType = "permission"
 	TypeFileNotFound ErrorType = "file_not_found"
-	
+
 	// Dependency errors
-	TypeDependency   ErrorType = "dependency"
-	TypeMissing      ErrorType = "missing"
-	
+	TypeDependency ErrorType = "dependency"
+	TypeMissing    ErrorType = "missing"
+
 	// Configuration errors
-	TypeConfig       ErrorType = "configuration"
-	TypeInvalid      ErrorType = "invalid"
-	
+	TypeConfig  ErrorType = "configuration"
+	TypeInvalid ErrorType = "invalid"
+
 	// Network errors
-	TypeNetwork      ErrorType = "network"
-	TypeConnection   ErrorType = "connection"
-	
+	TypeNetwork    ErrorType = "network"
+	TypeConnection ErrorType = "connection"
+
 	// Mode errors
-	TypeMode         ErrorType = "mode"
-	TypeWrongMode    ErrorType = "wrong_mode"
-	
+	TypeMode      ErrorType = "mode"
+	TypeWrongMode ErrorType = "wrong_mode"
+
 	// Database errors
-	TypeDatabase     ErrorType = "database"
-	
+	TypeDatabase ErrorType = "database"
+
 	// Generic errors
-	TypeCommand      ErrorType = "command"
-	TypeTimeout      ErrorType = "timeout"
-	TypeRuntime      ErrorType = "runtime"
-	TypeUnknown      ErrorType = "unknown"
+	TypeCommand ErrorType = "command"
+	TypeTimeout ErrorType = "timeout"
+	TypeRuntime ErrorType = "runtime"
+	TypeUnknown ErrorType = "unknown"
 )
 
 // GlideError is the standard error type for the Glide CLI
 type GlideError struct {
 	Type        ErrorType
 	Message     string
-	Err         error      // Underlying error
-	Suggestions []string   // Helpful suggestions
+	Err         error             // Underlying error
+	Suggestions []string          // Helpful suggestions
 	Context     map[string]string // Additional context
-	Code        int        // Exit code
+	Code        int               // Exit code
 }
 
 // Error implements the error interface
@@ -146,9 +146,9 @@ func WithExitCode(code int) ErrorOption {
 
 // CommonError represents a common error pattern
 type CommonError struct {
-	Pattern     string     // Error message pattern to match
-	Type        ErrorType  // Error type to assign
-	Suggestions []string   // Default suggestions
+	Pattern     string    // Error message pattern to match
+	Type        ErrorType // Error type to assign
+	Suggestions []string  // Default suggestions
 }
 
 // Matches checks if an error message matches this pattern

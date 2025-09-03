@@ -42,14 +42,14 @@ type Asset struct {
 
 // UpdateInfo contains information about available updates
 type UpdateInfo struct {
-	Available       bool
-	CurrentVersion  string
-	LatestVersion   string
-	ReleaseURL      string
-	ReleaseNotes    string
-	PublishedAt     time.Time
-	DownloadURL     string
-	AssetSize       int64
+	Available      bool
+	CurrentVersion string
+	LatestVersion  string
+	ReleaseURL     string
+	ReleaseNotes   string
+	PublishedAt    time.Time
+	DownloadURL    string
+	AssetSize      int64
 }
 
 // Checker handles version update checking
@@ -195,17 +195,17 @@ func FormatUpdateMessage(info *UpdateInfo) string {
 	}
 
 	var msg strings.Builder
-	msg.WriteString(fmt.Sprintf("A new version of Glide is available: %s → %s\n", 
+	msg.WriteString(fmt.Sprintf("A new version of Glide is available: %s → %s\n",
 		info.CurrentVersion, info.LatestVersion))
 	msg.WriteString(fmt.Sprintf("Released: %s\n", info.PublishedAt.Format("2006-01-02")))
-	
+
 	if info.DownloadURL != "" && !strings.Contains(info.DownloadURL, "github.com/ivannovak/glide/releases") {
 		msg.WriteString(fmt.Sprintf("\nDownload: %s\n", info.DownloadURL))
 	} else {
 		msg.WriteString(fmt.Sprintf("\nView release: %s\n", info.ReleaseURL))
 	}
-	
+
 	msg.WriteString("\nUpdate with: curl -fsSL https://raw.githubusercontent.com/ivannovak/glide/main/install.sh | bash")
-	
+
 	return msg.String()
 }

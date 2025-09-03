@@ -11,9 +11,9 @@ type SuggestionEngine struct {
 
 // ErrorPattern matches error messages and provides suggestions
 type ErrorPattern struct {
-	Contains    []string   // Any of these strings trigger the pattern
-	Type        ErrorType  // Error type to assign
-	Suggestions []string   // Suggestions to provide
+	Contains    []string  // Any of these strings trigger the pattern
+	Type        ErrorType // Error type to assign
+	Suggestions []string  // Suggestions to provide
 }
 
 // NewSuggestionEngine creates a new suggestion engine with default patterns
@@ -28,22 +28,22 @@ func (se *SuggestionEngine) GetSuggestions(err error, context map[string]string)
 	if err == nil {
 		return nil
 	}
-	
+
 	errMsg := strings.ToLower(err.Error())
 	suggestions := []string{}
-	
+
 	// Check each pattern
 	for _, pattern := range se.patterns {
 		if pattern.Matches(errMsg) {
 			suggestions = append(suggestions, pattern.Suggestions...)
 		}
 	}
-	
+
 	// Add context-specific suggestions
 	if context != nil {
 		suggestions = append(suggestions, se.getContextSuggestions(context)...)
 	}
-	
+
 	// Remove duplicates
 	return uniqueStrings(suggestions)
 }
@@ -51,7 +51,7 @@ func (se *SuggestionEngine) GetSuggestions(err error, context map[string]string)
 // getContextSuggestions provides suggestions based on context
 func (se *SuggestionEngine) getContextSuggestions(context map[string]string) []string {
 	var suggestions []string
-	
+
 	// Container-specific suggestions
 	if container, ok := context["container"]; ok {
 		switch container {
@@ -74,7 +74,7 @@ func (se *SuggestionEngine) getContextSuggestions(context map[string]string) []s
 			)
 		}
 	}
-	
+
 	// Mode-specific suggestions
 	if mode, ok := context["current_mode"]; ok {
 		if mode == "single-repo" {
@@ -84,7 +84,7 @@ func (se *SuggestionEngine) getContextSuggestions(context map[string]string) []s
 			)
 		}
 	}
-	
+
 	// Path-specific suggestions
 	if path, ok := context["path"]; ok {
 		if strings.Contains(path, ".env") {
@@ -101,7 +101,7 @@ func (se *SuggestionEngine) getContextSuggestions(context map[string]string) []s
 			)
 		}
 	}
-	
+
 	return suggestions
 }
 
@@ -255,14 +255,14 @@ func defaultPatterns() []ErrorPattern {
 func uniqueStrings(strings []string) []string {
 	seen := make(map[string]bool)
 	result := []string{}
-	
+
 	for _, str := range strings {
 		if !seen[str] {
 			seen[str] = true
 			result = append(result, str)
 		}
 	}
-	
+
 	return result
 }
 
@@ -271,16 +271,16 @@ func AnalyzeError(err error) *GlideError {
 	if err == nil {
 		return nil
 	}
-	
+
 	// If it's already a GlideError with suggestions, return it
 	if glideErr, ok := err.(*GlideError); ok && glideErr.HasSuggestions() {
 		return glideErr
 	}
-	
+
 	// Get suggestions from the engine
 	engine := NewSuggestionEngine()
 	suggestions := engine.GetSuggestions(err, nil)
-	
+
 	// Determine error type from patterns
 	errType := TypeUnknown
 	errMsg := strings.ToLower(err.Error())
@@ -290,7 +290,7 @@ func AnalyzeError(err error) *GlideError {
 			break
 		}
 	}
-	
+
 	// Create or enhance the error
 	if glideErr, ok := err.(*GlideError); ok {
 		// Enhance existing GlideError
@@ -300,7 +300,7 @@ func AnalyzeError(err error) *GlideError {
 		}
 		return glideErr
 	}
-	
+
 	// Create new GlideError
 	return New(errType, err.Error(),
 		WithError(err),
@@ -313,21 +313,21 @@ func EnhanceError(err error, context map[string]string) *GlideError {
 	if err == nil {
 		return nil
 	}
-	
+
 	// Get base analysis
 	glideErr := AnalyzeError(err)
-	
+
 	// Add context
 	for k, v := range context {
 		glideErr.AddContext(k, v)
 	}
-	
+
 	// Get additional context-based suggestions
 	engine := NewSuggestionEngine()
 	contextSuggestions := engine.getContextSuggestions(context)
-	
+
 	// Merge suggestions
 	glideErr.Suggestions = uniqueStrings(append(glideErr.Suggestions, contextSuggestions...))
-	
+
 	return glideErr
 }

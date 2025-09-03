@@ -64,6 +64,6 @@ func GetVersionString() string {
 // GetSystemInfo returns formatted system information
 func GetSystemInfo() string {
 	info := GetBuildInfo()
-	return fmt.Sprintf("OS: %s, Architecture: %s, Go: %s", 
+	return fmt.Sprintf("OS: %s, Architecture: %s, Go: %s",
 		info.OS, info.Architecture, info.GoVersion)
 }

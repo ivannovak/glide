@@ -37,20 +37,20 @@ func Register(p Plugin) error {
 func (r *Registry) Register(p Plugin) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	
+
 	if p == nil {
 		return fmt.Errorf("cannot register nil plugin")
 	}
-	
+
 	name := p.Name()
 	if name == "" {
 		return fmt.Errorf("plugin must have a name")
 	}
-	
+
 	if _, exists := r.plugins[name]; exists {
 		return fmt.Errorf("plugin %s already registered", name)
 	}
-	
+
 	r.plugins[name] = p
 	return nil
 }
@@ -59,7 +59,7 @@ func (r *Registry) Register(p Plugin) error {
 func (r *Registry) Get(name string) (Plugin, bool) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
-	
+
 	plugin, exists := r.plugins[name]
 	return plugin, exists
 }
@@ -68,7 +68,7 @@ func (r *Registry) Get(name string) (Plugin, bool) {
 func (r *Registry) List() []Plugin {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
-	
+
 	plugins := make([]Plugin, 0, len(r.plugins))
 	for _, p := range r.plugins {
 		plugins = append(plugins, p)
@@ -80,7 +80,7 @@ func (r *Registry) List() []Plugin {
 func (r *Registry) SetConfig(config map[string]interface{}) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	
+
 	r.config = config
 }
 
@@ -88,19 +88,19 @@ func (r *Registry) SetConfig(config map[string]interface{}) {
 func (r *Registry) LoadAll(root *cobra.Command) error {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
-	
+
 	for name, plugin := range r.plugins {
 		// Configure the plugin
 		if err := plugin.Configure(r.config); err != nil {
 			return fmt.Errorf("failed to configure plugin %s: %w", name, err)
 		}
-		
+
 		// Register plugin commands
 		if err := plugin.Register(root); err != nil {
 			return fmt.Errorf("failed to register plugin %s: %w", name, err)
 		}
 	}
-	
+
 	return nil
 }
 

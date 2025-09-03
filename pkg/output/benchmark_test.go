@@ -8,7 +8,7 @@ import (
 // BenchmarkManager_Creation benchmarks output manager creation
 func BenchmarkManager_Creation(b *testing.B) {
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		writer := &bytes.Buffer{}
 		manager := NewManager(FormatTable, false, false, writer)
@@ -20,17 +20,17 @@ func BenchmarkManager_Creation(b *testing.B) {
 func BenchmarkManager_Display(b *testing.B) {
 	writer := &bytes.Buffer{}
 	manager := NewManager(FormatTable, false, false, writer)
-	
+
 	testData := map[string]interface{}{
 		"name":    "test",
 		"version": "1.0.0",
 		"active":  true,
 		"count":   42,
 	}
-	
+
 	b.ResetTimer()
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		writer.Reset()
 		err := manager.Display(testData)
@@ -44,10 +44,10 @@ func BenchmarkManager_Display(b *testing.B) {
 func BenchmarkManager_Info(b *testing.B) {
 	writer := &bytes.Buffer{}
 	manager := NewManager(FormatTable, false, false, writer)
-	
+
 	b.ResetTimer()
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		writer.Reset()
 		err := manager.Info("Test info message with %s and %d", "string", 42)
@@ -61,10 +61,10 @@ func BenchmarkManager_Info(b *testing.B) {
 func BenchmarkManager_Success(b *testing.B) {
 	writer := &bytes.Buffer{}
 	manager := NewManager(FormatTable, false, false, writer)
-	
+
 	b.ResetTimer()
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		writer.Reset()
 		err := manager.Success("Operation completed successfully in %v", "1.5s")
@@ -78,10 +78,10 @@ func BenchmarkManager_Success(b *testing.B) {
 func BenchmarkManager_Error(b *testing.B) {
 	writer := &bytes.Buffer{}
 	manager := NewManager(FormatTable, false, false, writer)
-	
+
 	b.ResetTimer()
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		writer.Reset()
 		err := manager.Error("Error occurred: %s (code: %d)", "connection failed", 500)
@@ -95,10 +95,10 @@ func BenchmarkManager_Error(b *testing.B) {
 func BenchmarkManager_Warning(b *testing.B) {
 	writer := &bytes.Buffer{}
 	manager := NewManager(FormatTable, false, false, writer)
-	
+
 	b.ResetTimer()
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		writer.Reset()
 		err := manager.Warning("Warning: %s might be outdated", "configuration")
@@ -111,9 +111,9 @@ func BenchmarkManager_Warning(b *testing.B) {
 // BenchmarkRegistry_CreateFormatter benchmarks formatter creation from registry
 func BenchmarkRegistry_CreateFormatter(b *testing.B) {
 	writer := &bytes.Buffer{}
-	
+
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		formatter, err := CreateFormatter(FormatJSON, writer, false, false)
 		if err != nil {
@@ -127,7 +127,7 @@ func BenchmarkRegistry_CreateFormatter(b *testing.B) {
 func BenchmarkJSONFormatter_Display(b *testing.B) {
 	writer := &bytes.Buffer{}
 	formatter := NewJSONFormatter(writer, false, false)
-	
+
 	testData := map[string]interface{}{
 		"name":        "benchmark-test",
 		"version":     "1.0.0",
@@ -139,10 +139,10 @@ func BenchmarkJSONFormatter_Display(b *testing.B) {
 			"debug":   false,
 		},
 	}
-	
+
 	b.ResetTimer()
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		writer.Reset()
 		err := formatter.Display(testData)
@@ -156,7 +156,7 @@ func BenchmarkJSONFormatter_Display(b *testing.B) {
 func BenchmarkYAMLFormatter_Display(b *testing.B) {
 	writer := &bytes.Buffer{}
 	formatter := NewYAMLFormatter(writer, false, false)
-	
+
 	testData := map[string]interface{}{
 		"name":        "benchmark-test",
 		"version":     "1.0.0",
@@ -168,10 +168,10 @@ func BenchmarkYAMLFormatter_Display(b *testing.B) {
 			"debug":   false,
 		},
 	}
-	
+
 	b.ResetTimer()
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		writer.Reset()
 		err := formatter.Display(testData)
@@ -185,17 +185,17 @@ func BenchmarkYAMLFormatter_Display(b *testing.B) {
 func BenchmarkTableFormatter_Display(b *testing.B) {
 	writer := &bytes.Buffer{}
 	formatter := NewTableFormatter(writer, false, false)
-	
+
 	testData := []map[string]interface{}{
 		{"name": "service-1", "status": "running", "port": 8080, "uptime": "1d 2h"},
 		{"name": "service-2", "status": "stopped", "port": 8081, "uptime": "0s"},
 		{"name": "service-3", "status": "running", "port": 8082, "uptime": "3h 15m"},
 		{"name": "service-4", "status": "running", "port": 8083, "uptime": "5d 12h"},
 	}
-	
+
 	b.ResetTimer()
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		writer.Reset()
 		err := formatter.Display(testData)
@@ -209,17 +209,17 @@ func BenchmarkTableFormatter_Display(b *testing.B) {
 func BenchmarkPlainFormatter_Display(b *testing.B) {
 	writer := &bytes.Buffer{}
 	formatter := NewPlainFormatter(writer, false, false)
-	
+
 	testData := map[string]interface{}{
 		"name":        "benchmark-test",
 		"status":      "active",
 		"connections": 1250,
 		"uptime":      "2d 4h 30m",
 	}
-	
+
 	b.ResetTimer()
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		writer.Reset()
 		err := formatter.Display(testData)
@@ -233,12 +233,12 @@ func BenchmarkPlainFormatter_Display(b *testing.B) {
 func BenchmarkManager_SetFormat(b *testing.B) {
 	writer := &bytes.Buffer{}
 	manager := NewManager(FormatTable, false, false, writer)
-	
+
 	formats := []Format{FormatJSON, FormatYAML, FormatTable, FormatPlain}
-	
+
 	b.ResetTimer()
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		format := formats[i%len(formats)]
 		manager.SetFormat(format)
@@ -249,10 +249,10 @@ func BenchmarkManager_SetFormat(b *testing.B) {
 func BenchmarkManager_Printf(b *testing.B) {
 	writer := &bytes.Buffer{}
 	manager := NewManager(FormatPlain, false, false, writer)
-	
+
 	b.ResetTimer()
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		writer.Reset()
 		err := manager.Printf("Benchmark iteration %d with value %s and number %.2f", i, "test", 3.14159)
@@ -266,10 +266,10 @@ func BenchmarkManager_Printf(b *testing.B) {
 func BenchmarkManager_Println(b *testing.B) {
 	writer := &bytes.Buffer{}
 	manager := NewManager(FormatPlain, false, false, writer)
-	
+
 	b.ResetTimer()
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		writer.Reset()
 		err := manager.Println("Benchmark", "test", "with", "multiple", "arguments", i)
@@ -282,7 +282,7 @@ func BenchmarkManager_Println(b *testing.B) {
 // BenchmarkColors_Enable benchmarks color enabling/disabling
 func BenchmarkColors_Enable(b *testing.B) {
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		if i%2 == 0 {
 			EnableColors()
@@ -295,10 +295,10 @@ func BenchmarkColors_Enable(b *testing.B) {
 // BenchmarkFormat_String benchmarks format string conversion
 func BenchmarkFormat_String(b *testing.B) {
 	format := FormatJSON
-	
+
 	b.ResetTimer()
 	b.ReportAllocs()
-	
+
 	for i := 0; i < b.N; i++ {
 		str := string(format)
 		_ = str

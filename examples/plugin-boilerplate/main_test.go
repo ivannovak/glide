@@ -52,10 +52,10 @@ func TestMyPlugin_GetMetadata(t *testing.T) {
 
 	ctx := context.Background()
 	metadata, err := plugin.GetMetadata(ctx, &sdk.Empty{})
-	
+
 	require.NoError(t, err, "GetMetadata should not return an error")
 	assert.NotNil(t, metadata, "Metadata should not be nil")
-	
+
 	// Verify metadata fields
 	assert.Equal(t, "myplugin", metadata.Name, "Plugin name should be myplugin")
 	assert.Equal(t, "1.0.0", metadata.Version, "Version should be 1.0.0")
@@ -66,13 +66,13 @@ func TestMyPlugin_GetMetadata(t *testing.T) {
 
 func TestMyPlugin_Configure(t *testing.T) {
 	tests := []struct {
-		name     string
-		config   map[string]string
-		wantErr  bool
+		name    string
+		config  map[string]string
+		wantErr bool
 	}{
 		{
-			name: "empty configuration",
-			config: map[string]string{},
+			name:    "empty configuration",
+			config:  map[string]string{},
 			wantErr: false,
 		},
 		{
@@ -123,7 +123,7 @@ func TestMyPlugin_ListCommands(t *testing.T) {
 
 	ctx := context.Background()
 	commandList, err := plugin.ListCommands(ctx, &sdk.Empty{})
-	
+
 	require.NoError(t, err, "ListCommands should not return an error")
 	assert.NotNil(t, commandList, "CommandList should not be nil")
 	assert.NotEmpty(t, commandList.Commands, "Commands list should not be empty")
@@ -143,7 +143,7 @@ func TestMyPlugin_ListCommands(t *testing.T) {
 	foundCommands := make(map[string]bool)
 	for _, cmd := range commandList.Commands {
 		foundCommands[cmd.Name] = true
-		
+
 		expected, ok := expectedCommands[cmd.Name]
 		if ok {
 			assert.Equal(t, expected.category, cmd.Category, "Category for %s should match", cmd.Name)
@@ -231,7 +231,7 @@ func TestMyPlugin_ExecuteCommand(t *testing.T) {
 			}
 
 			resp, err := plugin.ExecuteCommand(ctx, req)
-			
+
 			require.NoError(t, err, "ExecuteCommand should not return a gRPC error")
 			assert.NotNil(t, resp, "Response should not be nil")
 
@@ -255,7 +255,7 @@ func TestMyPlugin_StartInteractive(t *testing.T) {
 	}
 
 	stream := NewMockStream()
-	
+
 	// Add mock input messages
 	stream.AddRecvMessage(&sdk.StreamMessage{
 		Type: sdk.StreamMessage_STDIN,
@@ -271,7 +271,7 @@ func TestMyPlugin_StartInteractive(t *testing.T) {
 
 	// Verify sent messages
 	assert.NotEmpty(t, stream.sentMessages, "Should have sent messages")
-	
+
 	// Check for initial message
 	foundStartMessage := false
 	foundPrompt := false
@@ -315,10 +315,10 @@ func TestMyPlugin_GetCapabilities(t *testing.T) {
 
 	ctx := context.Background()
 	capabilities, err := plugin.GetCapabilities(ctx, &sdk.Empty{})
-	
+
 	require.NoError(t, err, "GetCapabilities should not return an error")
 	assert.NotNil(t, capabilities, "Capabilities should not be nil")
-	
+
 	// Default boilerplate doesn't require special capabilities
 	assert.False(t, capabilities.RequiresDocker, "Should not require Docker by default")
 	assert.False(t, capabilities.RequiresNetwork, "Should not require Network by default")
@@ -339,7 +339,7 @@ func BenchmarkMyPlugin_ExecuteHello(b *testing.B) {
 	plugin := &MyPlugin{
 		config: make(map[string]interface{}),
 	}
-	
+
 	ctx := context.Background()
 	req := &sdk.ExecuteRequest{
 		Command: "hello",
@@ -356,7 +356,7 @@ func BenchmarkMyPlugin_ListCommands(b *testing.B) {
 	plugin := &MyPlugin{
 		config: make(map[string]interface{}),
 	}
-	
+
 	ctx := context.Background()
 
 	b.ResetTimer()

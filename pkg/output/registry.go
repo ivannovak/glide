@@ -29,11 +29,11 @@ func NewRegistry() *Registry {
 func (r *Registry) Register(format Format, factory Factory) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	
+
 	if _, exists := r.factories[format]; exists {
 		return fmt.Errorf("formatter %s already registered", format)
 	}
-	
+
 	r.factories[format] = factory
 	return nil
 }
@@ -42,12 +42,12 @@ func (r *Registry) Register(format Format, factory Factory) error {
 func (r *Registry) Create(format Format, w io.Writer, noColor, quiet bool) (Formatter, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
-	
+
 	factory, ok := r.factories[format]
 	if !ok {
 		return nil, fmt.Errorf("unknown format: %s", format)
 	}
-	
+
 	return factory(w, noColor, quiet), nil
 }
 
@@ -55,7 +55,7 @@ func (r *Registry) Create(format Format, w io.Writer, noColor, quiet bool) (Form
 func (r *Registry) IsRegistered(format Format) bool {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
-	
+
 	_, ok := r.factories[format]
 	return ok
 }
@@ -64,7 +64,7 @@ func (r *Registry) IsRegistered(format Format) bool {
 func (r *Registry) GetFormats() []Format {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
-	
+
 	formats := make([]Format, 0, len(r.factories))
 	for format := range r.factories {
 		formats = append(formats, format)
@@ -78,15 +78,15 @@ func InitDefaultRegistry() {
 	globalRegistry.Register(FormatJSON, func(w io.Writer, noColor, quiet bool) Formatter {
 		return NewJSONFormatter(w, noColor, quiet)
 	})
-	
+
 	globalRegistry.Register(FormatYAML, func(w io.Writer, noColor, quiet bool) Formatter {
 		return NewYAMLFormatter(w, noColor, quiet)
 	})
-	
+
 	globalRegistry.Register(FormatTable, func(w io.Writer, noColor, quiet bool) Formatter {
 		return NewTableFormatter(w, noColor, quiet)
 	})
-	
+
 	globalRegistry.Register(FormatPlain, func(w io.Writer, noColor, quiet bool) Formatter {
 		return NewPlainFormatter(w, noColor, quiet)
 	})

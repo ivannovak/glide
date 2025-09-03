@@ -56,9 +56,9 @@ Examples:
   glid config get default_project
   glid config get defaults.docker.auto_start
   glid config get projects.myproject.mode`,
-		Args:         cobra.ExactArgs(1),
-		RunE:         cc.runGet,
-		SilenceUsage: true,
+		Args:          cobra.ExactArgs(1),
+		RunE:          cc.runGet,
+		SilenceUsage:  true,
 		SilenceErrors: true,
 	}
 }
@@ -75,9 +75,9 @@ Examples:
   glid config set defaults.docker.auto_start true
   glid config set defaults.test.processes 10
   glid config set projects.myproject.path /path/to/project`,
-		Args:         cobra.ExactArgs(2),
-		RunE:         cc.runSet,
-		SilenceUsage: true,
+		Args:          cobra.ExactArgs(2),
+		RunE:          cc.runSet,
+		SilenceUsage:  true,
 		SilenceErrors: true,
 	}
 }
@@ -104,9 +104,9 @@ func (cc *ConfigCommand) newUseCommand() *cobra.Command {
 
 Example:
   glid config use myproject`,
-		Args:         cobra.ExactArgs(1),
-		RunE:         cc.runUse,
-		SilenceUsage: true,
+		Args:          cobra.ExactArgs(1),
+		RunE:          cc.runUse,
+		SilenceUsage:  true,
 		SilenceErrors: true,
 	}
 }
@@ -114,7 +114,7 @@ Example:
 // runGet handles the config get command
 func (cc *ConfigCommand) runGet(cmd *cobra.Command, args []string) error {
 	if cc.cfg == nil {
-		return glideErrors.NewConfigError(fmt.Sprintf("no configuration file found at %s", cc.cfgPath), 
+		return glideErrors.NewConfigError(fmt.Sprintf("no configuration file found at %s", cc.cfgPath),
 			glideErrors.WithSuggestions(
 				"Run 'glid setup' to create a configuration file",
 				"Check if the config file exists at the expected path",
@@ -213,21 +213,21 @@ func (cc *ConfigCommand) runList(cmd *cobra.Command, args []string) error {
 
 	// Display defaults
 	output.Info("Defaults:")
-	
+
 	output.Println("  Test:")
 	output.Printf("    Parallel: %v\n", cc.cfg.Defaults.Test.Parallel)
 	output.Printf("    Processes: %d\n", cc.cfg.Defaults.Test.Processes)
 	output.Printf("    Coverage: %v\n", cc.cfg.Defaults.Test.Coverage)
 	output.Printf("    Verbose: %v\n", cc.cfg.Defaults.Test.Verbose)
-	
+
 	output.Println("  Docker:")
 	output.Printf("    Compose Timeout: %d seconds\n", cc.cfg.Defaults.Docker.ComposeTimeout)
 	output.Printf("    Auto Start: %v\n", cc.cfg.Defaults.Docker.AutoStart)
 	output.Printf("    Remove Orphans: %v\n", cc.cfg.Defaults.Docker.RemoveOrphans)
-	
+
 	output.Println("  Colors:")
 	output.Printf("    Enabled: %s\n", cc.cfg.Defaults.Colors.Enabled)
-	
+
 	output.Println("  Worktree:")
 	output.Printf("    Auto Setup: %v\n", cc.cfg.Defaults.Worktree.AutoSetup)
 	output.Printf("    Copy Env: %v\n", cc.cfg.Defaults.Worktree.CopyEnv)
@@ -256,9 +256,9 @@ func (cc *ConfigCommand) runUse(cmd *cobra.Command, args []string) error {
 		for name := range cc.cfg.Projects {
 			available = append(available, name)
 		}
-		
+
 		if len(available) > 0 {
-			return glideErrors.NewConfigError(fmt.Sprintf("project '%s' not found\nAvailable projects: %s", 
+			return glideErrors.NewConfigError(fmt.Sprintf("project '%s' not found\nAvailable projects: %s",
 				projectName, strings.Join(available, ", ")),
 				glideErrors.WithSuggestions(
 					"Use one of the listed available projects",
@@ -297,7 +297,7 @@ func (cc *ConfigCommand) runUse(cmd *cobra.Command, args []string) error {
 // getValue retrieves a value from the config using dot notation
 func (cc *ConfigCommand) getValue(key string) (string, error) {
 	parts := strings.Split(key, ".")
-	
+
 	// Handle special cases
 	if len(parts) == 1 && parts[0] == "default_project" {
 		if cc.cfg.DefaultProject == "" {
@@ -317,11 +317,11 @@ func (cc *ConfigCommand) getValue(key string) (string, error) {
 					fmt.Sprintf("Add the project using 'glid config set projects.%s.path /path/to/project'", projectName),
 				))
 		}
-		
+
 		if len(parts) == 2 {
 			return fmt.Sprintf("path=%s mode=%s", project.Path, project.Mode), nil
 		}
-		
+
 		switch parts[2] {
 		case "path":
 			return project.Path, nil
@@ -454,7 +454,7 @@ func (cc *ConfigCommand) getDefaultValue(path []string) (string, error) {
 // setValue sets a value in the config using dot notation
 func (cc *ConfigCommand) setValue(key, value string) error {
 	parts := strings.Split(key, ".")
-	
+
 	// Handle special cases
 	if len(parts) == 1 && parts[0] == "default_project" {
 		// Validate project exists
@@ -473,13 +473,13 @@ func (cc *ConfigCommand) setValue(key, value string) error {
 	// Handle projects
 	if len(parts) >= 3 && parts[0] == "projects" {
 		projectName := parts[1]
-		
+
 		// Get or create project
 		project, exists := cc.cfg.Projects[projectName]
 		if !exists {
 			project = config.ProjectConfig{}
 		}
-		
+
 		switch parts[2] {
 		case "path":
 			project.Path = value
@@ -500,7 +500,7 @@ func (cc *ConfigCommand) setValue(key, value string) error {
 					fmt.Sprintf("Example: 'glid config set projects.%s.mode multi-worktree'", parts[1]),
 				))
 		}
-		
+
 		cc.cfg.Projects[projectName] = project
 		return nil
 	}

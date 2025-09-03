@@ -24,7 +24,7 @@ func NewQuietLogger() *QuietLogger {
 func (q *QuietLogger) Log(format string, args ...interface{}) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
-	
+
 	fmt.Fprintf(q.writer, format+"\n", args...)
 }
 
@@ -101,10 +101,10 @@ func (q *QuietBar) Start() {
 // Update logs progress at key milestones
 func (q *QuietBar) Update(current int) {
 	q.current = current
-	
+
 	// Log at 25%, 50%, 75%, and 100%
 	percentage := float64(current) / float64(q.total) * 100
-	
+
 	if percentage == 25 || percentage == 50 || percentage == 75 {
 		if q.logger != nil {
 			q.logger.Log("Progress: %s (%.0f%%)", q.message, percentage)
@@ -141,7 +141,7 @@ func (q *QuietBar) Error(message string) {
 	}
 }
 
-// Warning logs warning  
+// Warning logs warning
 func (q *QuietBar) Warning(message string) {
 	if q.logger != nil {
 		q.logger.Log("⚠ %s", message)

@@ -17,18 +17,18 @@ import (
 func showContext(cmd *cobra.Command, app *app.Application) {
 	output := app.OutputManager
 	ctx := app.ProjectContext
-	
+
 	if ctx == nil {
 		output.Info("No project context available")
 		return
 	}
-	
+
 	output.Info("=== Project Context ===")
 	output.Info("Working Directory: %s", ctx.WorkingDir)
 	output.Info("Project Root: %s", ctx.ProjectRoot)
 	output.Info("Development Mode: %s", ctx.DevelopmentMode)
 	output.Info("Location: %s", ctx.Location)
-	
+
 	if ctx.DevelopmentMode == glideContext.ModeMultiWorktree {
 		output.Info("")
 		output.Info("=== Multi-Worktree Details ===")
@@ -37,7 +37,7 @@ func showContext(cmd *cobra.Command, app *app.Application) {
 			output.Info("Worktree Name: %s", ctx.WorktreeName)
 		}
 	}
-	
+
 	output.Info("")
 	output.Info("Docker Running: %v", ctx.DockerRunning)
 	if len(ctx.ComposeFiles) > 0 {
@@ -49,15 +49,15 @@ func showContext(cmd *cobra.Command, app *app.Application) {
 func showConfig(cmd *cobra.Command, app *app.Application) {
 	output := app.OutputManager
 	cfg := app.Config
-	
+
 	if cfg == nil {
 		output.Info("No configuration loaded")
 		return
 	}
-	
+
 	output.Info("=== Configuration ===")
 	output.Info("Default Project: %s", cfg.DefaultProject)
-	
+
 	if len(cfg.Projects) > 0 {
 		output.Info("")
 		output.Info("=== Projects ===")
@@ -67,7 +67,7 @@ func showConfig(cmd *cobra.Command, app *app.Application) {
 			output.Info("  Mode: %s", project.Mode)
 		}
 	}
-	
+
 	output.Info("")
 	output.Info("=== Defaults ===")
 	output.Info("Test:")
@@ -75,7 +75,7 @@ func showConfig(cmd *cobra.Command, app *app.Application) {
 	output.Info("  Processes: %d", cfg.Defaults.Test.Processes)
 	output.Info("  Coverage: %v", cfg.Defaults.Test.Coverage)
 	output.Info("  Verbose: %v", cfg.Defaults.Test.Verbose)
-	
+
 	output.Info("Docker:")
 	output.Info("  Compose Timeout: %d", cfg.Defaults.Docker.ComposeTimeout)
 	output.Info("  Auto Start: %v", cfg.Defaults.Docker.AutoStart)
@@ -86,9 +86,9 @@ func showConfig(cmd *cobra.Command, app *app.Application) {
 func testShell(cmd *cobra.Command, args []string, app *app.Application) {
 	output := app.OutputManager
 	executor := app.GetShellExecutor()
-	
+
 	output.Info("=== Shell Execution Test ===")
-	
+
 	// Test 1: Simple command using strategy pattern
 	output.Info("\nTest 1: Capture output (strategy pattern)")
 	shellCmd := shell.NewCommand("echo", "Hello from shell")
@@ -98,13 +98,13 @@ func testShell(cmd *cobra.Command, args []string, app *app.Application) {
 		Timeout:       5 * time.Second,
 	}
 	result, err := executor.Execute(shellCmd)
-	
+
 	if err != nil {
 		output.Error("Failed: %v", err)
 	} else {
 		output.Success("Output: %s", strings.TrimSpace(string(result.Stdout)))
 	}
-	
+
 	// Test 2: Command with timeout (using context)
 	output.Info("\nTest 2: Command with timeout (using context)")
 	cmd2 := shell.NewCommand("sleep", "0.5")
@@ -114,13 +114,13 @@ func testShell(cmd *cobra.Command, args []string, app *app.Application) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	result, err = executor.ExecuteWithContext(ctx, cmd2)
-	
+
 	if err != nil {
 		output.Error("Failed: %v", err)
 	} else {
 		output.Success("Completed in %v", result.Duration)
 	}
-	
+
 	// Test 3: Progress indicator
 	output.Info("\nTest 3: Progress indicator")
 	spinner := progress.NewSpinner("Testing progress")
@@ -133,20 +133,20 @@ func testShell(cmd *cobra.Command, args []string, app *app.Application) {
 func testDockerResolution(cmd *cobra.Command, args []string, app *app.Application) {
 	output := app.OutputManager
 	ctx := app.ProjectContext
-	
+
 	if ctx == nil {
 		output.Error("No project context available")
 		return
 	}
-	
+
 	output.Info("=== Docker Compose Resolution Test ===")
 	output.Info("Working Directory: %s", ctx.WorkingDir)
 	output.Info("Project Root: %s", ctx.ProjectRoot)
 	output.Info("Development Mode: %s", ctx.DevelopmentMode)
-	
+
 	// Create Docker resolver
 	resolver := docker.NewResolver(ctx)
-	
+
 	// Try to resolve
 	output.Info("\nAttempting to resolve Docker compose files...")
 	err := resolver.Resolve()
@@ -154,14 +154,14 @@ func testDockerResolution(cmd *cobra.Command, args []string, app *app.Applicatio
 		output.Error("Resolution failed: %v", err)
 		return
 	}
-	
+
 	// Show results
 	files := resolver.GetComposeFiles()
 	if len(files) == 0 {
 		output.Warning("No compose files found")
 		return
 	}
-	
+
 	output.Success("Resolved %d compose file(s):", len(files))
 	for i, file := range files {
 		output.Info("  %d. %s", i+1, file)
@@ -172,17 +172,17 @@ func testDockerResolution(cmd *cobra.Command, args []string, app *app.Applicatio
 func testContainerManagement(cmd *cobra.Command, args []string, app *app.Application) {
 	output := app.OutputManager
 	ctx := app.ProjectContext
-	
+
 	if ctx == nil {
 		output.Error("No project context available")
 		return
 	}
-	
+
 	output.Info("=== Container Management Test ===")
-	
+
 	// Create container manager
 	manager := docker.NewContainerManager(ctx)
-	
+
 	// Test getting container status
 	output.Info("\n1. Getting container status...")
 	containers, err := manager.GetStatus()
@@ -194,7 +194,7 @@ func testContainerManagement(cmd *cobra.Command, args []string, app *app.Applica
 			output.Info("  - %s (%s): %s", container.Name, container.Service, container.State)
 		}
 	}
-	
+
 	// Test checking if service is running
 	output.Info("\n2. Checking if php service is running...")
 	if manager.IsRunning("php") {
@@ -202,7 +202,7 @@ func testContainerManagement(cmd *cobra.Command, args []string, app *app.Applica
 	} else {
 		output.Warning("PHP service is not running")
 	}
-	
+
 	// Test getting compose services
 	output.Info("\n3. Getting compose services...")
 	services, err := manager.GetComposeServices()
@@ -214,7 +214,7 @@ func testContainerManagement(cmd *cobra.Command, args []string, app *app.Applica
 			output.Info("  - %s", service)
 		}
 	}
-	
+
 	// Test logs (dry run)
 	output.Info("\n4. Testing log retrieval (dry run)...")
 	if len(containers) > 0 {

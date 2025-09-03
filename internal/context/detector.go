@@ -8,11 +8,11 @@ import (
 
 // Detector is a refactored context detector using composition
 type Detector struct {
-	workingDir       string
-	rootFinder       ProjectRootFinder
-	modeDetector     DevelopmentModeDetector
+	workingDir         string
+	rootFinder         ProjectRootFinder
+	modeDetector       DevelopmentModeDetector
 	locationIdentifier LocationIdentifier
-	composeResolver  ComposeFileResolver
+	composeResolver    ComposeFileResolver
 }
 
 // NewDetector creates a new context detector with default strategies
@@ -21,13 +21,13 @@ func NewDetector() (*Detector, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to get working directory: %w", err)
 	}
-	
+
 	return &Detector{
-		workingDir:        wd,
-		rootFinder:        NewStandardProjectRootFinder(),
-		modeDetector:      NewStandardDevelopmentModeDetector(),
+		workingDir:         wd,
+		rootFinder:         NewStandardProjectRootFinder(),
+		modeDetector:       NewStandardDevelopmentModeDetector(),
 		locationIdentifier: NewStandardLocationIdentifier(),
-		composeResolver:   NewStandardComposeFileResolver(),
+		composeResolver:    NewStandardComposeFileResolver(),
 	}, nil
 }
 
@@ -42,13 +42,13 @@ func NewDetectorWithStrategies(
 	if err != nil {
 		return nil, fmt.Errorf("failed to get working directory: %w", err)
 	}
-	
+
 	return &Detector{
-		workingDir:        wd,
-		rootFinder:        rootFinder,
-		modeDetector:      modeDetector,
+		workingDir:         wd,
+		rootFinder:         rootFinder,
+		modeDetector:       modeDetector,
 		locationIdentifier: locationIdentifier,
-		composeResolver:   composeResolver,
+		composeResolver:    composeResolver,
 	}, nil
 }
 
@@ -101,13 +101,12 @@ func (d *Detector) Detect() (*ProjectContext, error) {
 	return ctx, nil
 }
 
-
 // checkDockerStatus checks if Docker daemon is running
 func (d *Detector) checkDockerStatus(ctx *ProjectContext) {
 	cmd := exec.Command("docker", "info")
 	if err := cmd.Run(); err == nil {
 		ctx.DockerRunning = true
-		
+
 		// Get container status if compose files are available
 		if len(ctx.ComposeFiles) > 0 {
 			d.getContainerStatus(ctx)
@@ -120,21 +119,21 @@ func (d *Detector) checkDockerStatus(ctx *ProjectContext) {
 // getContainerStatus retrieves status of Docker containers
 func (d *Detector) getContainerStatus(ctx *ProjectContext) {
 	ctx.ContainersStatus = make(map[string]ContainerStatus)
-	
+
 	// Build docker-compose ps command
 	args := []string{"compose"}
 	for _, file := range ctx.ComposeFiles {
 		args = append(args, "-f", file)
 	}
 	args = append(args, "ps", "--format", "json", "--all")
-	
+
 	// Execute command
 	cmd := exec.Command("docker", args...)
 	_, err := cmd.Output()
 	if err != nil {
 		return
 	}
-	
+
 	// Container status parsing is handled by docker.ContainerManager
 	// This basic check just verifies containers exist
 }
@@ -145,22 +144,22 @@ func (d *Detector) DetectCommandScope(ctx *ProjectContext, isGlobalFlag bool) {
 		ctx.CommandScope = "global"
 		return
 	}
-	
+
 	// In multi-worktree mode at root, default to global
 	if ctx.DevelopmentMode == ModeMultiWorktree && ctx.IsRoot {
 		ctx.CommandScope = "global"
 		return
 	}
-	
+
 	ctx.CommandScope = "local"
 }
 
 // DetectorBuilder provides a fluent API for building detectors
 type DetectorBuilder struct {
-	rootFinder       ProjectRootFinder
-	modeDetector     DevelopmentModeDetector
+	rootFinder         ProjectRootFinder
+	modeDetector       DevelopmentModeDetector
 	locationIdentifier LocationIdentifier
-	composeResolver  ComposeFileResolver
+	composeResolver    ComposeFileResolver
 }
 
 // NewDetectorBuilder creates a new detector builder
@@ -207,7 +206,7 @@ func (b *DetectorBuilder) Build() (*Detector, error) {
 	if b.composeResolver == nil {
 		b.composeResolver = NewStandardComposeFileResolver()
 	}
-	
+
 	return NewDetectorWithStrategies(
 		b.rootFinder,
 		b.modeDetector,

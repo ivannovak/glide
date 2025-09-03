@@ -1,10 +1,10 @@
 package cli
 
 import (
+	"github.com/ivannovak/glide/internal/config"
+	"github.com/ivannovak/glide/internal/context"
 	"github.com/ivannovak/glide/pkg/app"
 	"github.com/ivannovak/glide/pkg/output"
-	"github.com/ivannovak/glide/internal/context"
-	"github.com/ivannovak/glide/internal/config"
 )
 
 // BaseCommand provides common functionality for all commands

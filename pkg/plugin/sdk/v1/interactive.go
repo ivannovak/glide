@@ -36,7 +36,7 @@ func (e *InteractiveExecutor) ExecuteDockerInteractive(req *DockerRequest) (Inte
 	if err != nil {
 		return nil, fmt.Errorf("failed to start interactive Docker session: %w", err)
 	}
-	
+
 	return &LocalInteractiveSession{
 		session: session,
 		ctx:     e.ctx,
@@ -46,13 +46,13 @@ func (e *InteractiveExecutor) ExecuteDockerInteractive(req *DockerRequest) (Inte
 // ExecuteLocalInteractive executes an interactive local command with PTY
 func (e *InteractiveExecutor) ExecuteLocalInteractive(command string, args []string) (InteractiveSession, error) {
 	cmd := exec.CommandContext(e.ctx, command, args...)
-	
+
 	// Start the command with a PTY
 	ptmx, err := pty.Start(cmd)
 	if err != nil {
 		return nil, fmt.Errorf("failed to start command with PTY: %w", err)
 	}
-	
+
 	return &PTYSession{
 		cmd:  cmd,
 		ptmx: ptmx,
@@ -83,10 +83,10 @@ func (s *LocalInteractiveSession) RunInteractiveLoop() error {
 	// Set up signal handling
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM, syscall.SIGWINCH)
-	
+
 	// Handle stdin/stdout in separate goroutines
 	errCh := make(chan error, 3)
-	
+
 	// Forward stdin to session
 	go func() {
 		buf := make([]byte, 1024)
@@ -98,7 +98,7 @@ func (s *LocalInteractiveSession) RunInteractiveLoop() error {
 				}
 				return
 			}
-			
+
 			if err := s.Send(&StreamMessage{
 				Type: StreamMessage_STDIN,
 				Data: buf[:n],
@@ -108,7 +108,7 @@ func (s *LocalInteractiveSession) RunInteractiveLoop() error {
 			}
 		}
 	}()
-	
+
 	// Forward session output to stdout/stderr
 	go func() {
 		for {
@@ -120,7 +120,7 @@ func (s *LocalInteractiveSession) RunInteractiveLoop() error {
 				errCh <- fmt.Errorf("session recv error: %w", err)
 				return
 			}
-			
+
 			switch msg.Type {
 			case StreamMessage_STDOUT:
 				os.Stdout.Write(msg.Data)
@@ -135,7 +135,7 @@ func (s *LocalInteractiveSession) RunInteractiveLoop() error {
 			}
 		}
 	}()
-	
+
 	// Handle signals
 	go func() {
 		for sig := range sigCh {
@@ -164,7 +164,7 @@ func (s *LocalInteractiveSession) RunInteractiveLoop() error {
 			}
 		}
 	}()
-	
+
 	// Wait for completion or error
 	return <-errCh
 }
@@ -208,7 +208,7 @@ func (s *PTYSession) Recv() (*StreamMessage, error) {
 			Error: err.Error(),
 		}, nil
 	}
-	
+
 	return &StreamMessage{
 		Type: StreamMessage_STDOUT,
 		Data: buf[:n],
@@ -229,7 +229,7 @@ func (s *PTYSession) handleSignal(signal string) error {
 	if s.cmd == nil || s.cmd.Process == nil {
 		return nil
 	}
-	
+
 	switch signal {
 	case "INT":
 		return s.cmd.Process.Signal(syscall.SIGINT)
@@ -264,7 +264,7 @@ func NewInteractiveCommand(host *Host) *InteractiveCommand {
 func (ic *InteractiveCommand) RunDockerExec(container, command string, args []string) error {
 	dockerArgs := []string{"exec", "-it", container, command}
 	dockerArgs = append(dockerArgs, args...)
-	
+
 	session, err := ic.executor.ExecuteDockerInteractive(&DockerRequest{
 		Operation:   "exec",
 		Args:        dockerArgs,
@@ -275,11 +275,11 @@ func (ic *InteractiveCommand) RunDockerExec(container, command string, args []st
 		return err
 	}
 	defer session.Close()
-	
+
 	if localSession, ok := session.(*LocalInteractiveSession); ok {
 		return localSession.RunInteractiveLoop()
 	}
-	
+
 	return fmt.Errorf("unsupported session type")
 }
 
@@ -296,11 +296,11 @@ func (ic *InteractiveCommand) RunDockerCompose(args []string, workDir string) er
 		return err
 	}
 	defer session.Close()
-	
+
 	if localSession, ok := session.(*LocalInteractiveSession); ok {
 		return localSession.RunInteractiveLoop()
 	}
-	
+
 	return fmt.Errorf("unsupported session type")
 }
 
@@ -311,7 +311,7 @@ func (ic *InteractiveCommand) RunLocal(command string, args []string) error {
 		return err
 	}
 	defer session.Close()
-	
+
 	if ptySession, ok := session.(*PTYSession); ok {
 		// Set up raw mode for terminal
 		oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
@@ -319,27 +319,27 @@ func (ic *InteractiveCommand) RunLocal(command string, args []string) error {
 			return fmt.Errorf("failed to set raw mode: %w", err)
 		}
 		defer func() { _ = term.Restore(int(os.Stdin.Fd()), oldState) }()
-		
+
 		// Copy between PTY and terminal
 		errCh := make(chan error, 2)
-		
+
 		go func() {
 			_, err := io.Copy(ptySession.ptmx, os.Stdin)
 			errCh <- err
 		}()
-		
+
 		go func() {
 			_, err := io.Copy(os.Stdout, ptySession.ptmx)
 			errCh <- err
 		}()
-		
+
 		// Wait for process to exit or error
 		go func() {
 			errCh <- ptySession.cmd.Wait()
 		}()
-		
+
 		return <-errCh
 	}
-	
+
 	return fmt.Errorf("unsupported session type")
 }

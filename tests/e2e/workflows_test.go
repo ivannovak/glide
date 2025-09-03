@@ -72,7 +72,7 @@ services:
     environment:
       - APP_ENV=testing
 `
-		require.NoError(t, os.WriteFile(filepath.Join(projectDir, "docker-compose.override.yml"), 
+		require.NoError(t, os.WriteFile(filepath.Join(projectDir, "docker-compose.override.yml"),
 			[]byte(overrideContent), 0644))
 
 		// Commit initial files
@@ -84,8 +84,8 @@ services:
 		assert.NotNil(t, ctx)
 		if len(ctx.ComposeFiles) > 0 {
 			if len(ctx.ComposeFiles) > 0 {
-			assert.Contains(t, ctx.ComposeFiles[0], "docker-compose.yml")
-		}
+				assert.Contains(t, ctx.ComposeFiles[0], "docker-compose.yml")
+			}
 		}
 
 		// Step 2: Simulate container startup
@@ -135,7 +135,7 @@ class TestClass {
 	t.Run("feature_development_workflow", func(t *testing.T) {
 		// Test feature development workflow:
 		// 1. Worktree creation
-		// 2. Environment setup  
+		// 2. Environment setup
 		// 3. Development and testing
 		// 4. Worktree cleanup
 
@@ -529,7 +529,7 @@ class UserAuthTest extends TestCase {
 
 			// Add feature-specific files
 			require.NoError(t, os.Chdir(worktreePath))
-			
+
 			featureFile := feature + ".md"
 			content := "# " + strings.ToUpper(feature) + " Feature\n\nDevelopment notes..."
 			require.NoError(t, os.WriteFile(featureFile, []byte(content), 0644))

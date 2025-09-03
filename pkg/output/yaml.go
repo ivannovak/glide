@@ -19,7 +19,7 @@ func NewYAMLFormatter(w io.Writer, noColor, quiet bool) *YAMLFormatter {
 	if w == nil {
 		w = os.Stdout
 	}
-	
+
 	return &YAMLFormatter{
 		BaseFormatter: NewBaseFormatter(w, noColor, quiet),
 	}
@@ -74,7 +74,7 @@ func (f *YAMLFormatter) Error(format string, args ...interface{}) error {
 		Message:   fmt.Sprintf(format, args...),
 		Timestamp: time.Now(),
 	}
-	
+
 	// Errors are never suppressed
 	yamlData, err := yaml.Marshal(msg)
 	if err != nil {

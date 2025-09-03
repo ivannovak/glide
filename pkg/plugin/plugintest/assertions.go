@@ -23,12 +23,12 @@ func NewAssertions(t *testing.T) *Assertions {
 // AssertPluginMetadata verifies plugin metadata
 func (a *Assertions) AssertPluginMetadata(p plugin.Plugin, expected plugin.PluginMetadata) {
 	actual := p.Metadata()
-	
+
 	assert.Equal(a.t, expected.Name, actual.Name, "Plugin name mismatch")
 	assert.Equal(a.t, expected.Version, actual.Version, "Plugin version mismatch")
 	assert.Equal(a.t, expected.Author, actual.Author, "Plugin author mismatch")
 	assert.Equal(a.t, expected.Description, actual.Description, "Plugin description mismatch")
-	
+
 	// Check commands
 	assert.Len(a.t, actual.Commands, len(expected.Commands), "Command count mismatch")
 	for i, cmd := range expected.Commands {
@@ -38,10 +38,10 @@ func (a *Assertions) AssertPluginMetadata(p plugin.Plugin, expected plugin.Plugi
 			assert.Equal(a.t, cmd.Description, actual.Commands[i].Description, "Command description mismatch at index %d", i)
 		}
 	}
-	
+
 	// Check build tags
 	assert.ElementsMatch(a.t, expected.BuildTags, actual.BuildTags, "Build tags mismatch")
-	
+
 	// Check config keys
 	assert.ElementsMatch(a.t, expected.ConfigKeys, actual.ConfigKeys, "Config keys mismatch")
 }

@@ -41,7 +41,7 @@ func NewCompletionManager(ctx *context.ProjectContext, cfg *config.Config) *Comp
 // NewCompletionCommand creates the completion command for manual installation
 func NewCompletionCommand(ctx *context.ProjectContext, cfg *config.Config) *cobra.Command {
 	manager := NewCompletionManager(ctx, cfg)
-	
+
 	cmd := &cobra.Command{
 		Use:   "completion [shell]",
 		Short: "Generate shell completion scripts",
@@ -66,8 +66,8 @@ Fish:
 			branding.CommandName, branding.CommandName,
 			branding.CommandName,
 			branding.CommandName, branding.CommandName),
-		ValidArgs: []string{"bash", "zsh", "fish"},
-		Args:      cobra.ExactValidArgs(1),
+		ValidArgs:    []string{"bash", "zsh", "fish"},
+		Args:         cobra.ExactValidArgs(1),
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return manager.GenerateCompletion(cmd, CompletionType(args[0]))
@@ -103,7 +103,7 @@ func (cm *CompletionManager) InstallCompletion() error {
 	}
 
 	output.Info("Installing %s completion...", shell)
-	
+
 	switch CompletionType(shell) {
 	case CompletionBash:
 		return cm.installBashCompletion()
@@ -123,7 +123,7 @@ func (cm *CompletionManager) detectShell() string {
 	if shell := os.Getenv("SHELL"); shell != "" {
 		return filepath.Base(shell)
 	}
-	
+
 	// Fallback detection methods could be added here
 	return ""
 }
@@ -132,18 +132,18 @@ func (cm *CompletionManager) detectShell() string {
 func (cm *CompletionManager) installBashCompletion() error {
 	// Try common bash completion directories
 	completionDirs := []string{
-		"/usr/local/etc/bash_completion.d", // macOS with Homebrew
-		"/etc/bash_completion.d",           // Linux
+		"/usr/local/etc/bash_completion.d",                     // macOS with Homebrew
+		"/etc/bash_completion.d",                               // Linux
 		filepath.Join(os.Getenv("HOME"), ".bash_completion.d"), // User directory
 	}
-	
+
 	for _, dir := range completionDirs {
 		if cm.dirExists(dir) || cm.canCreateDir(dir) {
 			completionFile := filepath.Join(dir, branding.CommandName)
 			return cm.writeCompletionFile(completionFile, CompletionBash)
 		}
 	}
-	
+
 	// Fallback: Add to ~/.bash_completion
 	bashCompletion := filepath.Join(os.Getenv("HOME"), ".bash_completion")
 	return cm.appendCompletionToFile(bashCompletion, CompletionBash)
@@ -157,7 +157,7 @@ func (cm *CompletionManager) installZshCompletion() error {
 		// Default zsh completion directory
 		fpath = "/usr/local/share/zsh/site-functions"
 	}
-	
+
 	// Use first directory in fpath
 	fpathDirs := strings.Split(fpath, ":")
 	if len(fpathDirs) > 0 {
@@ -166,7 +166,7 @@ func (cm *CompletionManager) installZshCompletion() error {
 			return cm.writeCompletionFile(completionFile, CompletionZsh)
 		}
 	}
-	
+
 	// Fallback: User zsh directory
 	userZshDir := filepath.Join(os.Getenv("HOME"), ".zsh", "completions")
 	if err := os.MkdirAll(userZshDir, 0755); err == nil {
@@ -176,7 +176,7 @@ func (cm *CompletionManager) installZshCompletion() error {
 			return nil
 		}
 	}
-	
+
 	return glideErrors.NewPermissionError(
 		"~/.zsh/completions",
 		"could not install zsh completion",
@@ -197,7 +197,7 @@ func (cm *CompletionManager) installFishCompletion() error {
 			glideErrors.WithSuggestions("Run: mkdir -p ~/.config/fish/completions"),
 		)
 	}
-	
+
 	completionFile := filepath.Join(fishDir, fmt.Sprintf("%s.fish", branding.CommandName))
 	return cm.writeCompletionFile(completionFile, CompletionFish)
 }
@@ -216,10 +216,10 @@ func (cm *CompletionManager) writeCompletionFile(filename string, shell Completi
 		)
 	}
 	defer file.Close()
-	
+
 	// Create a temporary cobra command that matches the real structure
 	rootCmd := cm.createMockRootCommand()
-	
+
 	switch shell {
 	case CompletionBash:
 		err = rootCmd.GenBashCompletion(file)
@@ -228,12 +228,12 @@ func (cm *CompletionManager) writeCompletionFile(filename string, shell Completi
 	case CompletionFish:
 		err = rootCmd.GenFishCompletion(file, true)
 	}
-	
+
 	if err != nil {
 		os.Remove(filename) // Clean up on error
 		return fmt.Errorf("failed to generate completion: %w", err)
 	}
-	
+
 	output.Success("Installed %s completion: %s", shell, filename)
 	return nil
 }
@@ -249,13 +249,13 @@ func (cm *CompletionManager) appendCompletionToFile(filename string, shell Compl
 		)
 	}
 	defer file.Close()
-	
+
 	// Add source line for completion
 	sourceLine := fmt.Sprintf("\n# %s completion\nsource <(%s completion %s)\n", branding.ProjectName, branding.CommandName, shell)
 	if _, err := file.WriteString(sourceLine); err != nil {
 		return fmt.Errorf("failed to write completion source: %w", err)
 	}
-	
+
 	output.Success("Added %s completion source to: %s", shell, filename)
 	output.Info("Restart your shell or run: source %s", filename)
 	return nil
@@ -274,7 +274,7 @@ func (cm *CompletionManager) canCreateDir(dir string) bool {
 	if err != nil {
 		return false
 	}
-	
+
 	// Check if parent is writable (simplified check)
 	testFile := filepath.Join(parent, fmt.Sprintf(".%s_test", branding.CommandName))
 	if file, err := os.Create(testFile); err == nil {
@@ -282,7 +282,7 @@ func (cm *CompletionManager) canCreateDir(dir string) bool {
 		os.Remove(testFile)
 		return true
 	}
-	
+
 	return info.Mode().Perm()&0200 != 0 // Check write permission
 }
 
@@ -292,25 +292,25 @@ func (cm *CompletionManager) setupCompletions(rootCmd *cobra.Command) {
 	rootCmd.RegisterFlagCompletionFunc("format", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return []string{"table", "json", "yaml", "plain"}, cobra.ShellCompDirectiveNoFileComp
 	})
-	
+
 	// Add completion for container services (for logs, shell commands)
 	containerCompletion := func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return cm.getContainerCompletions(), cobra.ShellCompDirectiveNoFileComp
 	}
-	
+
 	// Add completion for git branches (for worktree command)
 	branchCompletion := func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return cm.getBranchCompletions(), cobra.ShellCompDirectiveNoFileComp
 	}
-	
+
 	// Add completion for configuration keys
 	configKeyCompletion := func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return cm.getConfigKeyCompletions(), cobra.ShellCompDirectiveNoFileComp
 	}
-	
+
 	// We'll register these with specific commands when they're created
 	_ = containerCompletion
-	_ = branchCompletion  
+	_ = branchCompletion
 	_ = configKeyCompletion
 }
 
@@ -319,9 +319,9 @@ func (cm *CompletionManager) getContainerCompletions() []string {
 	if cm.ctx == nil || len(cm.ctx.ComposeFiles) == 0 {
 		return []string{}
 	}
-	
+
 	manager := docker.NewContainerManager(cm.ctx)
-	
+
 	// Try to get running containers first
 	containers, err := manager.GetStatus()
 	if err == nil && len(containers) > 0 {
@@ -335,14 +335,14 @@ func (cm *CompletionManager) getContainerCompletions() []string {
 			return running
 		}
 	}
-	
+
 	// Fallback to compose services
 	services, err := manager.GetComposeServices()
 	if err != nil {
 		// Default services for project
 		return []string{"php", "mysql", "nginx", "redis"}
 	}
-	
+
 	return services
 }
 
@@ -362,7 +362,7 @@ func (cm *CompletionManager) getBranchCompletions() []string {
 func (cm *CompletionManager) getConfigKeyCompletions() []string {
 	return []string{
 		"defaults.test.parallel",
-		"defaults.test.processes", 
+		"defaults.test.processes",
 		"defaults.test.coverage",
 		"defaults.test.verbose",
 		"defaults.docker.compose_timeout",
@@ -386,7 +386,7 @@ func (cm *CompletionManager) RegisterCommandCompletions(rootCmd *cobra.Command) 
 			cmd.RegisterFlagCompletionFunc("service", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 				return cm.getContainerCompletions(), cobra.ShellCompDirectiveNoFileComp
 			})
-			
+
 			// For positional arguments (service name)
 			cmd.ValidArgsFunction = func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 				if len(args) == 0 {
@@ -394,7 +394,7 @@ func (cm *CompletionManager) RegisterCommandCompletions(rootCmd *cobra.Command) 
 				}
 				return []string{}, cobra.ShellCompDirectiveNoFileComp
 			}
-			
+
 		case "worktree":
 			// Branch name completion for worktree command
 			cmd.ValidArgsFunction = func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -403,12 +403,12 @@ func (cm *CompletionManager) RegisterCommandCompletions(rootCmd *cobra.Command) 
 				}
 				return []string{}, cobra.ShellCompDirectiveNoFileComp
 			}
-			
+
 			// Migration options completion
 			cmd.RegisterFlagCompletionFunc("migrate", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 				return []string{"fresh-seed", "fresh", "pending", "skip"}, cobra.ShellCompDirectiveNoFileComp
 			})
-			
+
 		case "config":
 			// Config key completion
 			cmd.ValidArgsFunction = func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -430,21 +430,21 @@ func (cm *CompletionManager) createMockRootCommand() *cobra.Command {
 		Use:   branding.CommandName,
 		Short: branding.GetShortDescription(),
 	}
-	
+
 	// Add global flags with completion
 	rootCmd.PersistentFlags().String("config", "", fmt.Sprintf("config file (default is $HOME/%s)", branding.ConfigFileName))
 	rootCmd.PersistentFlags().String("format", "table", "Output format (table, json, yaml, plain)")
 	rootCmd.PersistentFlags().BoolP("quiet", "q", false, "Suppress non-error output")
 	rootCmd.PersistentFlags().Bool("no-color", false, "Disable colored output")
-	
+
 	// Register format flag completion
 	rootCmd.RegisterFlagCompletionFunc("format", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		return []string{"table", "json", "yaml", "plain"}, cobra.ShellCompDirectiveNoFileComp
 	})
-	
+
 	// Add mock commands for completion structure
 	cm.addMockCommands(rootCmd)
-	
+
 	return rootCmd
 }
 
@@ -454,17 +454,17 @@ func (cm *CompletionManager) addMockCommands(rootCmd *cobra.Command) {
 	rootCmd.AddCommand(&cobra.Command{Use: "setup", Short: "Interactive setup for Glide CLI"})
 	rootCmd.AddCommand(&cobra.Command{Use: "config", Short: "Manage Glide configuration"})
 	rootCmd.AddCommand(&cobra.Command{Use: "completion", Short: "Generate shell completion scripts"})
-	
+
 	// Docker commands
 	rootCmd.AddCommand(&cobra.Command{Use: "up", Short: "Start Docker containers"})
 	rootCmd.AddCommand(&cobra.Command{Use: "down", Short: "Stop Docker containers"})
 	rootCmd.AddCommand(&cobra.Command{Use: "docker", Short: "Pass-through to docker-compose"})
-	
+
 	// Development commands
 	rootCmd.AddCommand(&cobra.Command{Use: "test", Short: "Run tests"})
 	rootCmd.AddCommand(&cobra.Command{Use: "artisan", Short: "Run Artisan commands"})
 	rootCmd.AddCommand(&cobra.Command{Use: "composer", Short: "Run Composer commands"})
-	
+
 	// Interactive commands
 	logsCmd := &cobra.Command{Use: "logs [service]", Short: "View container logs"}
 	logsCmd.ValidArgsFunction = func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -474,7 +474,7 @@ func (cm *CompletionManager) addMockCommands(rootCmd *cobra.Command) {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
 	rootCmd.AddCommand(logsCmd)
-	
+
 	shellCmd := &cobra.Command{Use: "shell [service]", Short: "Attach to container shell"}
 	shellCmd.ValidArgsFunction = func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		if len(args) == 0 {
@@ -483,21 +483,21 @@ func (cm *CompletionManager) addMockCommands(rootCmd *cobra.Command) {
 		return []string{}, cobra.ShellCompDirectiveNoFileComp
 	}
 	rootCmd.AddCommand(shellCmd)
-	
+
 	rootCmd.AddCommand(&cobra.Command{Use: "mysql", Short: "Access MySQL CLI"})
 	rootCmd.AddCommand(&cobra.Command{Use: "status", Short: "Show container status"})
-	
+
 	// Utility commands
 	rootCmd.AddCommand(&cobra.Command{Use: "lint", Short: "Run PHP CS Fixer"})
 	rootCmd.AddCommand(&cobra.Command{Use: "ecr-login", Short: "Authenticate with AWS ECR"})
 	rootCmd.AddCommand(&cobra.Command{Use: "db-tunnel", Short: "Create SSH tunnel to database"})
 	rootCmd.AddCommand(&cobra.Command{Use: "ssl-certs", Short: "Generate SSL certificates"})
 	rootCmd.AddCommand(&cobra.Command{Use: "mysql-fix-permissions", Short: "Fix MySQL permissions"})
-	
+
 	// Global commands (multi-worktree mode)
 	if cm.ctx != nil && cm.ctx.DevelopmentMode == context.ModeMultiWorktree {
 		globalCmd := &cobra.Command{Use: "global", Aliases: []string{"g"}, Short: "Global commands for multi-worktree mode"}
-		
+
 		worktreeCmd := &cobra.Command{Use: "worktree [branch]", Short: "Create new worktree"}
 		worktreeCmd.ValidArgsFunction = func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			if len(args) == 0 {
@@ -509,13 +509,13 @@ func (cm *CompletionManager) addMockCommands(rootCmd *cobra.Command) {
 		worktreeCmd.RegisterFlagCompletionFunc("migrate", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 			return []string{"fresh-seed", "fresh", "pending", "skip"}, cobra.ShellCompDirectiveNoFileComp
 		})
-		
+
 		globalCmd.AddCommand(worktreeCmd)
 		globalCmd.AddCommand(&cobra.Command{Use: "status", Short: "Show status of all worktrees"})
 		globalCmd.AddCommand(&cobra.Command{Use: "down", Short: "Stop containers in all worktrees"})
 		globalCmd.AddCommand(&cobra.Command{Use: "list", Short: "List all worktrees"})
 		globalCmd.AddCommand(&cobra.Command{Use: "clean", Short: "Clean up resources"})
-		
+
 		rootCmd.AddCommand(globalCmd)
 	}
 }

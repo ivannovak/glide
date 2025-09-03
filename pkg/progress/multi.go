@@ -14,22 +14,22 @@ import (
 type Multi struct {
 	items   []multiItem
 	options *Options
-	
+
 	mu       sync.Mutex
 	active   bool
 	stopChan chan struct{}
 	writer   io.Writer
-	
+
 	// Terminal management
 	lines    int
 	lastDraw time.Time
 }
 
 type multiItem struct {
-	typ      string // "spinner" or "bar"
-	spinner  *Spinner
-	bar      *Bar
-	line     int
+	typ     string // "spinner" or "bar"
+	spinner *Spinner
+	bar     *Bar
+	line    int
 }
 
 // NewMulti creates a new multi-progress manager
@@ -42,7 +42,7 @@ func NewMultiWithOptions(opts *Options) *Multi {
 	if opts == nil {
 		opts = DefaultOptions()
 	}
-	
+
 	return &Multi{
 		items:   make([]multiItem, 0),
 		options: opts,
@@ -54,23 +54,23 @@ func NewMultiWithOptions(opts *Options) *Multi {
 func (m *Multi) AddSpinner(message string) *Spinner {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	// Create spinner with custom writer that doesn't output directly
 	spinner := NewSpinner(message)
 	spinner.options.Writer = io.Discard // We'll handle rendering
-	
+
 	item := multiItem{
 		typ:     "spinner",
 		spinner: spinner,
 		line:    len(m.items),
 	}
-	
+
 	m.items = append(m.items, item)
-	
+
 	if m.active {
 		m.render()
 	}
-	
+
 	return spinner
 }
 
@@ -78,23 +78,23 @@ func (m *Multi) AddSpinner(message string) *Spinner {
 func (m *Multi) AddBar(total int, message string) *Bar {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	// Create bar with custom writer that doesn't output directly
 	bar := NewBar(total, message)
 	bar.options.Writer = io.Discard // We'll handle rendering
-	
+
 	item := multiItem{
 		typ:  "bar",
 		bar:  bar,
 		line: len(m.items),
 	}
-	
+
 	m.items = append(m.items, item)
-	
+
 	if m.active {
 		m.render()
 	}
-	
+
 	return bar
 }
 
@@ -105,11 +105,11 @@ func (m *Multi) Start() {
 		m.mu.Unlock()
 		return
 	}
-	
+
 	m.active = true
 	m.stopChan = make(chan struct{})
 	m.lastDraw = time.Now()
-	
+
 	// Start all items
 	for _, item := range m.items {
 		if item.typ == "spinner" {
@@ -118,11 +118,11 @@ func (m *Multi) Start() {
 			item.bar.Start()
 		}
 	}
-	
+
 	// Initial render
 	m.render()
 	m.mu.Unlock()
-	
+
 	// Start render loop
 	go m.renderLoop()
 }
@@ -131,14 +131,14 @@ func (m *Multi) Start() {
 func (m *Multi) Stop() {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	if !m.active {
 		return
 	}
-	
+
 	m.active = false
 	close(m.stopChan)
-	
+
 	// Stop all items
 	for _, item := range m.items {
 		if item.typ == "spinner" {
@@ -147,7 +147,7 @@ func (m *Multi) Stop() {
 			item.bar.Stop()
 		}
 	}
-	
+
 	// Clear all lines
 	if m.options.IsTTY && !m.options.Quiet {
 		m.clearAll()
@@ -158,7 +158,7 @@ func (m *Multi) Stop() {
 func (m *Multi) renderLoop() {
 	ticker := time.NewTicker(m.options.RefreshRate)
 	defer ticker.Stop()
-	
+
 	for {
 		select {
 		case <-m.stopChan:
@@ -178,28 +178,28 @@ func (m *Multi) render() {
 	if m.options.Quiet || !m.options.IsTTY {
 		return
 	}
-	
+
 	// Move cursor to start position
 	if m.lines > 0 {
 		// Move up to the first line
 		_, _ = fmt.Fprintf(m.writer, "\033[%dA", m.lines)
 	}
-	
+
 	// Render each item
 	for i, item := range m.items {
 		// Clear line
 		_, _ = fmt.Fprintf(m.writer, "\r\033[K")
-		
+
 		// Render item
 		line := m.renderItem(item)
 		_, _ = fmt.Fprint(m.writer, line)
-		
+
 		// Move to next line (except for last item)
 		if i < len(m.items)-1 {
 			_, _ = fmt.Fprintln(m.writer)
 		}
 	}
-	
+
 	// Update line count
 	m.lines = len(m.items)
 	if m.lines > 0 {
@@ -221,20 +221,20 @@ func (m *Multi) renderItem(item multiItem) string {
 func (m *Multi) renderSpinner(s *Spinner) string {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	
+
 	if !s.active {
 		return ""
 	}
-	
+
 	frame := s.style.Frames[s.frame]
 	s.frame = (s.frame + 1) % len(s.style.Frames)
-	
+
 	// Build line
 	parts := []string{
 		color.CyanString(frame),
 		s.message,
 	}
-	
+
 	// Add elapsed time
 	if s.options.ShowElapsedTime && !s.startTime.IsZero() {
 		duration := time.Since(s.startTime)
@@ -242,7 +242,7 @@ func (m *Multi) renderSpinner(s *Spinner) string {
 			parts = append(parts, color.HiBlackString("(%s)", formatDuration(duration)))
 		}
 	}
-	
+
 	return strings.Join(parts, " ")
 }
 
@@ -250,26 +250,26 @@ func (m *Multi) renderSpinner(s *Spinner) string {
 func (m *Multi) renderBar(b *Bar) string {
 	b.mu.Lock()
 	defer b.mu.Unlock()
-	
+
 	if !b.active {
 		return ""
 	}
-	
+
 	// Calculate percentage
 	percentage := float64(b.current) / float64(b.total)
 	if b.total == 0 {
 		percentage = 0
 	}
-	
+
 	// Build the bar (smaller for multi-progress)
 	width := 20
 	filled := int(percentage * float64(width))
 	if filled > width {
 		filled = width
 	}
-	
+
 	bar := strings.Repeat("█", filled) + strings.Repeat("░", width-filled)
-	
+
 	// Build the line
 	parts := []string{
 		b.message,
@@ -277,7 +277,7 @@ func (m *Multi) renderBar(b *Bar) string {
 		fmt.Sprintf("%d/%d", b.current, b.total),
 		fmt.Sprintf("(%.0f%%)", percentage*100),
 	}
-	
+
 	// Add ETA if available
 	if b.options.ShowETA && b.current > 0 && b.current < b.total {
 		elapsed := time.Since(b.startTime)
@@ -287,7 +287,7 @@ func (m *Multi) renderBar(b *Bar) string {
 				itemsRemaining := b.total - b.current
 				secondsPerItem := elapsed.Seconds() / float64(itemsDone)
 				secondsRemaining := secondsPerItem * float64(itemsRemaining)
-				
+
 				if secondsRemaining >= 1 {
 					eta := time.Duration(secondsRemaining * float64(time.Second))
 					parts = append(parts, color.HiBlackString("ETA %s", formatDuration(eta)))
@@ -295,7 +295,7 @@ func (m *Multi) renderBar(b *Bar) string {
 			}
 		}
 	}
-	
+
 	return strings.Join(parts, " ")
 }
 
@@ -305,7 +305,7 @@ func (m *Multi) clearAll() {
 	if m.lines > 0 {
 		_, _ = fmt.Fprintf(m.writer, "\033[%dA", m.lines)
 	}
-	
+
 	// Clear each line
 	for i := 0; i <= m.lines; i++ {
 		_, _ = fmt.Fprintf(m.writer, "\r\033[K")
@@ -313,7 +313,7 @@ func (m *Multi) clearAll() {
 			_, _ = fmt.Fprintln(m.writer)
 		}
 	}
-	
+
 	// Move back to start
 	if m.lines > 0 {
 		_, _ = fmt.Fprintf(m.writer, "\033[%dA", m.lines)
@@ -323,7 +323,7 @@ func (m *Multi) clearAll() {
 // Complete marks all items as complete and shows summary
 func (m *Multi) Complete() {
 	m.Stop()
-	
+
 	if !m.options.Quiet {
 		// Show completion messages for each item
 		for _, item := range m.items {
@@ -345,7 +345,7 @@ func (m *Multi) Complete() {
 // UpdateBar updates a specific bar in the multi-progress
 func (m *Multi) UpdateBar(bar *Bar, current int) {
 	bar.Update(current)
-	
+
 	// Trigger a render if active
 	m.mu.Lock()
 	if m.active {
@@ -357,7 +357,7 @@ func (m *Multi) UpdateBar(bar *Bar, current int) {
 // UpdateSpinner updates a specific spinner message
 func (m *Multi) UpdateSpinner(spinner *Spinner, message string) {
 	spinner.Update(message)
-	
+
 	// Trigger a render if active
 	m.mu.Lock()
 	if m.active {

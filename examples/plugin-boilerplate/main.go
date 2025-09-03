@@ -1,6 +1,6 @@
 // Glide Plugin Boilerplate
 // This is a template for creating your own Glide runtime plugin.
-// 
+//
 // To use this boilerplate:
 // 1. Copy this directory to a new location
 // 2. Rename the plugin and update metadata
@@ -30,7 +30,7 @@ type MyPlugin struct {
 // Update these fields with your plugin's information
 func (p *MyPlugin) GetMetadata(ctx context.Context, _ *sdk.Empty) (*sdk.PluginMetadata, error) {
 	return &sdk.PluginMetadata{
-		Name:        "myplugin",                    // Change to your plugin name
+		Name:        "myplugin",                     // Change to your plugin name
 		Version:     "1.0.0",                        // Your plugin version
 		Author:      "Your Name",                    // Your name or organization
 		Description: "Brief description of plugin",  // What your plugin does
@@ -47,7 +47,7 @@ func (p *MyPlugin) Configure(ctx context.Context, req *sdk.ConfigureRequest) (*s
 	for k, v := range req.Config {
 		p.config[k] = v
 	}
-	
+
 	return &sdk.ConfigureResponse{
 		Success: true,
 		Message: "Plugin configured successfully",
@@ -112,10 +112,10 @@ func (p *MyPlugin) executeHello(ctx context.Context, req *sdk.ExecuteRequest) (*
 	if len(req.Args) > 0 {
 		name = req.Args[0]
 	}
-	
+
 	message := fmt.Sprintf("Hello, %s! 👋\n", name)
 	message += "This is an example command from your Glide plugin.\n"
-	
+
 	return &sdk.ExecuteResponse{
 		Success:  true,
 		Stdout:   []byte(message),
@@ -127,7 +127,7 @@ func (p *MyPlugin) executeHello(ctx context.Context, req *sdk.ExecuteRequest) (*
 func (p *MyPlugin) executeConfig(ctx context.Context, req *sdk.ExecuteRequest) (*sdk.ExecuteResponse, error) {
 	output := "Plugin Configuration:\n"
 	output += "====================\n"
-	
+
 	if len(p.config) == 0 {
 		output += "No configuration provided.\n"
 		output += "\nTo configure this plugin, add to your .glide.yml:\n"
@@ -141,7 +141,7 @@ func (p *MyPlugin) executeConfig(ctx context.Context, req *sdk.ExecuteRequest) (
 			output += fmt.Sprintf("%s: %v\n", key, value)
 		}
 	}
-	
+
 	return &sdk.ExecuteResponse{
 		Success:  true,
 		Stdout:   []byte(output),
@@ -154,7 +154,7 @@ func (p *MyPlugin) executeConfig(ctx context.Context, req *sdk.ExecuteRequest) (
 func (p *MyPlugin) StartInteractive(stream sdk.GlidePlugin_StartInteractiveServer) error {
 	// For now, we just handle a simple interactive example
 	// In a real implementation, you would check the command from the stream
-	
+
 	// Send initial output
 	err := stream.Send(&sdk.StreamMessage{
 		Type: sdk.StreamMessage_STDOUT,
@@ -163,13 +163,13 @@ func (p *MyPlugin) StartInteractive(stream sdk.GlidePlugin_StartInteractiveServe
 	if err != nil {
 		return err
 	}
-	
+
 	// Example: Echo user input back
 	// In a real plugin, you might:
 	// - Start a shell or REPL
 	// - Connect to a database CLI
 	// - Launch an interactive debugger
-	
+
 	err = stream.Send(&sdk.StreamMessage{
 		Type: sdk.StreamMessage_STDOUT,
 		Data: []byte("Type 'exit' to quit.\n> "),
@@ -177,17 +177,17 @@ func (p *MyPlugin) StartInteractive(stream sdk.GlidePlugin_StartInteractiveServe
 	if err != nil {
 		return err
 	}
-	
+
 	// Read input from user
 	for {
 		msg, err := stream.Recv()
 		if err != nil {
 			return err
 		}
-		
+
 		if msg.Type == sdk.StreamMessage_STDIN {
 			input := string(msg.Data)
-			
+
 			// Check for exit command
 			if input == "exit\n" || input == "quit\n" {
 				stream.Send(&sdk.StreamMessage{
@@ -196,7 +196,7 @@ func (p *MyPlugin) StartInteractive(stream sdk.GlidePlugin_StartInteractiveServe
 				})
 				break
 			}
-			
+
 			// Echo back the input
 			response := fmt.Sprintf("You typed: %s> ", input)
 			stream.Send(&sdk.StreamMessage{
@@ -205,7 +205,7 @@ func (p *MyPlugin) StartInteractive(stream sdk.GlidePlugin_StartInteractiveServe
 			})
 		}
 	}
-	
+
 	// Send exit message
 	return stream.Send(&sdk.StreamMessage{
 		Type:     sdk.StreamMessage_EXIT,
@@ -217,8 +217,8 @@ func (p *MyPlugin) StartInteractive(stream sdk.GlidePlugin_StartInteractiveServe
 // This helps the host understand what permissions your plugin needs
 func (p *MyPlugin) GetCapabilities(ctx context.Context, _ *sdk.Empty) (*sdk.Capabilities, error) {
 	return &sdk.Capabilities{
-		RequiresDocker:   false, // Set to true if you need Docker access
-		RequiresNetwork:  false, // Set to true if you need network access
+		RequiresDocker:  false, // Set to true if you need Docker access
+		RequiresNetwork: false, // Set to true if you need network access
 	}, nil
 }
 
@@ -227,19 +227,19 @@ func main() {
 	if os.Getenv("GLIDE_PLUGIN_DEBUG") == "1" {
 		fmt.Fprintf(os.Stderr, "[DEBUG] Starting plugin...\n")
 	}
-	
+
 	// Create plugin instance
 	myPlugin := &MyPlugin{
 		config: make(map[string]interface{}),
 	}
-	
+
 	// Configure plugin map for Hashicorp go-plugin
 	pluginMap := map[string]plugin.Plugin{
 		"glide": &sdk.GlidePluginImpl{
 			Impl: myPlugin,
 		},
 	}
-	
+
 	// Start the plugin server
 	plugin.Serve(&plugin.ServeConfig{
 		HandshakeConfig: sdk.HandshakeConfig,

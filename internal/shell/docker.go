@@ -27,15 +27,15 @@ func NewDockerExecutor(ctx *context.ProjectContext) *DockerExecutor {
 func (de *DockerExecutor) Compose(args ...string) error {
 	// Build docker-compose command with resolved files
 	composeArgs := []string{"compose"}
-	
+
 	// Add compose files
 	for _, file := range de.ctx.ComposeFiles {
 		composeArgs = append(composeArgs, "-f", file)
 	}
-	
+
 	// Add user arguments
 	composeArgs = append(composeArgs, args...)
-	
+
 	// Execute with passthrough
 	return de.executor.Run("docker", composeArgs...)
 }
@@ -44,15 +44,15 @@ func (de *DockerExecutor) Compose(args ...string) error {
 func (de *DockerExecutor) ComposeCapture(args ...string) (string, error) {
 	// Build docker-compose command with resolved files
 	composeArgs := []string{"compose"}
-	
+
 	// Add compose files
 	for _, file := range de.ctx.ComposeFiles {
 		composeArgs = append(composeArgs, "-f", file)
 	}
-	
+
 	// Add user arguments
 	composeArgs = append(composeArgs, args...)
-	
+
 	// Execute and capture
 	return de.executor.RunCapture("docker", composeArgs...)
 }
@@ -64,7 +64,7 @@ func (de *DockerExecutor) Up(detach bool, services ...string) error {
 		args = append(args, "-d")
 	}
 	args = append(args, services...)
-	
+
 	return de.Compose(args...)
 }
 
@@ -77,7 +77,7 @@ func (de *DockerExecutor) Down(removeVolumes bool, removeOrphans bool) error {
 	if removeOrphans {
 		args = append(args, "--remove-orphans")
 	}
-	
+
 	return de.Compose(args...)
 }
 
@@ -89,7 +89,7 @@ func (de *DockerExecutor) Exec(service string, command []string, interactive boo
 	}
 	args = append(args, service)
 	args = append(args, command...)
-	
+
 	// Use interactive mode if -it flag is present
 	if interactive {
 		cmd := NewInteractiveCommand("docker", append([]string{"compose"}, args...)...)
@@ -99,7 +99,7 @@ func (de *DockerExecutor) Exec(service string, command []string, interactive boo
 		_, err := de.executor.Execute(cmd)
 		return err
 	}
-	
+
 	return de.Compose(args...)
 }
 
@@ -113,7 +113,7 @@ func (de *DockerExecutor) Logs(follow bool, tail string, services ...string) err
 		args = append(args, "--tail", tail)
 	}
 	args = append(args, services...)
-	
+
 	return de.Compose(args...)
 }
 
@@ -123,7 +123,7 @@ func (de *DockerExecutor) PS(all bool) (string, error) {
 	if all {
 		args = append(args, "-a")
 	}
-	
+
 	return de.ComposeCapture(args...)
 }
 
@@ -141,10 +141,10 @@ func (de *DockerExecutor) GetContainerStatus() (map[string]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	status := make(map[string]string)
 	lines := strings.Split(output, "\n")
-	
+
 	// Skip header
 	if len(lines) > 1 {
 		for _, line := range lines[1:] {
@@ -156,7 +156,7 @@ func (de *DockerExecutor) GetContainerStatus() (map[string]string, error) {
 			}
 		}
 	}
-	
+
 	return status, nil
 }
 
@@ -182,20 +182,20 @@ func (de *DockerExecutor) Shell(service string) error {
 func (de *DockerExecutor) PassthroughToCompose(args []string) error {
 	// This is for the 'glid docker' command - complete passthrough
 	composeArgs := []string{"compose"}
-	
+
 	// Add compose files
 	for _, file := range de.ctx.ComposeFiles {
 		composeArgs = append(composeArgs, "-f", file)
 	}
-	
+
 	// Add all user arguments without interpretation
 	composeArgs = append(composeArgs, args...)
-	
+
 	// Create passthrough command
 	cmd := NewPassthroughCommand("docker", composeArgs...)
 	cmd.SignalForward = true
 	cmd.InheritEnv = true
-	
+
 	// Check if this looks like an interactive command
 	for _, arg := range args {
 		if arg == "exec" {
@@ -210,16 +210,16 @@ func (de *DockerExecutor) PassthroughToCompose(args []string) error {
 			break
 		}
 	}
-	
+
 	result, err := de.executor.Execute(cmd)
 	if err != nil {
 		return err
 	}
-	
+
 	// Exit with same code as docker-compose
 	if result.ExitCode != 0 {
 		os.Exit(result.ExitCode)
 	}
-	
+
 	return nil
 }

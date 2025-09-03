@@ -10,14 +10,14 @@ import (
 
 func TestPromptConfig(t *testing.T) {
 	config := &PromptConfig{}
-	
+
 	// Test functional options
 	WithNoColor()(config)
 	assert.True(t, config.NoColor)
-	
+
 	WithQuiet()(config)
 	assert.True(t, config.Quiet)
-	
+
 	WithNonInteractive()(config)
 	assert.True(t, config.NonInteractive)
 }
@@ -29,7 +29,7 @@ func TestSelectOption(t *testing.T) {
 		Description: "A test option",
 		Disabled:    false,
 	}
-	
+
 	assert.Equal(t, "Test Option", option.Label)
 	assert.Equal(t, 42, option.Value)
 	assert.Equal(t, "A test option", option.Description)
@@ -45,7 +45,7 @@ func TestInputConfig(t *testing.T) {
 		MaxLength:   100,
 		MinLength:   5,
 	}
-	
+
 	assert.True(t, config.Required)
 	assert.False(t, config.Hidden)
 	assert.False(t, config.MultiLine)
@@ -60,7 +60,7 @@ func TestConfirmConfig(t *testing.T) {
 		RequireExplicit: true,
 		Warning:         "This is dangerous",
 	}
-	
+
 	assert.True(t, config.Destructive)
 	assert.True(t, config.RequireExplicit)
 	assert.Equal(t, "This is dangerous", config.Warning)
@@ -75,7 +75,7 @@ func TestErrorConstants(t *testing.T) {
 
 func TestNewPrompter(t *testing.T) {
 	prompter := New()
-	
+
 	assert.NotNil(t, prompter)
 	assert.NotNil(t, prompter.reader)
 	assert.NotNil(t, prompter.writer)
@@ -92,7 +92,7 @@ type MockPrompter struct {
 	InputErrors       []error
 	PasswordResponses []string
 	PasswordErrors    []error
-	
+
 	confirmIndex  int
 	selectIndex   int
 	inputIndex    int
@@ -107,13 +107,13 @@ func (m *MockPrompter) Confirm(message string, defaultValue bool) (bool, error) 
 	if m.confirmIndex >= len(m.ConfirmResponses) {
 		return defaultValue, fmt.Errorf("no more confirm responses")
 	}
-	
+
 	response := m.ConfirmResponses[m.confirmIndex]
 	var err error
 	if m.confirmIndex < len(m.ConfirmErrors) {
 		err = m.ConfirmErrors[m.confirmIndex]
 	}
-	
+
 	m.confirmIndex++
 	return response, err
 }
@@ -122,7 +122,7 @@ func (m *MockPrompter) Select(message string, options []string, defaultIndex int
 	if m.selectIndex >= len(m.SelectResponses) {
 		return defaultIndex, options[defaultIndex], fmt.Errorf("no more select responses")
 	}
-	
+
 	index := m.SelectResponses[m.selectIndex]
 	value := ""
 	if m.selectIndex < len(m.SelectValues) {
@@ -130,12 +130,12 @@ func (m *MockPrompter) Select(message string, options []string, defaultIndex int
 	} else if index >= 0 && index < len(options) {
 		value = options[index]
 	}
-	
+
 	var err error
 	if m.selectIndex < len(m.SelectErrors) {
 		err = m.SelectErrors[m.selectIndex]
 	}
-	
+
 	m.selectIndex++
 	return index, value, err
 }
@@ -144,20 +144,20 @@ func (m *MockPrompter) Input(message string, defaultValue string, validator Inpu
 	if m.inputIndex >= len(m.InputResponses) {
 		return defaultValue, fmt.Errorf("no more input responses")
 	}
-	
+
 	response := m.InputResponses[m.inputIndex]
 	var err error
 	if m.InputErrors != nil && m.inputIndex < len(m.InputErrors) {
 		err = m.InputErrors[m.inputIndex]
 	}
-	
+
 	// Apply validator if provided
 	if validator != nil && err == nil {
 		if validationErr := validator(response); validationErr != nil {
 			err = validationErr
 		}
 	}
-	
+
 	m.inputIndex++
 	return response, err
 }
@@ -166,13 +166,13 @@ func (m *MockPrompter) Password(message string) (string, error) {
 	if m.passwordIndex >= len(m.PasswordResponses) {
 		return "", fmt.Errorf("no more password responses")
 	}
-	
+
 	response := m.PasswordResponses[m.passwordIndex]
 	var err error
 	if m.passwordIndex < len(m.PasswordErrors) {
 		err = m.PasswordErrors[m.passwordIndex]
 	}
-	
+
 	m.passwordIndex++
 	return response, err
 }
@@ -181,12 +181,12 @@ func TestMockPrompterConfirm(t *testing.T) {
 	mock := NewMockPrompter()
 	mock.ConfirmResponses = []bool{true, false}
 	mock.ConfirmErrors = []error{nil, fmt.Errorf("confirm error")}
-	
+
 	// First call - success
 	result, err := mock.Confirm("Test?", false)
 	assert.True(t, result)
 	assert.NoError(t, err)
-	
+
 	// Second call - error
 	result, err = mock.Confirm("Test?", true)
 	assert.False(t, result)
@@ -199,15 +199,15 @@ func TestMockPrompterSelect(t *testing.T) {
 	mock.SelectResponses = []int{1, 0}
 	mock.SelectValues = []string{"option2", "option1"}
 	mock.SelectErrors = []error{nil, fmt.Errorf("select error")}
-	
+
 	options := []string{"option1", "option2", "option3"}
-	
+
 	// First call - success
 	index, value, err := mock.Select("Choose:", options, 0)
 	assert.Equal(t, 1, index)
 	assert.Equal(t, "option2", value)
 	assert.NoError(t, err)
-	
+
 	// Second call - error
 	index, value, err = mock.Select("Choose:", options, 2)
 	assert.Equal(t, 0, index)
@@ -220,12 +220,12 @@ func TestMockPrompterInput(t *testing.T) {
 	mock := NewMockPrompter()
 	mock.InputResponses = []string{"test input", "invalid"}
 	mock.InputErrors = []error{nil, fmt.Errorf("input error")}
-	
+
 	// First call - success
 	result, err := mock.Input("Enter:", "default", nil)
 	assert.Equal(t, "test input", result)
 	assert.NoError(t, err)
-	
+
 	// Second call - error
 	result, err = mock.Input("Enter:", "default", nil)
 	assert.Equal(t, "invalid", result)
@@ -240,11 +240,11 @@ func TestMockPrompterInputWithValidator(t *testing.T) {
 		}
 		return nil
 	}
-	
+
 	// Test validation passes (simpler test)
 	mock := NewMockPrompter()
 	mock.InputResponses = []string{"long enough"}
-	
+
 	result, err := mock.Input("Enter:", "default", validator)
 	assert.Equal(t, "long enough", result)
 	assert.NoError(t, err)
@@ -254,12 +254,12 @@ func TestMockPrompterPassword(t *testing.T) {
 	mock := NewMockPrompter()
 	mock.PasswordResponses = []string{"secret123", ""}
 	mock.PasswordErrors = []error{nil, fmt.Errorf("password error")}
-	
+
 	// First call - success
 	result, err := mock.Password("Enter password:")
 	assert.Equal(t, "secret123", result)
 	assert.NoError(t, err)
-	
+
 	// Second call - error
 	result, err = mock.Password("Enter password:")
 	assert.Equal(t, "", result)
@@ -275,7 +275,7 @@ func TestInputValidator(t *testing.T) {
 		}
 		return nil
 	}
-	
+
 	assert.NoError(t, validator("valid input"))
 	assert.Equal(t, ErrInvalidInput, validator(""))
 	assert.Equal(t, ErrInvalidInput, validator("   "))
@@ -284,7 +284,7 @@ func TestInputValidator(t *testing.T) {
 func TestPrompterInterface(t *testing.T) {
 	// Test that our mock implements the interface
 	var prompter Prompter = NewMockPrompter()
-	
+
 	// This should compile if interface is satisfied
 	assert.NotNil(t, prompter)
 }

@@ -10,22 +10,22 @@ import (
 type Formatter interface {
 	// Display formats and outputs data based on the formatter type
 	Display(data interface{}) error
-	
+
 	// Info outputs informational messages
 	Info(format string, args ...interface{}) error
-	
+
 	// Success outputs success messages
 	Success(format string, args ...interface{}) error
-	
+
 	// Error outputs error messages
 	Error(format string, args ...interface{}) error
-	
+
 	// Warning outputs warning messages
 	Warning(format string, args ...interface{}) error
-	
+
 	// Raw outputs raw text without formatting
 	Raw(text string) error
-	
+
 	// SetWriter sets the output writer
 	SetWriter(w io.Writer)
 }
@@ -58,9 +58,9 @@ func ParseFormat(s string) (Format, error) {
 
 // BaseFormatter provides common functionality for all formatters
 type BaseFormatter struct {
-	writer    io.Writer
-	noColor   bool
-	quiet     bool
+	writer  io.Writer
+	noColor bool
+	quiet   bool
 }
 
 // NewBaseFormatter creates a new base formatter

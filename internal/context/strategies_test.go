@@ -16,7 +16,7 @@ func TestNewStandardProjectRootFinder(t *testing.T) {
 
 func TestStandardProjectRootFinder_FindRoot(t *testing.T) {
 	finder := NewStandardProjectRootFinder()
-	
+
 	// Create a temporary directory structure for testing
 	tempDir := t.TempDir()
 	gitDir := filepath.Join(tempDir, ".git")
@@ -95,17 +95,17 @@ func TestStandardDevelopmentModeDetector_DetectMode(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Create necessary directory structure for tests
 			tempDir := t.TempDir()
-			
+
 			if tt.expected == ModeMultiWorktree {
 				// Create temporary vcs directory to simulate multi-worktree structure
 				vcsDir := filepath.Join(tempDir, "vcs")
 				err := os.Mkdir(vcsDir, 0755)
 				require.NoError(t, err)
-				
+
 				worktreesDir := filepath.Join(tempDir, "worktrees")
 				err = os.Mkdir(worktreesDir, 0755)
 				require.NoError(t, err)
-				
+
 				mode := detector.DetectMode(tempDir)
 				assert.Equal(t, ModeMultiWorktree, mode)
 			} else {
@@ -113,7 +113,7 @@ func TestStandardDevelopmentModeDetector_DetectMode(t *testing.T) {
 				gitDir := filepath.Join(tempDir, ".git")
 				err := os.Mkdir(gitDir, 0755)
 				require.NoError(t, err)
-				
+
 				mode := detector.DetectMode(tempDir)
 				assert.Equal(t, ModeSingleRepo, mode)
 			}
@@ -130,11 +130,11 @@ func TestStandardLocationIdentifier_IdentifyLocation(t *testing.T) {
 	identifier := NewStandardLocationIdentifier()
 
 	tests := []struct {
-		name           string
-		workingDir     string
-		projectRoot    string
-		mode           DevelopmentMode
-		expectedType   LocationType
+		name         string
+		workingDir   string
+		projectRoot  string
+		mode         DevelopmentMode
+		expectedType LocationType
 	}{
 		{
 			name:         "single repo project",
@@ -172,10 +172,10 @@ func TestStandardLocationIdentifier_IdentifyLocation(t *testing.T) {
 				ProjectRoot:     tt.projectRoot,
 				DevelopmentMode: tt.mode,
 			}
-			
+
 			locType := identifier.IdentifyLocation(ctx, tt.workingDir)
 			assert.Equal(t, tt.expectedType, locType)
-			
+
 			// Verify context is updated correctly
 			switch tt.expectedType {
 			case LocationRoot:
@@ -207,9 +207,9 @@ func TestStandardComposeFileResolver_ResolveFiles(t *testing.T) {
 	resolver := NewStandardComposeFileResolver()
 
 	tests := []struct {
-		name         string
-		location     LocationType
-		expectFiles  int
+		name        string
+		location    LocationType
+		expectFiles int
 	}{
 		{
 			name:        "single repo project",
@@ -232,13 +232,13 @@ func TestStandardComposeFileResolver_ResolveFiles(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Create temporary directory structure
 			tempDir := t.TempDir()
-			
+
 			ctx := &ProjectContext{
 				ProjectRoot:  tempDir,
 				Location:     tt.location,
 				WorktreeName: "feature", // For worktree tests
 			}
-			
+
 			files := resolver.ResolveFiles(ctx)
 			assert.Len(t, files, tt.expectFiles)
 		})

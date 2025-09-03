@@ -39,12 +39,12 @@ func (h *TestHarness) RegisterPlugin(p plugin.Plugin) error {
 	if err != nil {
 		return err
 	}
-	
+
 	// Configure with test config
 	if err := p.Configure(h.Config); err != nil {
 		return err
 	}
-	
+
 	// Register commands
 	return p.Register(h.RootCmd)
 }
@@ -60,11 +60,11 @@ func (h *TestHarness) WithConfig(config map[string]interface{}) *TestHarness {
 func (h *TestHarness) ExecuteCommand(args ...string) (string, error) {
 	h.stdout.Reset()
 	h.stderr.Reset()
-	
+
 	h.RootCmd.SetOut(h.stdout)
 	h.RootCmd.SetErr(h.stderr)
 	h.RootCmd.SetArgs(args)
-	
+
 	err := h.RootCmd.Execute()
 	return h.stdout.String(), err
 }
@@ -73,12 +73,12 @@ func (h *TestHarness) ExecuteCommand(args ...string) (string, error) {
 func (h *TestHarness) ExecuteCommandWithInput(input string, args ...string) (string, error) {
 	h.stdout.Reset()
 	h.stderr.Reset()
-	
+
 	h.RootCmd.SetIn(bytes.NewBufferString(input))
 	h.RootCmd.SetOut(h.stdout)
 	h.RootCmd.SetErr(h.stderr)
 	h.RootCmd.SetArgs(args)
-	
+
 	err := h.RootCmd.Execute()
 	return h.stdout.String(), err
 }
@@ -142,18 +142,18 @@ func (h *TestHarness) Reset() {
 func (h *TestHarness) CaptureOutput(fn func()) (stdout, stderr string) {
 	oldStdout := h.RootCmd.OutOrStdout()
 	oldStderr := h.RootCmd.ErrOrStderr()
-	
+
 	stdoutBuf := &bytes.Buffer{}
 	stderrBuf := &bytes.Buffer{}
-	
+
 	h.RootCmd.SetOut(stdoutBuf)
 	h.RootCmd.SetErr(stderrBuf)
-	
+
 	fn()
-	
+
 	h.RootCmd.SetOut(oldStdout)
 	h.RootCmd.SetErr(oldStderr)
-	
+
 	return stdoutBuf.String(), stderrBuf.String()
 }
 

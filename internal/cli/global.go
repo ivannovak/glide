@@ -85,10 +85,10 @@ Examples:
   glid g status --verbose      # Include detailed container info`,
 		RunE: gc.executeStatus,
 	}
-	
+
 	// Add flags
 	cmd.Flags().Bool("verbose", false, "Show detailed container information")
-	
+
 	return cmd
 }
 
@@ -113,11 +113,11 @@ Examples:
   glid g down --volumes          # Also remove volumes (data loss!)`,
 		RunE: gc.executeDown,
 	}
-	
+
 	// Add flags
 	cmd.Flags().Bool("remove-orphans", false, "Remove orphaned containers")
 	cmd.Flags().Bool("volumes", false, "Remove volumes (WARNING: deletes data)")
-	
+
 	return cmd
 }
 
@@ -147,10 +147,10 @@ Examples:
   glid g list --format json        # JSON output`,
 		RunE: gc.executeList,
 	}
-	
+
 	// Add flags
 	cmd.Flags().String("format", "table", "Output format (table or json)")
-	
+
 	return cmd
 }
 

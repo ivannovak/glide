@@ -63,8 +63,8 @@ Graceful Shutdown:
   Containers are given time to shut down gracefully before being killed.
   Use --timeout to adjust this period for slow-stopping services.`,
 		RunE:          dc.Execute,
-		SilenceUsage:  true,  // Don't show usage on error
-		SilenceErrors: true,  // Let our error handler handle errors
+		SilenceUsage:  true, // Don't show usage on error
+		SilenceErrors: true, // Let our error handler handle errors
 	}
 
 	// Add flags
@@ -234,9 +234,9 @@ func (c *DownCommand) confirmVolumeDeletion() bool {
 	output.Warning("  - Uploaded files")
 	output.Warning("  - Cache data")
 	output.Warning("  - Any other data stored in volumes")
-	
+
 	output.Println()
-	
+
 	// Use the destructive confirmation for volume deletion
 	confirmed, _ := prompt.ConfirmDestructive("delete all Docker volumes and their data")
 	return confirmed
@@ -245,11 +245,11 @@ func (c *DownCommand) confirmVolumeDeletion() bool {
 // showShutdownMessage shows what we're about to do
 func (c *DownCommand) showShutdownMessage(resolver *docker.Resolver, volumes bool) {
 	output.Info("Stopping Docker containers...")
-	
+
 	if c.ctx.IsWorktree {
 		output.Info("Project: %s", resolver.GetComposeProjectName())
 	}
-	
+
 	if volumes {
 		output.Warning("Volumes will be removed (data will be lost)")
 	}
@@ -258,7 +258,7 @@ func (c *DownCommand) showShutdownMessage(resolver *docker.Resolver, volumes boo
 // showSuccessMessage shows success information
 func (c *DownCommand) showSuccessMessage(volumes bool) {
 	output.Success("\n✓ Docker containers stopped and removed")
-	
+
 	if volumes {
 		output.Warning("Volumes have been removed")
 		output.Info("\nTo recreate with fresh data:")
@@ -308,4 +308,3 @@ func (c *DownCommand) handleDownError(err error) error {
 
 	return glideErrors.AnalyzeError(err)
 }
-

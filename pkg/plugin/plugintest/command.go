@@ -38,12 +38,12 @@ func NewTestCommand(use, short string) *cobra.Command {
 func (h *CommandHelper) ExecuteCommand(cmd *cobra.Command, args ...string) (string, error) {
 	h.stdout.Reset()
 	h.stderr.Reset()
-	
+
 	cmd.SetOut(h.stdout)
 	cmd.SetErr(h.stderr)
 	cmd.SetIn(h.stdin)
 	cmd.SetArgs(args)
-	
+
 	err := cmd.Execute()
 	return h.stdout.String(), err
 }
@@ -52,7 +52,7 @@ func (h *CommandHelper) ExecuteCommand(cmd *cobra.Command, args ...string) (stri
 func (h *CommandHelper) ExecuteCommandWithInput(cmd *cobra.Command, input string, args ...string) (string, error) {
 	h.stdin.Reset()
 	h.stdin.WriteString(input)
-	
+
 	return h.ExecuteCommand(cmd, args...)
 }
 

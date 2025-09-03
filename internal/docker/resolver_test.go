@@ -134,7 +134,7 @@ func TestResolver_Resolve(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			resolver := NewResolver(tt.ctx)
 			err := resolver.Resolve()
-			
+
 			if tt.expectError {
 				assert.Error(t, err)
 			} else {
@@ -197,7 +197,7 @@ func TestResolver_ValidateSetup(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			resolver := NewResolver(tt.ctx)
 			err := resolver.ValidateSetup()
-			
+
 			if tt.expectError {
 				assert.Error(t, err)
 			} else {

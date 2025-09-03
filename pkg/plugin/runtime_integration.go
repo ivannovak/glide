@@ -30,10 +30,10 @@ func (r *RuntimePluginIntegration) LoadRuntimePlugins(rootCmd *cobra.Command) er
 		// Don't fail if no plugins found
 		return nil
 	}
-	
+
 	// Get all loaded plugins
 	plugins := r.manager.ListPlugins()
-	
+
 	// Add commands from each plugin
 	for _, plugin := range plugins {
 		if err := r.addPluginCommands(rootCmd, plugin); err != nil {
@@ -41,7 +41,7 @@ func (r *RuntimePluginIntegration) LoadRuntimePlugins(rootCmd *cobra.Command) er
 			fmt.Fprintf(os.Stderr, "Warning: failed to add commands from plugin %s: %v\n", plugin.Name, err)
 		}
 	}
-	
+
 	return nil
 }
 
@@ -52,17 +52,17 @@ func (r *RuntimePluginIntegration) addPluginCommands(rootCmd *cobra.Command, plu
 	if !ok {
 		return fmt.Errorf("invalid plugin interface")
 	}
-	
+
 	// Get command list from plugin
 	ctx := context.Background()
 	commandList, err := glidePlugin.ListCommands(ctx, &v1.Empty{})
 	if err != nil {
 		return fmt.Errorf("failed to get command list: %w", err)
 	}
-	
+
 	// Get metadata
 	metadata := plugin.Metadata
-	
+
 	// Create a group command for the plugin if it has multiple commands
 	if len(commandList.Commands) > 1 {
 		// Create group command
@@ -71,13 +71,13 @@ func (r *RuntimePluginIntegration) addPluginCommands(rootCmd *cobra.Command, plu
 			Short: metadata.Description,
 			Long:  fmt.Sprintf("%s\n\nVersion: %s\nAuthor: %s", metadata.Description, metadata.Version, metadata.Author),
 		}
-		
+
 		// Add individual commands to group
 		for _, cmd := range commandList.Commands {
 			subCmd := r.createPluginCommand(plugin, glidePlugin, cmd)
 			pluginCmd.AddCommand(subCmd)
 		}
-		
+
 		rootCmd.AddCommand(pluginCmd)
 	} else if len(commandList.Commands) == 1 {
 		// Single command - add directly to root
@@ -85,7 +85,7 @@ func (r *RuntimePluginIntegration) addPluginCommands(rootCmd *cobra.Command, plu
 		pluginCommand := r.createPluginCommand(plugin, glidePlugin, cmd)
 		rootCmd.AddCommand(pluginCommand)
 	}
-	
+
 	return nil
 }
 
@@ -96,7 +96,7 @@ func (r *RuntimePluginIntegration) createPluginCommand(plugin *sdk.LoadedPlugin,
 		Short: cmdInfo.Description,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
-			
+
 			// Check if command is interactive
 			if cmdInfo.Interactive {
 				// Handle interactive command
@@ -107,21 +107,21 @@ func (r *RuntimePluginIntegration) createPluginCommand(plugin *sdk.LoadedPlugin,
 					Command: cmdInfo.Name,
 					Args:    args,
 				}
-				
+
 				resp, err := glidePlugin.ExecuteCommand(ctx, req)
 				if err != nil {
 					return fmt.Errorf("command execution failed: %w", err)
 				}
-				
+
 				if resp.RequiresInteractive {
 					// Command requested interactive mode
 					return r.executeInteractiveCommand(ctx, plugin, glidePlugin, cmdInfo.Name, args)
 				}
-				
+
 				if !resp.Success {
 					return fmt.Errorf("command failed: %s", resp.Error)
 				}
-				
+
 				// Output results
 				if len(resp.Stdout) > 0 {
 					fmt.Print(string(resp.Stdout))
@@ -129,29 +129,29 @@ func (r *RuntimePluginIntegration) createPluginCommand(plugin *sdk.LoadedPlugin,
 				if len(resp.Stderr) > 0 {
 					fmt.Fprint(os.Stderr, string(resp.Stderr))
 				}
-				
+
 				return nil
 			}
 		},
 	}
-	
+
 	// Add aliases if any
 	if len(cmdInfo.Aliases) > 0 {
 		cmd.Aliases = cmdInfo.Aliases
 	}
-	
+
 	// Mark as hidden if needed
 	if cmdInfo.Hidden {
 		cmd.Hidden = true
 	}
-	
+
 	// Add category annotation
 	if cmdInfo.Category != "" {
 		cmd.Annotations = map[string]string{
 			"category": cmdInfo.Category,
 		}
 	}
-	
+
 	return cmd
 }
 
@@ -161,13 +161,13 @@ func (r *RuntimePluginIntegration) executeInteractiveCommand(ctx context.Context
 	// In a complete implementation, this would set up bidirectional streaming
 	fmt.Printf("Starting interactive session for command: %s\n", command)
 	fmt.Println("Note: Interactive commands are not fully implemented in this example")
-	
+
 	// In the real implementation, we would:
 	// 1. Create a streaming client
 	// 2. Set up PTY
 	// 3. Handle stdin/stdout/stderr streaming
 	// 4. Handle terminal resize and signals
-	
+
 	return nil
 }
 
@@ -180,12 +180,12 @@ func LoadAllRuntimePlugins(rootCmd *cobra.Command) error {
 // ExecuteRuntimePlugin executes a specific runtime plugin command
 func ExecuteRuntimePlugin(pluginName, commandName string, args []string) error {
 	integration := NewRuntimePluginIntegration()
-	
+
 	// Discover plugins
 	if err := integration.manager.DiscoverPlugins(); err != nil {
 		return fmt.Errorf("failed to discover plugins: %w", err)
 	}
-	
+
 	// Execute the command
 	return integration.manager.ExecuteCommand(pluginName, commandName, args)
 }
@@ -203,11 +203,11 @@ func GetRuntimePluginPath() string {
 func IsRuntimePluginInstalled(name string) bool {
 	pluginPath := GetRuntimePluginPath()
 	pluginFile := filepath.Join(pluginPath, "glide-plugin-"+name)
-	
+
 	if _, err := os.Stat(pluginFile); err == nil {
 		return true
 	}
-	
+
 	// Also check without prefix
 	pluginFile = filepath.Join(pluginPath, name)
 	_, err := os.Stat(pluginFile)

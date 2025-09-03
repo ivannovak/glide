@@ -48,7 +48,7 @@ func GetShortDescription() string {
 func GetFullDescription() string {
 	return fmt.Sprintf(`%s is a modern development CLI that glides through complex workflows.
 It provides intelligent context awareness, transparent argument passing, and supports
-both single-repository and multi-worktree development modes.`, 
+both single-repository and multi-worktree development modes.`,
 		capitalize(CommandName))
 }
 

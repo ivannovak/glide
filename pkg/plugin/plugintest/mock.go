@@ -7,16 +7,16 @@ import (
 
 // MockPlugin implements the Plugin interface for testing
 type MockPlugin struct {
-	NameValue         string
-	VersionValue      string
-	Configured        bool
-	Registered        bool
-	ConfigError       error
-	RegisterError     error
-	RegisterFunc      func(*cobra.Command) error // Allow overriding for tests
-	ConfigureFunc     func(map[string]interface{}) error // Allow overriding for tests
-	MetadataValue     plugin.PluginMetadata
-	ReceivedConfig    map[string]interface{} // Store received config for assertions
+	NameValue      string
+	VersionValue   string
+	Configured     bool
+	Registered     bool
+	ConfigError    error
+	RegisterError  error
+	RegisterFunc   func(*cobra.Command) error         // Allow overriding for tests
+	ConfigureFunc  func(map[string]interface{}) error // Allow overriding for tests
+	MetadataValue  plugin.PluginMetadata
+	ReceivedConfig map[string]interface{} // Store received config for assertions
 }
 
 // NewMockPlugin creates a new mock plugin with sensible defaults
@@ -56,11 +56,11 @@ func (m *MockPlugin) Version() string {
 func (m *MockPlugin) Configure(config map[string]interface{}) error {
 	m.Configured = true
 	m.ReceivedConfig = config
-	
+
 	if m.ConfigureFunc != nil {
 		return m.ConfigureFunc(config)
 	}
-	
+
 	return m.ConfigError
 }
 
@@ -70,13 +70,13 @@ func (m *MockPlugin) Register(root *cobra.Command) error {
 	if m.RegisterFunc != nil {
 		return m.RegisterFunc(root)
 	}
-	
+
 	// Default implementation
 	m.Registered = true
 	if m.RegisterError != nil {
 		return m.RegisterError
 	}
-	
+
 	// Add a test command
 	root.AddCommand(&cobra.Command{
 		Use:   "test-" + m.NameValue,

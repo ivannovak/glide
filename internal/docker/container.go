@@ -12,17 +12,17 @@ import (
 
 // Container represents a Docker container
 type Container struct {
-	ID          string    `json:"ID"`
-	Name        string    `json:"Name"`
-	Service     string    `json:"Service"`
-	State       string    `json:"State"`
-	Status      string    `json:"Status"`
-	Health      string    `json:"Health"`
-	ExitCode    int       `json:"ExitCode"`
-	CreatedAt   time.Time `json:"CreatedAt"`
-	StartedAt   time.Time `json:"StartedAt"`
-	Ports       []string  `json:"PublishedPorts"`
-	Project     string    `json:"Project"`
+	ID        string    `json:"ID"`
+	Name      string    `json:"Name"`
+	Service   string    `json:"Service"`
+	State     string    `json:"State"`
+	Status    string    `json:"Status"`
+	Health    string    `json:"Health"`
+	ExitCode  int       `json:"ExitCode"`
+	CreatedAt time.Time `json:"CreatedAt"`
+	StartedAt time.Time `json:"StartedAt"`
+	Ports     []string  `json:"PublishedPorts"`
+	Project   string    `json:"Project"`
 }
 
 // ContainerManager manages Docker containers
@@ -57,7 +57,7 @@ func (cm *ContainerManager) GetStatus() ([]Container, error) {
 
 	// Parse JSON output
 	var containers []Container
-	
+
 	// Docker Compose outputs one JSON object per line
 	lines := strings.Split(string(output), "\n")
 	for _, line := range lines {
@@ -97,7 +97,7 @@ func (cm *ContainerManager) GetContainerByService(service string) (*Container, e
 func (cm *ContainerManager) Start() error {
 	args := cm.resolver.GetComposeCommand("up", "-d")
 	cmd := exec.Command("docker", args...)
-	
+
 	if output, err := cmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("failed to start containers: %w\nOutput: %s", err, output)
 	}
@@ -109,7 +109,7 @@ func (cm *ContainerManager) Start() error {
 func (cm *ContainerManager) Stop() error {
 	args := cm.resolver.GetComposeCommand("down")
 	cmd := exec.Command("docker", args...)
-	
+
 	if output, err := cmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("failed to stop containers: %w\nOutput: %s", err, output)
 	}
@@ -121,9 +121,9 @@ func (cm *ContainerManager) Stop() error {
 func (cm *ContainerManager) Restart(services ...string) error {
 	args := cm.resolver.GetComposeCommand("restart")
 	args = append(args, services...)
-	
+
 	cmd := exec.Command("docker", args...)
-	
+
 	if output, err := cmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("failed to restart containers: %w\nOutput: %s", err, output)
 	}
@@ -137,9 +137,9 @@ func (cm *ContainerManager) Remove(removeVolumes bool) error {
 	if removeVolumes {
 		args = append(args, "-v")
 	}
-	
+
 	cmd := exec.Command("docker", args...)
-	
+
 	if output, err := cmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("failed to remove containers: %w\nOutput: %s", err, output)
 	}
@@ -150,21 +150,21 @@ func (cm *ContainerManager) Remove(removeVolumes bool) error {
 // Logs retrieves logs from containers
 func (cm *ContainerManager) Logs(service string, follow bool, tail int) (string, error) {
 	args := cm.resolver.GetComposeCommand("logs")
-	
+
 	if follow {
 		args = append(args, "-f")
 	}
-	
+
 	if tail > 0 {
 		args = append(args, "--tail", fmt.Sprintf("%d", tail))
 	}
-	
+
 	if service != "" {
 		args = append(args, service)
 	}
-	
+
 	cmd := exec.Command("docker", args...)
-	
+
 	output, err := cmd.Output()
 	if err != nil {
 		return "", fmt.Errorf("failed to get logs: %w", err)
@@ -176,13 +176,13 @@ func (cm *ContainerManager) Logs(service string, follow bool, tail int) (string,
 // StreamLogs streams logs from containers in real-time
 func (cm *ContainerManager) StreamLogs(service string, onLog func(string)) error {
 	args := cm.resolver.GetComposeCommand("logs", "-f")
-	
+
 	if service != "" {
 		args = append(args, service)
 	}
-	
+
 	cmd := exec.Command("docker", args...)
-	
+
 	// Get stdout pipe
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
@@ -212,22 +212,22 @@ func (cm *ContainerManager) StreamLogs(service string, onLog func(string)) error
 // Execute runs a command in a container
 func (cm *ContainerManager) Execute(service string, command []string, interactive bool) error {
 	args := cm.resolver.GetComposeCommand("exec")
-	
+
 	if !interactive {
 		args = append(args, "-T")
 	}
-	
+
 	args = append(args, service)
 	args = append(args, command...)
-	
+
 	cmd := exec.Command("docker", args...)
-	
+
 	if interactive {
 		cmd.Stdin = nil
 		cmd.Stdout = nil
 		cmd.Stderr = nil
 	}
-	
+
 	return cmd.Run()
 }
 
@@ -237,7 +237,7 @@ func (cm *ContainerManager) IsRunning(service string) bool {
 	if err != nil {
 		return false
 	}
-	
+
 	return container.State == "running"
 }
 
@@ -245,12 +245,12 @@ func (cm *ContainerManager) IsRunning(service string) bool {
 func (cm *ContainerManager) GetOrphanedContainers() ([]Container, error) {
 	// Get project name
 	projectName := cm.resolver.GetComposeProjectName()
-	
+
 	// List all containers with this project label
-	cmd := exec.Command("docker", "ps", "-a", 
+	cmd := exec.Command("docker", "ps", "-a",
 		"--filter", fmt.Sprintf("label=com.docker.compose.project=%s", projectName),
 		"--format", "json")
-	
+
 	output, err := cmd.Output()
 	if err != nil {
 		return nil, fmt.Errorf("failed to list containers: %w", err)
@@ -300,7 +300,7 @@ func (cm *ContainerManager) GetOrphanedContainers() ([]Container, error) {
 func (cm *ContainerManager) RemoveOrphaned() error {
 	args := cm.resolver.GetComposeCommand("down", "--remove-orphans")
 	cmd := exec.Command("docker", args...)
-	
+
 	if output, err := cmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("failed to remove orphaned containers: %w\nOutput: %s", err, output)
 	}
@@ -312,7 +312,7 @@ func (cm *ContainerManager) RemoveOrphaned() error {
 func (cm *ContainerManager) GetComposeServices() ([]string, error) {
 	args := cm.resolver.GetComposeCommand("config", "--services")
 	cmd := exec.Command("docker", args...)
-	
+
 	output, err := cmd.Output()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get compose services: %w", err)
@@ -326,7 +326,7 @@ func (cm *ContainerManager) GetComposeServices() ([]string, error) {
 func (cm *ContainerManager) Pull() error {
 	args := cm.resolver.GetComposeCommand("pull")
 	cmd := exec.Command("docker", args...)
-	
+
 	if output, err := cmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("failed to pull images: %w\nOutput: %s", err, output)
 	}
@@ -340,9 +340,9 @@ func (cm *ContainerManager) Build(noCache bool) error {
 	if noCache {
 		args = append(args, "--no-cache")
 	}
-	
+
 	cmd := exec.Command("docker", args...)
-	
+
 	if output, err := cmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("failed to build services: %w\nOutput: %s", err, output)
 	}
@@ -352,11 +352,11 @@ func (cm *ContainerManager) Build(noCache bool) error {
 
 // Scale scales a service to a specific number of instances
 func (cm *ContainerManager) Scale(service string, replicas int) error {
-	args := cm.resolver.GetComposeCommand("up", "-d", "--scale", 
+	args := cm.resolver.GetComposeCommand("up", "-d", "--scale",
 		fmt.Sprintf("%s=%d", service, replicas))
-	
+
 	cmd := exec.Command("docker", args...)
-	
+
 	if output, err := cmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("failed to scale service: %w\nOutput: %s", err, output)
 	}

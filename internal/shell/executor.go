@@ -35,13 +35,13 @@ func (e *Executor) Execute(cmd *Command) (*Result, error) {
 	if e.verbose {
 		color.Cyan("› %s", cmd.String())
 	}
-	
+
 	// Use strategy pattern if enabled
 	if cmd.UseStrategy {
 		strategy := e.selector.Select(cmd)
 		return strategy.Execute(context.Background(), cmd)
 	}
-	
+
 	// Legacy mode-based execution for backward compatibility
 	start := time.Now()
 	switch cmd.Mode {
@@ -63,7 +63,7 @@ func (e *Executor) ExecuteWithContext(ctx context.Context, cmd *Command) (*Resul
 	if e.verbose {
 		color.Cyan("› %s", cmd.String())
 	}
-	
+
 	// Always use strategy pattern when context is provided
 	cmd.UseStrategy = true
 	strategy := e.selector.Select(cmd)
@@ -78,40 +78,40 @@ func (e *Executor) executePassthrough(cmd *Command, start time.Time) (*Result, e
 		ctx, cancel = context.WithTimeout(ctx, cmd.Timeout)
 		defer cancel()
 	}
-	
+
 	execCmd := exec.CommandContext(ctx, cmd.Name, cmd.Args...)
-	
+
 	// Set working directory
 	if cmd.WorkingDir != "" {
 		execCmd.Dir = cmd.WorkingDir
 	}
-	
+
 	// Configure environment
 	if cmd.InheritEnv {
 		execCmd.Env = os.Environ()
 	}
 	execCmd.Env = append(execCmd.Env, e.options.GlobalEnv...)
 	execCmd.Env = append(execCmd.Env, cmd.Environment...)
-	
+
 	// Direct I/O passthrough
 	execCmd.Stdin = os.Stdin
 	execCmd.Stdout = os.Stdout
 	execCmd.Stderr = os.Stderr
-	
+
 	// Signal forwarding
 	var cleanupSignals func()
 	if cmd.SignalForward {
 		cleanupSignals = e.setupSignalForwarding(execCmd)
 		defer cleanupSignals()
 	}
-	
+
 	// Run the command
 	err := execCmd.Run()
-	
+
 	result := &Result{
 		Duration: time.Since(start),
 	}
-	
+
 	if err != nil {
 		if ctx.Err() == context.DeadlineExceeded {
 			result.Timeout = true
@@ -124,7 +124,7 @@ func (e *Executor) executePassthrough(cmd *Command, start time.Time) (*Result, e
 			result.Error = err
 		}
 	}
-	
+
 	return result, nil
 }
 
@@ -143,26 +143,26 @@ func (e *Executor) executeCapture(cmd *Command, start time.Time) (*Result, error
 		ctx, cancel = context.WithTimeout(ctx, cmd.Timeout)
 		defer cancel()
 	}
-	
+
 	execCmd := exec.CommandContext(ctx, cmd.Name, cmd.Args...)
-	
+
 	// Set working directory
 	if cmd.WorkingDir != "" {
 		execCmd.Dir = cmd.WorkingDir
 	}
-	
+
 	// Configure environment
 	if cmd.InheritEnv {
 		execCmd.Env = os.Environ()
 	}
 	execCmd.Env = append(execCmd.Env, e.options.GlobalEnv...)
 	execCmd.Env = append(execCmd.Env, cmd.Environment...)
-	
+
 	// Capture output
 	var stdout, stderr bytes.Buffer
 	execCmd.Stdout = &stdout
 	execCmd.Stderr = &stderr
-	
+
 	// Custom I/O if provided
 	if cmd.Stdin != nil {
 		execCmd.Stdin = cmd.Stdin
@@ -173,16 +173,16 @@ func (e *Executor) executeCapture(cmd *Command, start time.Time) (*Result, error
 	if cmd.Stderr != nil {
 		execCmd.Stderr = io.MultiWriter(&stderr, cmd.Stderr)
 	}
-	
+
 	// Run the command
 	err := execCmd.Run()
-	
+
 	result := &Result{
 		Stdout:   stdout.Bytes(),
 		Stderr:   stderr.Bytes(),
 		Duration: time.Since(start),
 	}
-	
+
 	if err != nil {
 		if ctx.Err() == context.DeadlineExceeded {
 			result.Timeout = true
@@ -195,26 +195,26 @@ func (e *Executor) executeCapture(cmd *Command, start time.Time) (*Result, error
 			result.Error = err
 		}
 	}
-	
+
 	return result, nil
 }
 
 // executeBackground starts a command in the background
 func (e *Executor) executeBackground(cmd *Command, start time.Time) (*Result, error) {
 	execCmd := exec.Command(cmd.Name, cmd.Args...)
-	
+
 	// Set working directory
 	if cmd.WorkingDir != "" {
 		execCmd.Dir = cmd.WorkingDir
 	}
-	
+
 	// Configure environment
 	if cmd.InheritEnv {
 		execCmd.Env = os.Environ()
 	}
 	execCmd.Env = append(execCmd.Env, e.options.GlobalEnv...)
 	execCmd.Env = append(execCmd.Env, cmd.Environment...)
-	
+
 	// Start the command
 	err := execCmd.Start()
 	if err != nil {
@@ -224,7 +224,7 @@ func (e *Executor) executeBackground(cmd *Command, start time.Time) (*Result, er
 			Duration: time.Since(start),
 		}, err
 	}
-	
+
 	// Return immediately for background commands
 	return &Result{
 		ExitCode: 0,
@@ -238,7 +238,7 @@ func (e *Executor) setupSignalForwarding(cmd *exec.Cmd) func() {
 	// Create a channel to listen for interrupt signals
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
-	
+
 	go func() {
 		for sig := range sigChan {
 			if cmd.Process != nil {
@@ -247,7 +247,7 @@ func (e *Executor) setupSignalForwarding(cmd *exec.Cmd) func() {
 			}
 		}
 	}()
-	
+
 	// Return cleanup function to be called after command completes
 	return func() {
 		signal.Stop(sigChan)

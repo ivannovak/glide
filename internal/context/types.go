@@ -52,29 +52,29 @@ type ContainerStatus struct {
 // ProjectContext contains all context information about the current project
 type ProjectContext struct {
 	// Core paths
-	WorkingDir   string          // Current working directory
-	ProjectRoot  string          // Project root directory
-	ProjectName  string          // Name of the project from config
-	
+	WorkingDir  string // Current working directory
+	ProjectRoot string // Project root directory
+	ProjectName string // Name of the project from config
+
 	// Development mode and location
 	DevelopmentMode DevelopmentMode // multi-worktree or single-repo
 	Location        LocationType    // Where command is being run from
-	
+
 	// Multi-worktree specific
 	IsRoot       bool   // True if in project root (multi-worktree only)
 	IsMainRepo   bool   // True if in vcs/ (multi-worktree only)
 	IsWorktree   bool   // True if in worktrees/*/ (multi-worktree only)
 	WorktreeName string // Name of current worktree if applicable
-	
+
 	// Docker configuration
 	ComposeFiles     []string                   // Resolved docker-compose files
 	ComposeOverride  string                     // Path to override file
 	DockerRunning    bool                       // Is Docker daemon running
 	ContainersStatus map[string]ContainerStatus // Status of all containers
-	
+
 	// Command context
 	CommandScope string // "global" or "local"
-	
+
 	// Error if context detection failed
 	Error error
 }

@@ -76,7 +76,7 @@ func ParseDockerError(op string, output string, err error) error {
 
 	// Check for common error patterns
 	outputLower := strings.ToLower(output)
-	
+
 	if strings.Contains(outputLower, "cannot connect to the docker daemon") ||
 		strings.Contains(outputLower, "docker daemon is not running") {
 		dockerErr.Err = ErrDockerNotRunning
@@ -158,7 +158,7 @@ func (eh *ErrorHandler) Handle(err error) string {
 func (eh *ErrorHandler) handleDockerError(err *DockerError) string {
 	// Build base message
 	msg := eh.Handle(err.Err)
-	
+
 	// Add operation context
 	if err.Op != "" {
 		msg = fmt.Sprintf("%s (during '%s')", msg, err.Op)
@@ -219,7 +219,7 @@ func (eh *ErrorHandler) SuggestFix(err error) []string {
 		if dockerErr.IsRecoverable() {
 			suggestions = append(suggestions, "Try running the command again")
 		}
-		
+
 		// Add operation-specific suggestions
 		switch dockerErr.Op {
 		case "up", "start":

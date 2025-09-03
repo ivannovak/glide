@@ -64,18 +64,18 @@ func TestCommandConfig(t *testing.T) {
 	assert.Equal(t, 4, cfg.Test.Processes)
 	assert.True(t, cfg.Test.Coverage)
 	assert.Contains(t, cfg.Test.Args, "--race")
-	
+
 	assert.Equal(t, 60, cfg.Docker.ComposeTimeout)
 	assert.False(t, cfg.Docker.AutoStart)
 	assert.True(t, cfg.Docker.RemoveOrphans)
 	assert.Contains(t, cfg.Docker.ComposeFiles, "docker-compose.yml")
-	
+
 	assert.True(t, cfg.Colors.Enabled)
-	
+
 	assert.True(t, cfg.Worktree.AutoSetup)
 	assert.False(t, cfg.Worktree.CopyEnv)
 	assert.True(t, cfg.Worktree.RunMigrations)
-	
+
 	assert.NotNil(t, cfg.ActiveProject)
 	assert.Equal(t, "/test/project", cfg.ActiveProject.Path)
 	assert.Equal(t, "single-repo", cfg.ActiveProject.Mode)

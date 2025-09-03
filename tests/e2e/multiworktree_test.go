@@ -103,19 +103,19 @@ return [
 				branch:      "feature/api-v2",
 				description: "API version 2 development",
 				files: map[string]string{
-					"routes/api-v2.php":       "<?php // API v2 routes",
+					"routes/api-v2.php":          "<?php // API v2 routes",
 					"app/Http/V2/Controller.php": "<?php // V2 Controller",
-					"tests/ApiV2Test.php":      "<?php // V2 API tests",
+					"tests/ApiV2Test.php":        "<?php // V2 API tests",
 				},
 			},
 			{
 				name:        "performance-optimization",
-				branch:      "feature/performance-optimization", 
+				branch:      "feature/performance-optimization",
 				description: "Database and caching improvements",
 				files: map[string]string{
-					"app/Services/CacheService.php": "<?php // Caching service",
+					"app/Services/CacheService.php":    "<?php // Caching service",
 					"database/migrations/optimize.php": "<?php // DB optimization",
-					"config/cache.php": "<?php // Cache configuration",
+					"config/cache.php":                 "<?php // Cache configuration",
 				},
 			},
 		}
@@ -194,7 +194,7 @@ services:
 		// Verify each worktree has its unique branch and content
 		for i, feature := range features {
 			worktreePath := worktreePaths[i]
-			
+
 			// Switch to worktree directory to verify its state
 			originalDir, _ := os.Getwd()
 			require.NoError(t, os.Chdir(worktreePath))
@@ -251,7 +251,7 @@ services:
 
 		// Create main project with docker-compose
 		require.NoError(t, os.WriteFile("README.md", []byte("# Global Operations Test"), 0644))
-		
+
 		composeContent := `version: '3.8'
 services:
   web:
@@ -342,9 +342,9 @@ services:
 		for i, wt := range worktrees {
 			worktreePath := createdWorktrees[i]
 			statusFile := filepath.Join(worktreePath, ".worktree_status")
-			
+
 			assert.FileExists(t, statusFile, "Status file should exist in %s", wt.name)
-			
+
 			statusData, err := os.ReadFile(statusFile)
 			require.NoError(t, err)
 			assert.Contains(t, string(statusData), fmt.Sprintf("status: %s", wt.status), "Status should match for %s", wt.name)
@@ -364,7 +364,7 @@ active_worktrees: ` + strconv.Itoa(len(worktrees)) + `
 		// Verify global config would be accessible from any worktree
 		for i, wt := range worktrees {
 			require.NoError(t, os.Chdir(createdWorktrees[i]))
-			
+
 			// From any worktree, we should be able to detect the global config
 			assert.FileExists(t, globalConfigPath, "Global config should be accessible from %s", wt.name)
 		}
@@ -373,7 +373,7 @@ active_worktrees: ` + strconv.Itoa(len(worktrees)) + `
 
 		// Cleanup: Global shutdown simulation
 		os.Chdir(vcsDir)
-		
+
 		// Remove all worktrees (simulating global shutdown)
 		for _, worktreePath := range createdWorktrees {
 			cmd := exec.Command("git", "worktree", "remove", worktreePath)
@@ -385,7 +385,7 @@ active_worktrees: ` + strconv.Itoa(len(worktrees)) + `
 		cmd = exec.Command("git", "worktree", "list")
 		output, err = cmd.Output()
 		require.NoError(t, err)
-		
+
 		// Should only have main worktree left
 		lines := strings.Split(strings.TrimSpace(string(output)), "\n")
 		assert.Equal(t, 1, len(lines), "Should only have main worktree after cleanup")
@@ -441,7 +441,7 @@ active_worktrees: ` + strconv.Itoa(len(worktrees)) + `
 			// Simulate cache and log files
 			require.NoError(t, os.MkdirAll("storage/cache", 0755))
 			require.NoError(t, os.MkdirAll("storage/logs", 0755))
-			
+
 			cacheSize := (i + 1) * 1024 // Simulate different cache sizes
 			cacheContent := strings.Repeat("x", cacheSize)
 			require.NoError(t, os.WriteFile("storage/cache/app.cache", []byte(cacheContent), 0644))
@@ -507,7 +507,7 @@ volumes: 3
 			}
 		}
 
-		t.Logf("Resource usage summary: Cache=%d bytes, Logs=%d bytes, Containers=%d", 
+		t.Logf("Resource usage summary: Cache=%d bytes, Logs=%d bytes, Containers=%d",
 			totalCacheSize, totalLogSize, containerCount)
 
 		assert.Greater(t, totalCacheSize, 0, "Should have cache files")
@@ -536,15 +536,15 @@ volumes: 3
 		// Step 4: Disk space management verification
 		// Check remaining worktrees still have their resources
 		remainingPaths := worktreePaths[len(staleMess):]
-		
+
 		for i, remainingPath := range remainingPaths {
 			worktreeName := worktreesToCreate[len(staleMess)+i]
-			
+
 			assert.DirExists(t, remainingPath, "Remaining worktree should exist: %s", worktreeName)
-			
+
 			metadataPath := filepath.Join(remainingPath, ".resource_metadata")
 			assert.FileExists(t, metadataPath, "Resource metadata should still exist: %s", worktreeName)
-			
+
 			cachePath := filepath.Join(remainingPath, "storage/cache/app.cache")
 			assert.FileExists(t, cachePath, "Cache should still exist: %s", worktreeName)
 		}
@@ -559,7 +559,7 @@ volumes: 3
 		cmd = exec.Command("git", "worktree", "list")
 		output, err = cmd.Output()
 		require.NoError(t, err)
-		
+
 		finalWorktrees := strings.Split(strings.TrimSpace(string(output)), "\n")
 		assert.Equal(t, 1, len(finalWorktrees), "Should only have main worktree left")
 
@@ -632,7 +632,7 @@ class App {
 			},
 			{
 				"user-profiles",
-				"feature/user-profiles", 
+				"feature/user-profiles",
 				`<?php
 class App {
     public function version() {
@@ -687,7 +687,7 @@ class App {
 		// Simulate feature integration (we won't actually merge due to conflicts, but verify the setup)
 		for i, feature := range features {
 			worktreePath := createdWorktrees[i]
-			
+
 			// Verify feature branch has its changes
 			featureContent, err := os.ReadFile(filepath.Join(worktreePath, "app.php"))
 			require.NoError(t, err)
@@ -761,8 +761,8 @@ app:
 
 		// Create worktrees with different configuration needs
 		configTests := []struct {
-			name         string
-			branch       string
+			name            string
+			branch          string
 			configOverrides map[string]string
 		}{
 			{
@@ -780,7 +780,7 @@ app:
 				},
 			},
 			{
-				"performance-testing", 
+				"performance-testing",
 				"feature/performance-testing",
 				map[string]string{
 					"config.perf.yml": `# Performance Testing Configuration
@@ -846,27 +846,27 @@ app:
 		// Each worktree should have its own branch-specific configuration
 		for i, test := range configTests {
 			worktreePath := createdWorktrees[i]
-			
+
 			// Switch to worktree to check its branch-specific state
 			originalDir, _ := os.Getwd()
 			require.NoError(t, os.Chdir(worktreePath))
 
 			// Verify we're on the correct branch
-			cmd := exec.Command("git", "branch", "--show-current") 
+			cmd := exec.Command("git", "branch", "--show-current")
 			output, err := cmd.Output()
 			require.NoError(t, err)
 			currentBranch := strings.TrimSpace(string(output))
 			assert.Equal(t, test.branch, currentBranch, "Should be on correct branch")
-			
+
 			// Should have base configs (inherited from main)
 			assert.FileExists(t, "config.yml")
 			assert.FileExists(t, "config.dev.yml")
-			
+
 			// Should have its branch-specific configs
 			for configFile := range test.configOverrides {
 				assert.FileExists(t, configFile, "Branch should have its specific config: %s", configFile)
 			}
-			
+
 			// Return to original directory
 			os.Chdir(originalDir)
 		}

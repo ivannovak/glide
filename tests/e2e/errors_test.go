@@ -82,7 +82,7 @@ services:
 
 			// Test context detection without configuration
 			ctx := context.Detect()
-			
+
 			// Should handle missing configuration gracefully
 			if ctx != nil {
 				// If context is detected, it should handle missing config gracefully
@@ -164,11 +164,11 @@ services:
 	t.Run("error_messages", func(t *testing.T) {
 		// Test error messages and user guidance:
 		// 1. Clear error reporting
-		// 2. Helpful suggestions  
+		// 2. Helpful suggestions
 		// 3. Recovery instructions
 
 		tmpDir := t.TempDir()
-		
+
 		originalWd, _ := os.Getwd()
 		defer os.Chdir(originalWd)
 
@@ -197,7 +197,7 @@ services:
 			// Scenario B: Permission denied
 			restrictedDir := filepath.Join(errorProjectDir, "restricted")
 			require.NoError(t, os.MkdirAll(restrictedDir, 0000)) // No permissions
-			defer os.Chmod(restrictedDir, 0755) // Restore for cleanup
+			defer os.Chmod(restrictedDir, 0755)                  // Restore for cleanup
 
 			// Should handle permission errors gracefully
 			assert.DirExists(t, restrictedDir)
@@ -502,7 +502,7 @@ Last good backup: %s
 			// Simulate interrupted worktree creation
 			operationId := fmt.Sprintf("worktree_create_%d", time.Now().Unix())
 			lockFile := filepath.Join("operations/locks", operationId+".lock")
-			
+
 			lockContent := fmt.Sprintf(`# Operation Lock File
 Operation: create_worktree
 Started: %s
@@ -667,7 +667,7 @@ PID: %d
 
 		// Create large files to simulate resource usage
 		largeContent := strings.Repeat("x", 1024*10) // 10KB (small for testing)
-		
+
 		for i := 0; i < 5; i++ {
 			cacheFile := filepath.Join("storage/cache", fmt.Sprintf("large_cache_%d.dat", i))
 			require.NoError(t, os.WriteFile(cacheFile, []byte(largeContent), 0644))
@@ -762,7 +762,7 @@ Recommended permissions for production:
 		require.NoError(t, os.WriteFile("permission_report.txt", []byte(permissionReport), 0644))
 
 		assert.FileExists(t, "permission_report.txt")
-		
+
 		for _, dir := range dirs {
 			assert.DirExists(t, dir)
 			assert.FileExists(t, filepath.Join(dir, "test.txt"))

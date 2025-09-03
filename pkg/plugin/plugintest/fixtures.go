@@ -38,17 +38,17 @@ func (f *Fixtures) ComplexPlugin(name string) *MockPlugin {
 		BuildTags:  []string{name, "test"},
 		ConfigKeys: []string{"api_key", "endpoint", "timeout", "retries"},
 	}
-	
+
 	// Custom register function that adds actual commands
 	p.RegisterFunc = func(root *cobra.Command) error {
 		p.Registered = true
-		
+
 		// Create a parent command
 		parentCmd := &cobra.Command{
 			Use:   name,
 			Short: fmt.Sprintf("%s plugin commands", name),
 		}
-		
+
 		// Add subcommands
 		parentCmd.AddCommand(
 			&cobra.Command{Use: "list", Short: "List items"},
@@ -57,11 +57,11 @@ func (f *Fixtures) ComplexPlugin(name string) *MockPlugin {
 			&cobra.Command{Use: "update", Short: "Update item"},
 			&cobra.Command{Use: "delete", Short: "Delete item"},
 		)
-		
+
 		root.AddCommand(parentCmd)
 		return nil
 	}
-	
+
 	return p
 }
 
@@ -156,7 +156,7 @@ var TestScenarios = struct {
 		config := f.SampleConfig("test-plugin")
 		return p, config
 	},
-	
+
 	MultiplePlugin: func() ([]*MockPlugin, map[string]interface{}) {
 		f := NewFixtures()
 		plugins := []*MockPlugin{
@@ -167,7 +167,7 @@ var TestScenarios = struct {
 		config := f.MultiPluginConfig("plugin-a", "plugin-b", "plugin-c")
 		return plugins, config
 	},
-	
+
 	ErrorScenario: func() (*MockPlugin, map[string]interface{}) {
 		f := NewFixtures()
 		p := f.ErrorPlugin("error-plugin")
@@ -191,11 +191,11 @@ func NewPluginFactory() *PluginFactory {
 // Create creates a plugin with the given options
 func (f *PluginFactory) Create(opts ...PluginOption) *MockPlugin {
 	p := NewMockPlugin("factory-plugin")
-	
+
 	for _, opt := range opts {
 		opt(p)
 	}
-	
+
 	return p
 }
 

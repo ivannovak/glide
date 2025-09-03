@@ -47,7 +47,7 @@ func (r *Registry) Register(name string, factory Factory, metadata Metadata) err
 	if _, exists := r.factories[name]; exists {
 		return fmt.Errorf("command %s already registered", name)
 	}
-	
+
 	r.factories[name] = factory
 	r.metadata[name] = metadata
 	return nil

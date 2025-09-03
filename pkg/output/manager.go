@@ -157,4 +157,3 @@ func (m *Manager) GetFormat() Format {
 	defer m.mu.RUnlock()
 	return m.format
 }
-
