@@ -111,7 +111,7 @@ func (r *Resolver) ValidateSetup() error {
 
 	// Check if Docker daemon is running
 	if !r.ctx.DockerRunning {
-		return fmt.Errorf("Docker daemon is not running")
+		return fmt.Errorf("docker daemon is not running")
 	}
 
 	// Validate compose files

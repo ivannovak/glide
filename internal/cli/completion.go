@@ -67,7 +67,7 @@ Fish:
 			branding.CommandName,
 			branding.CommandName, branding.CommandName),
 		ValidArgs:    []string{"bash", "zsh", "fish"},
-		Args:         cobra.ExactValidArgs(1),
+		Args:         cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return manager.GenerateCompletion(cmd, CompletionType(args[0]))

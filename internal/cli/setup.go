@@ -562,7 +562,7 @@ func (s *SetupCommand) updateConfiguration(projectPath string, mode context.Deve
 	// Get project name
 	projectName := filepath.Base(projectPath)
 	if !s.nonInteractive {
-		projectName, _ = prompt.Input(fmt.Sprintf("Project name"), projectName, nil)
+		projectName, _ = prompt.Input("Project name", projectName, nil)
 	}
 
 	// Add or update project

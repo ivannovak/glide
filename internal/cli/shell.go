@@ -221,7 +221,7 @@ func (c *ShellCommand) executeShell(resolver *docker.Resolver, service, shellCmd
 	// Parse shell command - it might be a complex command
 	if strings.Contains(shellCmd, "||") {
 		// Try bash first, fallback to sh
-		dockerArgs = append(dockerArgs, "sh", "-c", fmt.Sprintf("if [ -x /bin/bash ]; then exec /bin/bash; else exec /bin/sh; fi"))
+		dockerArgs = append(dockerArgs, "sh", "-c", "if [ -x /bin/bash ]; then exec /bin/bash; else exec /bin/sh; fi")
 	} else if strings.Contains(shellCmd, " ") {
 		// Complex command, wrap in sh -c
 		dockerArgs = append(dockerArgs, "sh", "-c", shellCmd)

@@ -33,7 +33,7 @@ func NewTestExecutor(ctx *context.ProjectContext, cfg *config.CommandConfig) *Te
 func (te *TestExecutor) Run(args []string) error {
 	// Check if Docker is running
 	if !te.docker.IsRunning() {
-		return fmt.Errorf("Docker is not running. Please start Docker Desktop and try again")
+		return fmt.Errorf("docker is not running. Please start Docker Desktop and try again")
 	}
 
 	// Check if containers are running
@@ -45,7 +45,7 @@ func (te *TestExecutor) Run(args []string) error {
 				return fmt.Errorf("failed to start containers: %w", err)
 			}
 		} else {
-			return fmt.Errorf("Docker containers are not running. Run 'glid up' first")
+			return fmt.Errorf("docker containers are not running. Run 'glid up' first")
 		}
 	}
 
@@ -90,7 +90,7 @@ func (te *TestExecutor) buildPestCommand(userArgs []string) []string {
 func (te *TestExecutor) PassthroughToPest(args []string) error {
 	// Check Docker status first
 	if !te.docker.IsRunning() {
-		return fmt.Errorf("Docker is not running. Please start Docker Desktop and try again")
+		return fmt.Errorf("docker is not running. Please start Docker Desktop and try again")
 	}
 
 	// Build full command for docker exec

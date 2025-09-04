@@ -43,9 +43,7 @@ func (s *BasicStrategy) Execute(ctx context.Context, cmd *Command) (*Result, err
 	// Set environment if specified
 	if len(cmd.Environment) > 0 {
 		execCmd.Env = os.Environ()
-		for _, env := range cmd.Environment {
-			execCmd.Env = append(execCmd.Env, env)
-		}
+		execCmd.Env = append(execCmd.Env, cmd.Environment...)
 	}
 
 	// Handle output capture
@@ -182,9 +180,7 @@ func (s *StreamingStrategy) Execute(ctx context.Context, cmd *Command) (*Result,
 	// Set environment if specified
 	if len(cmd.Environment) > 0 {
 		execCmd.Env = os.Environ()
-		for _, env := range cmd.Environment {
-			execCmd.Env = append(execCmd.Env, env)
-		}
+		execCmd.Env = append(execCmd.Env, cmd.Environment...)
 	}
 
 	// Stream output - use command options if provided, otherwise use strategy defaults
@@ -262,9 +258,7 @@ func (s *PipeStrategy) Execute(ctx context.Context, cmd *Command) (*Result, erro
 	// Set environment if specified
 	if len(cmd.Environment) > 0 {
 		execCmd.Env = os.Environ()
-		for _, env := range cmd.Environment {
-			execCmd.Env = append(execCmd.Env, env)
-		}
+		execCmd.Env = append(execCmd.Env, cmd.Environment...)
 	}
 
 	// Set input pipe - use command stdin if provided, otherwise use strategy input

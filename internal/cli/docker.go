@@ -214,10 +214,7 @@ func (c *DockerCommand) executeDockerCommand(dockerArgs []string, isInteractive 
 		// Command completed normally
 		if result.err != nil {
 			// Check for common Docker errors and provide helpful messages
-			if err := c.handleDockerError(result.err, dockerArgs); err != nil {
-				return err
-			}
-			return result.err
+			return c.handleDockerError(result.err, dockerArgs)
 		}
 
 		if result.result.ExitCode != 0 {
