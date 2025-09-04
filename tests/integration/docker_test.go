@@ -411,7 +411,7 @@ func TestDockerErrorHandling(t *testing.T) {
 
 		// Should fail due to port conflict
 		assert.Error(t, err, "Should fail with port conflict")
-		assert.Contains(t, string(output), "bind", "Should report bind error")
+		assert.Contains(t, strings.ToLower(string(output)), "bind", "Should report bind error")
 
 		// Clean up second container if it somehow started
 		exec.Command("docker", "rm", "-f", containerName2).Run()
