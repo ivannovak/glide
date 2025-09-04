@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/ivannovak/glide/internal/shell"
 	"github.com/stretchr/testify/assert"
@@ -228,7 +229,7 @@ func TestNPMPassThrough(t *testing.T) {
 		os.Chdir(tmpDir)
 
 		executor := shell.NewExecutor(shell.Options{
-			CommandTimeout: 5 * time.Second,
+			DefaultTimeout: 5 * time.Second,
 		})
 
 		// Create package.json with defaults
