@@ -176,7 +176,7 @@ func (s *SetupCommand) checkCommand(command string) error {
 	cmd := parts[0]
 	args := []string{"--version"}
 	if len(parts) > 1 {
-		args = append(parts[1:], args...)
+		_ = append(parts[1:], args...)
 	}
 
 	if _, err := exec.LookPath(cmd); err != nil {

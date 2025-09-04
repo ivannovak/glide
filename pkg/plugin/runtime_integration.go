@@ -47,11 +47,8 @@ func (r *RuntimePluginIntegration) LoadRuntimePlugins(rootCmd *cobra.Command) er
 
 // addPluginCommands adds commands from a plugin to the root command
 func (r *RuntimePluginIntegration) addPluginCommands(rootCmd *cobra.Command, plugin *sdk.LoadedPlugin) error {
-	// Type assertion for plugin interface
-	glidePlugin, ok := plugin.Plugin.(v1.GlidePluginClient)
-	if !ok {
-		return fmt.Errorf("invalid plugin interface")
-	}
+	// Use plugin directly as it's already the correct type
+	glidePlugin := plugin.Plugin
 
 	// Get command list from plugin
 	ctx := context.Background()

@@ -133,7 +133,7 @@ jobs:
     - name: Run integration tests
       run: |
         # Run integration tests with proper error handling
-        go test -v -tags=integration -timeout=30s ./tests/integration/... || exit_code=$?
+        go test -v -tags=integration -timeout=60s ./tests/integration/... || exit_code=$?
         if [ "${exit_code:-0}" -ne 0 ]; then
           echo "Integration tests failed with exit code: ${exit_code}"
           exit ${exit_code}

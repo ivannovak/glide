@@ -182,38 +182,38 @@ func WithElapsedTime(message string, operation func() error) error {
 }
 
 // Example usage patterns for documentation
-func examples() {
-	// Simple spinner
-	_ = ShowSpinner("Loading configuration", func() error {
-		time.Sleep(2 * time.Second)
-		return nil
-	})
-
-	// Progress bar for items
-	items := []string{"file1.txt", "file2.txt", "file3.txt"}
-	_ = ShowProgress(len(items), "Processing files", func(i int) error {
-		// Process items[i]
-		time.Sleep(500 * time.Millisecond)
-		return nil
-	})
-
-	// Multiple operations with progress
-	ops := []Operation{
-		NewOperation("Download dependencies", func() error {
-			time.Sleep(2 * time.Second)
-			return nil
-		}),
-		NewOperation("Build project", func() error {
-			time.Sleep(3 * time.Second)
-			return nil
-		}),
-		NewOperation("Run tests", func() error {
-			time.Sleep(1 * time.Second)
-			return nil
-		}),
-	}
-	_ = RunWithProgress(ops)
-
-	// Concurrent operations
-	_ = Concurrent(ops)
-}
+// func examples() {
+// 	// Simple spinner
+// 	_ = ShowSpinner("Loading configuration", func() error {
+// 		time.Sleep(2 * time.Second)
+// 		return nil
+// 	})
+// 
+// 	// Progress bar for items
+// 	items := []string{"file1.txt", "file2.txt", "file3.txt"}
+// 	_ = ShowProgress(len(items), "Processing files", func(i int) error {
+// 		// Process items[i]
+// 		time.Sleep(500 * time.Millisecond)
+// 		return nil
+// 	})
+// 
+// 	// Multiple operations with progress
+// 	ops := []Operation{
+// 		NewOperation("Download dependencies", func() error {
+// 			time.Sleep(2 * time.Second)
+// 			return nil
+// 		}),
+// 		NewOperation("Build project", func() error {
+// 			time.Sleep(3 * time.Second)
+// 			return nil
+// 		}),
+// 		NewOperation("Run tests", func() error {
+// 			time.Sleep(1 * time.Second)
+// 			return nil
+// 		}),
+// 	}
+// 	_ = RunWithProgress(ops)
+// 
+// 	// Concurrent operations
+// 	_ = Concurrent(ops)
+// }

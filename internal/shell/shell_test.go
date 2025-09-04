@@ -271,16 +271,16 @@ func TestCommand_UseStrategy(t *testing.T) {
 }
 
 // Helper function for testing
-func captureOutput(f func()) string {
-	old := os.Stdout
-	r, w, _ := os.Pipe()
-	os.Stdout = w
-
-	f()
-
-	w.Close()
-	os.Stdout = old
-
-	out, _ := io.ReadAll(r)
-	return string(out)
-}
+// func captureOutput(f func()) string {
+// 	old := os.Stdout
+// 	r, w, _ := os.Pipe()
+// 	os.Stdout = w
+// 
+// 	f()
+// 
+// 	w.Close()
+// 	os.Stdout = old
+// 
+// 	out, _ := io.ReadAll(r)
+// 	return string(out)
+// }

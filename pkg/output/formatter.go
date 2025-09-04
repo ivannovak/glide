@@ -1,7 +1,7 @@
 package output
 
 import (
-	"encoding/json"
+	// "encoding/json"
 	"fmt"
 	"io"
 )
@@ -93,10 +93,10 @@ func (f *BaseFormatter) writeError(text string) error {
 }
 
 // formatJSON converts data to JSON string
-func formatJSON(data interface{}) (string, error) {
-	b, err := json.MarshalIndent(data, "", "  ")
-	if err != nil {
-		return "", err
-	}
-	return string(b), nil
-}
+// func formatJSON(data interface{}) (string, error) {
+// 	b, err := json.MarshalIndent(data, "", "  ")
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	return string(b), nil
+// }

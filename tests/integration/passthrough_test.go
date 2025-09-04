@@ -227,7 +227,9 @@ func TestNPMPassThrough(t *testing.T) {
 		defer os.Chdir(originalWd)
 		os.Chdir(tmpDir)
 
-		executor := shell.NewExecutor(shell.Options{})
+		executor := shell.NewExecutor(shell.Options{
+			CommandTimeout: 5 * time.Second,
+		})
 
 		// Create package.json with defaults
 		output, err := executor.RunCapture("npm", "init", "-y")
