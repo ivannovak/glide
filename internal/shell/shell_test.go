@@ -2,7 +2,7 @@ package shell
 
 import (
 	"bytes"
-	"io"
+	// "io"
 	"os"
 	"testing"
 	"time"
