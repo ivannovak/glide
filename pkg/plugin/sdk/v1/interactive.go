@@ -6,10 +6,8 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"os/signal"
 	"syscall"
 
-	"github.com/creack/pty"
 	"golang.org/x/term"
 )
 
@@ -47,8 +45,8 @@ func (e *InteractiveExecutor) ExecuteDockerInteractive(req *DockerRequest) (Inte
 func (e *InteractiveExecutor) ExecuteLocalInteractive(command string, args []string) (InteractiveSession, error) {
 	cmd := exec.CommandContext(e.ctx, command, args...)
 
-	// Start the command with a PTY
-	ptmx, err := pty.Start(cmd)
+	// Start the command with a PTY (platform-specific)
+	ptmx, err := startWithPTY(cmd)
 	if err != nil {
 		return nil, fmt.Errorf("failed to start command with PTY: %w", err)
 	}
@@ -82,7 +80,7 @@ func (s *LocalInteractiveSession) Close() error {
 func (s *LocalInteractiveSession) RunInteractiveLoop() error {
 	// Set up signal handling
 	sigCh := make(chan os.Signal, 1)
-	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM, syscall.SIGWINCH)
+	s.setupSignalHandling(sigCh)
 
 	// Handle stdin/stdout in separate goroutines
 	errCh := make(chan error, 3)
@@ -139,16 +137,13 @@ func (s *LocalInteractiveSession) RunInteractiveLoop() error {
 	// Handle signals
 	go func() {
 		for sig := range sigCh {
+			// Platform-specific signal handling (e.g., SIGWINCH on Unix)
+			if err := s.handleSignal(sig); err != nil {
+				// Log error but don't fail the session
+				continue
+			}
+			
 			switch sig {
-			case syscall.SIGWINCH:
-				// Handle terminal resize
-				if ws, err := pty.GetsizeFull(os.Stdin); err == nil {
-					s.Send(&StreamMessage{
-						Type:   StreamMessage_RESIZE,
-						Width:  int32(ws.Cols),
-						Height: int32(ws.Rows),
-					})
-				}
 			case syscall.SIGINT:
 				s.Send(&StreamMessage{
 					Type:   StreamMessage_SIGNAL,
@@ -242,10 +237,7 @@ func (s *PTYSession) handleSignal(signal string) error {
 }
 
 func (s *PTYSession) handleResize(width, height int) error {
-	return pty.Setsize(s.ptmx, &pty.Winsize{
-		Rows: uint16(height),
-		Cols: uint16(width),
-	})
+	return setPTYSize(s.ptmx, width, height)
 }
 
 // InteractiveCommand provides a high-level interface for interactive commands
