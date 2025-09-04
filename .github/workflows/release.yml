@@ -98,9 +98,9 @@ jobs:
         fi
 
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: binaries
+        name: binary-${{ matrix.os }}-${{ matrix.arch }}
         path: |
           glid-*
           *.sha256
@@ -118,10 +118,11 @@ jobs:
         fetch-depth: 0
 
     - name: Download build artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
-        name: binaries
+        pattern: binary-*
         path: ./artifacts
+        merge-multiple: true
 
     - name: Get version
       id: version
