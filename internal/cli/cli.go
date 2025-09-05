@@ -72,23 +72,26 @@ func (c *CLI) RegisterCompletions(rootCmd *cobra.Command) {
 
 // AddLocalCommands adds local commands to the provided command
 func (c *CLI) AddLocalCommands(cmd *cobra.Command) {
+	// Add debug commands
+	c.addDebugCommands(cmd)
+	
+	// Add all registered commands from the builder's registry
+	// This ensures aliases are properly set
+	for _, subCmd := range c.builder.registry.CreateAll() {
+		cmd.AddCommand(subCmd)
+	}
+}
+
+// addDebugCommands adds debug-only commands
+func (c *CLI) addDebugCommands(cmd *cobra.Command) {
 	// Add context debug command
 	cmd.AddCommand(&cobra.Command{
 		Use:          "context",
 		Short:        "Show detected project context (debug)",
 		SilenceUsage: true,
+		Hidden:       true, // Hide debug commands
 		Run: func(cmd *cobra.Command, args []string) {
 			c.showContext(cmd)
-		},
-	})
-
-	// Add config debug command
-	cmd.AddCommand(&cobra.Command{
-		Use:          "config",
-		Short:        "Show configuration (debug)",
-		SilenceUsage: true,
-		Run: func(cmd *cobra.Command, args []string) {
-			c.showConfig(cmd)
 		},
 	})
 
@@ -97,6 +100,7 @@ func (c *CLI) AddLocalCommands(cmd *cobra.Command) {
 		Use:          "shell-test",
 		Short:        "Test shell execution (debug)",
 		SilenceUsage: true,
+		Hidden:       true,
 		Run: func(cmd *cobra.Command, args []string) {
 			c.testShell(cmd, args)
 		},
@@ -107,6 +111,7 @@ func (c *CLI) AddLocalCommands(cmd *cobra.Command) {
 		Use:          "docker-test",
 		Short:        "Test Docker compose resolution (debug)",
 		SilenceUsage: true,
+		Hidden:       true,
 		Run: func(cmd *cobra.Command, args []string) {
 			c.testDockerResolution(cmd, args)
 		},
@@ -117,40 +122,11 @@ func (c *CLI) AddLocalCommands(cmd *cobra.Command) {
 		Use:          "container-test",
 		Short:        "Test Docker container management (debug)",
 		SilenceUsage: true,
+		Hidden:       true,
 		Run: func(cmd *cobra.Command, args []string) {
 			c.testContainerManagement(cmd, args)
 		},
 	})
-
-	// Add completion command
-	cmd.AddCommand(c.NewCompletionCommand())
-
-	// Add test command
-	cmd.AddCommand(NewTestCommand(c.app.ProjectContext, c.app.Config))
-
-	// Add docker command
-	cmd.AddCommand(NewDockerCommand(c.app.ProjectContext, c.app.Config))
-
-	// Add composer command
-	cmd.AddCommand(NewComposerCommand(c.app.ProjectContext, c.app.Config))
-
-	// Add artisan command
-	cmd.AddCommand(NewArtisanCommand(c.app.ProjectContext, c.app.Config))
-
-	// Add container lifecycle commands
-	cmd.AddCommand(NewUpCommand(c.app.ProjectContext, c.app.Config))
-	cmd.AddCommand(NewDownCommand(c.app.ProjectContext, c.app.Config))
-
-	// Add interactive commands
-	cmd.AddCommand(NewShellCommand(c.app.ProjectContext, c.app.Config))
-	cmd.AddCommand(NewLogsCommand(c.app.ProjectContext, c.app.Config))
-
-	// Add utility commands
-	cmd.AddCommand(NewStatusCommand(c.app.ProjectContext, c.app.Config))
-	cmd.AddCommand(NewLintCommand(c.app.ProjectContext, c.app.Config))
-	cmd.AddCommand(NewVersionCommand(c.app.ProjectContext, c.app.Config))
-	cmd.AddCommand(NewSelfUpdateCommand(c.app.ProjectContext, c.app.Config))
-	cmd.AddCommand(NewHelpCommand(c.app.ProjectContext, c.app.Config))
 }
 
 // showContext displays the detected project context

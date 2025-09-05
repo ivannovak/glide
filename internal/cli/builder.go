@@ -134,6 +134,7 @@ func (b *Builder) registerCommands() {
 		Name:        "test",
 		Category:    CategoryDeveloper,
 		Description: "Run Pest tests with full argument pass-through",
+		Aliases:     []string{"t"},
 	})
 
 	b.registry.Register("artisan", func() *cobra.Command {
@@ -142,6 +143,7 @@ func (b *Builder) registerCommands() {
 		Name:        "artisan",
 		Category:    CategoryDeveloper,
 		Description: "Run Artisan commands via Docker",
+		Aliases:     []string{"a"},
 	})
 
 	b.registry.Register("composer", func() *cobra.Command {
@@ -150,6 +152,7 @@ func (b *Builder) registerCommands() {
 		Name:        "composer",
 		Category:    CategoryDeveloper,
 		Description: "Run Composer commands via Docker",
+		Aliases:     []string{"c"},
 	})
 
 	b.registry.Register("lint", func() *cobra.Command {

@@ -154,3 +154,226 @@ func TestRegistry_Categories(t *testing.T) {
 	assert.Equal(t, Category("debug"), CategoryDebug)
 	assert.Equal(t, Category("help"), CategoryHelp)
 }
+
+// Test alias registration and resolution
+func TestRegistry_RegisterWithAliases(t *testing.T) {
+	registry := NewRegistry()
+
+	factory := func() *cobra.Command {
+		return &cobra.Command{
+			Use:   "artisan",
+			Short: "Run Artisan commands",
+		}
+	}
+
+	metadata := Metadata{
+		Name:        "artisan",
+		Category:    CategoryDeveloper,
+		Description: "Run Artisan commands via Docker",
+		Aliases:     []string{"a", "art"},
+	}
+
+	// Register command with aliases
+	err := registry.Register("artisan", factory, metadata)
+	assert.NoError(t, err)
+
+	// Verify command can be retrieved by name
+	f, exists := registry.Get("artisan")
+	assert.True(t, exists)
+	assert.NotNil(t, f)
+
+	// Verify command can be retrieved by aliases
+	f, exists = registry.Get("a")
+	assert.True(t, exists)
+	assert.NotNil(t, f)
+
+	f, exists = registry.Get("art")
+	assert.True(t, exists)
+	assert.NotNil(t, f)
+
+	// Verify metadata can be retrieved by aliases
+	meta, exists := registry.GetMetadata("a")
+	assert.True(t, exists)
+	assert.Equal(t, "artisan", meta.Name)
+	assert.Equal(t, []string{"a", "art"}, meta.Aliases)
+}
+
+func TestRegistry_AliasConflicts(t *testing.T) {
+	registry := NewRegistry()
+
+	factory1 := func() *cobra.Command {
+		return &cobra.Command{Use: "artisan"}
+	}
+
+	factory2 := func() *cobra.Command {
+		return &cobra.Command{Use: "another"}
+	}
+
+	// Register first command with alias
+	err := registry.Register("artisan", factory1, Metadata{
+		Name:    "artisan",
+		Aliases: []string{"a"},
+	})
+	assert.NoError(t, err)
+
+	// Try to register another command with same alias - should fail
+	err = registry.Register("another", factory2, Metadata{
+		Name:    "another",
+		Aliases: []string{"a"},
+	})
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "alias a already registered")
+
+	// Try to register a command with name that conflicts with existing alias
+	err = registry.Register("a", factory2, Metadata{
+		Name: "a",
+	})
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "command name a conflicts with existing alias")
+}
+
+func TestRegistry_ResolveAlias(t *testing.T) {
+	registry := NewRegistry()
+
+	factory := func() *cobra.Command {
+		return &cobra.Command{Use: "test"}
+	}
+
+	registry.Register("test", factory, Metadata{
+		Name:    "test",
+		Aliases: []string{"t", "tst"},
+	})
+
+	// Test resolving aliases
+	canonical, ok := registry.ResolveAlias("t")
+	assert.True(t, ok)
+	assert.Equal(t, "test", canonical)
+
+	canonical, ok = registry.ResolveAlias("tst")
+	assert.True(t, ok)
+	assert.Equal(t, "test", canonical)
+
+	// Test resolving non-existent alias
+	canonical, ok = registry.ResolveAlias("nonexistent")
+	assert.False(t, ok)
+	assert.Empty(t, canonical)
+
+	// Test that command name is not resolved as alias
+	canonical, ok = registry.ResolveAlias("test")
+	assert.False(t, ok)
+	assert.Empty(t, canonical)
+}
+
+func TestRegistry_GetAliases(t *testing.T) {
+	registry := NewRegistry()
+
+	factory := func() *cobra.Command {
+		return &cobra.Command{Use: "composer"}
+	}
+
+	registry.Register("composer", factory, Metadata{
+		Name:    "composer",
+		Aliases: []string{"c", "comp"},
+	})
+
+	// Get aliases for existing command
+	aliases := registry.GetAliases("composer")
+	assert.Equal(t, []string{"c", "comp"}, aliases)
+
+	// Get aliases for non-existent command
+	aliases = registry.GetAliases("nonexistent")
+	assert.Nil(t, aliases)
+}
+
+func TestRegistry_IsAlias(t *testing.T) {
+	registry := NewRegistry()
+
+	factory := func() *cobra.Command {
+		return &cobra.Command{Use: "artisan"}
+	}
+
+	registry.Register("artisan", factory, Metadata{
+		Name:    "artisan",
+		Aliases: []string{"a"},
+	})
+
+	// Test checking aliases
+	assert.True(t, registry.IsAlias("a"))
+	assert.False(t, registry.IsAlias("artisan"))
+	assert.False(t, registry.IsAlias("nonexistent"))
+}
+
+func TestRegistry_CreateAllWithAliases(t *testing.T) {
+	registry := NewRegistry()
+
+	factory1 := func() *cobra.Command {
+		return &cobra.Command{
+			Use:   "artisan",
+			Short: "Artisan command",
+		}
+	}
+
+	factory2 := func() *cobra.Command {
+		return &cobra.Command{
+			Use:   "composer",
+			Short: "Composer command",
+		}
+	}
+
+	registry.Register("artisan", factory1, Metadata{
+		Name:    "artisan",
+		Aliases: []string{"a"},
+	})
+
+	registry.Register("composer", factory2, Metadata{
+		Name:    "composer",
+		Aliases: []string{"c", "comp"},
+	})
+
+	// Create all commands
+	commands := registry.CreateAll()
+	assert.Len(t, commands, 2)
+
+	// Find artisan command and check aliases
+	for _, cmd := range commands {
+		if cmd.Use == "artisan" {
+			assert.Equal(t, []string{"a"}, cmd.Aliases)
+		} else if cmd.Use == "composer" {
+			assert.Equal(t, []string{"c", "comp"}, cmd.Aliases)
+		}
+	}
+}
+
+func TestRegistry_CreateByCategoryWithAliases(t *testing.T) {
+	registry := NewRegistry()
+
+	devFactory := func() *cobra.Command {
+		return &cobra.Command{Use: "test"}
+	}
+
+	dockerFactory := func() *cobra.Command {
+		return &cobra.Command{Use: "up"}
+	}
+
+	registry.Register("test", devFactory, Metadata{
+		Category: CategoryDeveloper,
+		Aliases:  []string{"t"},
+	})
+
+	registry.Register("up", dockerFactory, Metadata{
+		Category: CategoryDocker,
+		Aliases:  []string{"u"},
+	})
+
+	// Create developer commands
+	devCommands := registry.CreateByCategory(CategoryDeveloper)
+	assert.Len(t, devCommands, 1)
+	assert.Equal(t, "test", devCommands[0].Use)
+	assert.Equal(t, []string{"t"}, devCommands[0].Aliases)
+
+	// Create docker commands
+	dockerCommands := registry.CreateByCategory(CategoryDocker)
+	assert.Len(t, dockerCommands, 1)
+	assert.Equal(t, "up", dockerCommands[0].Use)
+	assert.Equal(t, []string{"u"}, dockerCommands[0].Aliases)
+}
