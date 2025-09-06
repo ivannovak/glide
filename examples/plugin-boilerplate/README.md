@@ -66,6 +66,11 @@ glide plugins info yourname
 glide yourname hello
 glide yourname config
 glide yourname interactive
+
+# Test with aliases (if configured)
+glide mp h            # Plugin alias 'mp' + command alias 'h' for hello
+glide myp c           # Plugin alias 'myp' + command alias 'c' for config
+glide mp i            # Plugin alias 'mp' + command alias 'i' for interactive
 ```
 
 ## 📁 Project Structure
@@ -140,6 +145,80 @@ func (p *MyPlugin) executeWithConfig(ctx context.Context, req *sdk.ExecuteReques
 }
 ```
 
+## 🔤 Using Aliases
+
+Aliases provide shortcuts for both plugin names and commands, allowing users to type less while maintaining clarity.
+
+### Plugin-Level Aliases
+
+Define plugin aliases in your `GetMetadata()` function:
+
+```go
+func (p *MyPlugin) GetMetadata(ctx context.Context, _ *sdk.Empty) (*sdk.PluginMetadata, error) {
+    return &sdk.PluginMetadata{
+        Name:        "myplugin",
+        Tags:        []string{"mp", "myp"},  // Plugin aliases
+        // ... other metadata
+    }, nil
+}
+```
+
+Users can now use:
+- `glide myplugin hello` (full name)
+- `glide mp hello` (using alias)
+- `glide myp hello` (using another alias)
+
+### Command-Level Aliases
+
+Define command aliases in your `ListCommands()` function:
+
+```go
+Commands: []*sdk.CommandInfo{
+    {
+        Name:        "hello",
+        Aliases:     []string{"h", "hi"},  // Command aliases
+        Description: "Print a greeting message",
+        // ... other properties
+    },
+}
+```
+
+### Handling Aliases in ExecuteCommand
+
+Your `ExecuteCommand` function should handle both full names and aliases:
+
+```go
+func (p *MyPlugin) ExecuteCommand(ctx context.Context, req *sdk.ExecuteRequest) (*sdk.ExecuteResponse, error) {
+    // Map aliases to their full command names
+    commandMap := map[string]string{
+        "hello": "hello",
+        "h":     "hello",
+        "hi":    "hello",
+        // ... more mappings
+    }
+    
+    actualCommand, exists := commandMap[req.Command]
+    if !exists {
+        return &sdk.ExecuteResponse{
+            Success: false,
+            Error:   fmt.Sprintf("unknown command: %s", req.Command),
+        }, nil
+    }
+    
+    switch actualCommand {
+    case "hello":
+        return p.executeHello(ctx, req)
+    // ... handle other commands
+    }
+}
+```
+
+### Combined Usage
+
+With both plugin and command aliases, users can use very short invocations:
+- `glide mp h World` instead of `glide myplugin hello World`
+- `glide myp cfg` instead of `glide myplugin config`
+
 ## 📋 Available Interfaces
 
 ### Plugin Metadata
@@ -147,6 +226,7 @@ func (p *MyPlugin) executeWithConfig(ctx context.Context, req *sdk.ExecuteReques
 - `Version`: Semantic version (e.g., "1.0.0")
 - `Author`: Your name or organization
 - `Description`: Brief description
+- `Tags`: Plugin-level aliases (array of strings)
 - `Homepage`: Optional project URL
 - `License`: Optional license identifier
 - `MinSdk`: Minimum SDK version required

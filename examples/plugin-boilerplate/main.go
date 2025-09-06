@@ -7,6 +7,17 @@
 // 3. Implement your custom commands
 // 4. Build with: go build -o glide-plugin-yourname
 // 5. Install to: ~/.glide/plugins/
+//
+// Features demonstrated:
+// - Plugin metadata with version, author, and description
+// - Plugin-level aliases (e.g., 'mp' for 'myplugin')
+// - Command-level aliases (e.g., 'h' for 'hello')
+// - Non-interactive and interactive command examples
+// - Configuration handling from .glide.yml
+//
+// With aliases, users can use shortcuts like:
+// - 'glid mp h' instead of 'glid myplugin hello'
+// - 'glid myp c' instead of 'glid myplugin config'
 
 package main
 
@@ -37,6 +48,9 @@ func (p *MyPlugin) GetMetadata(ctx context.Context, _ *sdk.Empty) (*sdk.PluginMe
 		Homepage:    "https://github.com/user/repo", // Optional: plugin homepage
 		License:     "MIT",                          // Optional: plugin license
 		MinSdk:      "v1.0.0",                       // Minimum SDK version required
+		// Plugin-level aliases allow users to access your plugin with shorter names
+		// For example: 'glid mp' instead of 'glid myplugin'
+		Tags:        []string{"mp", "myp"},          // Plugin-level aliases
 	}, nil
 }
 
@@ -63,6 +77,9 @@ func (p *MyPlugin) ListCommands(ctx context.Context, _ *sdk.Empty) (*sdk.Command
 				Name:        "hello",
 				Description: "Print a greeting message",
 				Category:    "example",
+				// Command aliases allow shorter invocations
+				// For example: 'glid myplugin h' instead of 'glid myplugin hello'
+				Aliases:     []string{"h", "hi"},
 				Interactive: false,
 				Hidden:      false,
 			},
@@ -70,6 +87,8 @@ func (p *MyPlugin) ListCommands(ctx context.Context, _ *sdk.Empty) (*sdk.Command
 				Name:        "config",
 				Description: "Show plugin configuration",
 				Category:    "debug",
+				// Single character alias for quick access
+				Aliases:     []string{"c", "cfg"},
 				Interactive: false,
 				Hidden:      false,
 			},
@@ -77,6 +96,8 @@ func (p *MyPlugin) ListCommands(ctx context.Context, _ *sdk.Empty) (*sdk.Command
 				Name:        "interactive",
 				Description: "Example interactive command",
 				Category:    "example",
+				// Aliases for interactive mode
+				Aliases:     []string{"i", "int"},
 				Interactive: true,
 				Hidden:      false,
 			},
@@ -85,8 +106,31 @@ func (p *MyPlugin) ListCommands(ctx context.Context, _ *sdk.Empty) (*sdk.Command
 }
 
 // ExecuteCommand handles non-interactive command execution
+// The command in req.Command may be either the full name or an alias
 func (p *MyPlugin) ExecuteCommand(ctx context.Context, req *sdk.ExecuteRequest) (*sdk.ExecuteResponse, error) {
-	switch req.Command {
+	// Map aliases to their full command names
+	commandMap := map[string]string{
+		"hello":       "hello",
+		"h":           "hello",
+		"hi":          "hello",
+		"config":      "config",
+		"c":           "config",
+		"cfg":         "config",
+		"interactive": "interactive",
+		"i":           "interactive",
+		"int":         "interactive",
+	}
+
+	// Resolve the command name (handle both full names and aliases)
+	actualCommand, exists := commandMap[req.Command]
+	if !exists {
+		return &sdk.ExecuteResponse{
+			Success: false,
+			Error:   fmt.Sprintf("unknown command: %s", req.Command),
+		}, nil
+	}
+
+	switch actualCommand {
 	case "hello":
 		return p.executeHello(ctx, req)
 	case "config":
@@ -141,6 +185,18 @@ func (p *MyPlugin) executeConfig(ctx context.Context, req *sdk.ExecuteRequest) (
 			output += fmt.Sprintf("%s: %v\n", key, value)
 		}
 	}
+
+	output += "\nAvailable Commands and Aliases:\n"
+	output += "-------------------------------\n"
+	output += "Plugin aliases: mp, myp\n"
+	output += "\nCommands:\n"
+	output += "  hello (aliases: h, hi)       - Print a greeting message\n"
+	output += "  config (aliases: c, cfg)     - Show plugin configuration\n"
+	output += "  interactive (aliases: i, int) - Example interactive command\n"
+	output += "\nUsage examples:\n"
+	output += "  glid myplugin hello World\n"
+	output += "  glid mp h World              # Using plugin and command aliases\n"
+	output += "  glid myp cfg                 # Show config using aliases\n"
 
 	return &sdk.ExecuteResponse{
 		Success:  true,
