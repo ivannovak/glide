@@ -151,13 +151,14 @@ Aliases provide shortcuts for both plugin names and commands, allowing users to 
 
 ### Plugin-Level Aliases
 
-Define plugin aliases in your `GetMetadata()` function:
+Define plugin aliases in your `GetMetadata()` function using the `Aliases` field:
 
 ```go
 func (p *MyPlugin) GetMetadata(ctx context.Context, _ *sdk.Empty) (*sdk.PluginMetadata, error) {
     return &sdk.PluginMetadata{
         Name:        "myplugin",
-        Tags:        []string{"mp", "myp"},  // Plugin aliases
+        Aliases:     []string{"mp", "myp"},  // Plugin name shortcuts
+        Tags:        []string{"database"},   // Categorization tags
         // ... other metadata
     }, nil
 }
@@ -226,7 +227,8 @@ With both plugin and command aliases, users can use very short invocations:
 - `Version`: Semantic version (e.g., "1.0.0")
 - `Author`: Your name or organization
 - `Description`: Brief description
-- `Tags`: Plugin-level aliases (array of strings)
+- `Aliases`: Plugin name shortcuts (array of strings, e.g., ["db", "d"])
+- `Tags`: Categorization tags (array of strings, e.g., ["database", "testing"])
 - `Homepage`: Optional project URL
 - `License`: Optional license identifier
 - `MinSdk`: Minimum SDK version required

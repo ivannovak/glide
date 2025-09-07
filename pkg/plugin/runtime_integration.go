@@ -69,6 +69,11 @@ func (r *RuntimePluginIntegration) addPluginCommands(rootCmd *cobra.Command, plu
 			Long:  fmt.Sprintf("%s\n\nVersion: %s\nAuthor: %s", metadata.Description, metadata.Version, metadata.Author),
 		}
 
+		// Add plugin-level aliases
+		if len(metadata.Aliases) > 0 {
+			pluginCmd.Aliases = metadata.Aliases
+		}
+
 		// Add individual commands to group
 		for _, cmd := range commandList.Commands {
 			subCmd := r.createPluginCommand(plugin, glidePlugin, cmd)
@@ -77,10 +82,29 @@ func (r *RuntimePluginIntegration) addPluginCommands(rootCmd *cobra.Command, plu
 
 		rootCmd.AddCommand(pluginCmd)
 	} else if len(commandList.Commands) == 1 {
-		// Single command - add directly to root
+		// Single command - check if we need a group for plugin aliases
 		cmd := commandList.Commands[0]
-		pluginCommand := r.createPluginCommand(plugin, glidePlugin, cmd)
-		rootCmd.AddCommand(pluginCommand)
+		
+		// If the plugin has aliases, create a group command to support them
+		if len(metadata.Aliases) > 0 {
+			// Create group command with plugin aliases
+			pluginCmd := &cobra.Command{
+				Use:     metadata.Name,
+				Aliases: metadata.Aliases,
+				Short:   metadata.Description,
+				Long:    fmt.Sprintf("%s\n\nVersion: %s\nAuthor: %s", metadata.Description, metadata.Version, metadata.Author),
+			}
+			
+			// Add the single command to the group
+			subCmd := r.createPluginCommand(plugin, glidePlugin, cmd)
+			pluginCmd.AddCommand(subCmd)
+			
+			rootCmd.AddCommand(pluginCmd)
+		} else {
+			// No plugin aliases - add command directly to root
+			pluginCommand := r.createPluginCommand(plugin, glidePlugin, cmd)
+			rootCmd.AddCommand(pluginCommand)
+		}
 	}
 
 	return nil

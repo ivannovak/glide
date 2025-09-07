@@ -37,8 +37,9 @@ message PluginMetadata {
   int64 build_time_unix = 6;  // Unix timestamp
   string homepage = 7;
   string license = 8;
-  repeated string tags = 9;
+  repeated string tags = 9;  // Tags for categorization (e.g., "database", "testing")
   map<string, string> extra = 10;
+  repeated string aliases = 11;  // Plugin name aliases (e.g., "db" for "database")
 }
 
 message CommandInfo {

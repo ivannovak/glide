@@ -135,8 +135,9 @@ type PluginMetadata struct {
 	BuildTimeUnix int64                  `protobuf:"varint,6,opt,name=build_time_unix,json=buildTimeUnix,proto3" json:"build_time_unix,omitempty"` // Unix timestamp
 	Homepage      string                 `protobuf:"bytes,7,opt,name=homepage,proto3" json:"homepage,omitempty"`
 	License       string                 `protobuf:"bytes,8,opt,name=license,proto3" json:"license,omitempty"`
-	Tags          []string               `protobuf:"bytes,9,rep,name=tags,proto3" json:"tags,omitempty"`
+	Tags          []string               `protobuf:"bytes,9,rep,name=tags,proto3" json:"tags,omitempty"` // Tags for categorization (e.g., "database", "testing")
 	Extra         map[string]string      `protobuf:"bytes,10,rep,name=extra,proto3" json:"extra,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Aliases       []string               `protobuf:"bytes,11,rep,name=aliases,proto3" json:"aliases,omitempty"` // Plugin name aliases (e.g., "db" for "database")
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -237,6 +238,13 @@ func (x *PluginMetadata) GetTags() []string {
 func (x *PluginMetadata) GetExtra() map[string]string {
 	if x != nil {
 		return x.Extra
+	}
+	return nil
+}
+
+func (x *PluginMetadata) GetAliases() []string {
+	if x != nil {
+		return x.Aliases
 	}
 	return nil
 }
@@ -854,7 +862,7 @@ var File_plugin_proto protoreflect.FileDescriptor
 const file_plugin_proto_rawDesc = "" +
 	"\n" +
 	"\fplugin.proto\x12\x02v1\"\a\n" +
-	"\x05Empty\"\xf2\x02\n" +
+	"\x05Empty\"\x8c\x03\n" +
 	"\x0ePluginMetadata\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x18\n" +
 	"\aversion\x18\x02 \x01(\tR\aversion\x12\x16\n" +
@@ -866,7 +874,8 @@ const file_plugin_proto_rawDesc = "" +
 	"\alicense\x18\b \x01(\tR\alicense\x12\x12\n" +
 	"\x04tags\x18\t \x03(\tR\x04tags\x123\n" +
 	"\x05extra\x18\n" +
-	" \x03(\v2\x1d.v1.PluginMetadata.ExtraEntryR\x05extra\x1a8\n" +
+	" \x03(\v2\x1d.v1.PluginMetadata.ExtraEntryR\x05extra\x12\x18\n" +
+	"\aaliases\x18\v \x03(\tR\aaliases\x1a8\n" +
 	"\n" +
 	"ExtraEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
