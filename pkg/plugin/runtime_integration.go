@@ -63,7 +63,7 @@ func (r *RuntimePluginIntegration) addPluginCommands(rootCmd *cobra.Command, plu
 	// Check if plugin wants global registration (not namespaced)
 	// Default to namespaced (true) if not specified for backward compatibility
 	namespaced := true
-	if metadata.GetNamespaced() == false {
+	if !metadata.GetNamespaced() {
 		namespaced = false
 	}
 

@@ -11,6 +11,8 @@ import (
 	"github.com/ivannovak/glide/pkg/output"
 	"github.com/ivannovak/glide/pkg/plugin"
 	"github.com/spf13/cobra"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 // HelpCommand handles the enhanced help system
@@ -426,9 +428,7 @@ func (hc *HelpCommand) showHelp(rootCmd *cobra.Command) error {
 
 	// Process plugin commands
 	pluginCommands := hc.getPluginCommands()
-	for _, pcmd := range pluginCommands {
-		commandsByCategory["plugin"] = append(commandsByCategory["plugin"], pcmd)
-	}
+	commandsByCategory["plugin"] = append(commandsByCategory["plugin"], pluginCommands...)
 
 	// Sort categories by priority
 	var sortedCategories []string
@@ -461,8 +461,9 @@ func (hc *HelpCommand) showHelp(rootCmd *cobra.Command) error {
 
 		catInfo, ok := Categories[category]
 		if !ok {
+			caser := cases.Title(language.English)
 			catInfo = CategoryInfo{
-				Name:  strings.Title(category),
+				Name:  caser.String(category),
 				Color: color.New(color.FgWhite),
 			}
 		}
