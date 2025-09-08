@@ -55,6 +55,7 @@ message CommandInfo {
   bool hidden = 6;
   bool requires_tty = 7;
   bool requires_auth = 8;
+  string visibility = 9;  // Context visibility: "always", "project-only", "worktree-only", "root-only", "non-root"
 }
 
 message CommandList {

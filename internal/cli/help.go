@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"os"
 	"sort"
 	"strings"
 
@@ -397,6 +398,11 @@ func (hc *HelpCommand) ShowHelp(rootCmd *cobra.Command) error {
 			continue
 		}
 
+		// Check visibility for plugin commands
+		if !hc.shouldShowCommand(cmd) {
+			continue
+		}
+
 		entry := CommandEntry{
 			Name:        cmd.Name(),
 			Description: cmd.Short,
@@ -459,6 +465,9 @@ func (hc *HelpCommand) ShowHelp(rootCmd *cobra.Command) error {
 
 		// Context-aware filtering
 		if !hc.shouldShowCategory(category) {
+			if os.Getenv("GLIDE_HELP_DEBUG") != "" {
+				fmt.Fprintf(os.Stderr, "DEBUG HELP: Skipping category %s (shouldShowCategory=false)\n", category)
+			}
 			continue
 		}
 
@@ -683,14 +692,66 @@ func (hc *HelpCommand) shouldShowCategory(category string) bool {
 		if hc.ProjectContext.DevelopmentMode == "" {
 			return false
 		}
-		// Don't show these in the project root of multi-worktree
-		if hc.ProjectContext.DevelopmentMode == context.ModeMultiWorktree && hc.ProjectContext.Location == context.LocationRoot {
-			return false
-		}
+		// Always show these categories - plugin commands may need them
+		// The previous logic was too restrictive for plugins
 		return true
 
 	default:
 		// Show all other categories
+		return true
+	}
+}
+
+// shouldShowCommand checks if a command should be shown based on its visibility setting
+func (hc *HelpCommand) shouldShowCommand(cmd *cobra.Command) bool {
+	// Commands without visibility annotation are always shown
+	if cmd.Annotations == nil {
+		return true
+	}
+	
+	visibility, hasVisibility := cmd.Annotations["visibility"]
+	if !hasVisibility {
+		return true
+	}
+
+	// No project context means we're not in a project
+	if hc.ProjectContext == nil {
+		// Only show "always" commands when not in a project
+		return visibility == "always"
+	}
+
+	// Check visibility based on project context
+	switch visibility {
+	case "always":
+		return true
+	
+	case "project-only":
+		// Show only when in a project (any mode)
+		return hc.ProjectContext.DevelopmentMode != ""
+	
+	case "worktree-only":
+		// Show only when in a worktree (not at multi-worktree root)
+		if hc.ProjectContext.DevelopmentMode != context.ModeMultiWorktree {
+			return false
+		}
+		return hc.ProjectContext.Location == context.LocationWorktree
+	
+	case "root-only":
+		// Show only at multi-worktree root
+		if hc.ProjectContext.DevelopmentMode != context.ModeMultiWorktree {
+			return false
+		}
+		return hc.ProjectContext.Location == context.LocationRoot
+	
+	case "non-root":
+		// Show everywhere except multi-worktree root
+		if hc.ProjectContext.DevelopmentMode == context.ModeMultiWorktree {
+			return hc.ProjectContext.Location != context.LocationRoot
+		}
+		return true
+	
+	default:
+		// Unknown visibility setting, default to showing
 		return true
 	}
 }

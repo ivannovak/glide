@@ -239,6 +239,13 @@ func (r *RuntimePluginIntegration) createPluginCommand(plugin *sdk.LoadedPlugin,
 		cmd.Annotations["category"] = "plugin"
 	}
 
+	// Add visibility annotation - default to "always" if not specified
+	if cmdInfo.Visibility != "" {
+		cmd.Annotations["visibility"] = cmdInfo.Visibility
+	} else {
+		cmd.Annotations["visibility"] = v1.VisibilityAlways
+	}
+
 	return cmd
 }
 

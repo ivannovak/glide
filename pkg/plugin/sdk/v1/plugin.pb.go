@@ -267,6 +267,7 @@ type CommandInfo struct {
 	Hidden        bool                   `protobuf:"varint,6,opt,name=hidden,proto3" json:"hidden,omitempty"`
 	RequiresTty   bool                   `protobuf:"varint,7,opt,name=requires_tty,json=requiresTty,proto3" json:"requires_tty,omitempty"`
 	RequiresAuth  bool                   `protobuf:"varint,8,opt,name=requires_auth,json=requiresAuth,proto3" json:"requires_auth,omitempty"`
+	Visibility    string                 `protobuf:"bytes,9,opt,name=visibility,proto3" json:"visibility,omitempty"` // Context visibility: "always", "project-only", "worktree-only", "root-only", "non-root"
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -355,6 +356,13 @@ func (x *CommandInfo) GetRequiresAuth() bool {
 		return x.RequiresAuth
 	}
 	return false
+}
+
+func (x *CommandInfo) GetVisibility() string {
+	if x != nil {
+		return x.Visibility
+	}
+	return ""
 }
 
 type CommandList struct {
@@ -1004,7 +1012,7 @@ const file_plugin_proto_rawDesc = "" +
 	"\n" +
 	"ExtraEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xfb\x01\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x9b\x02\n" +
 	"\vCommandInfo\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x1a\n" +
@@ -1013,7 +1021,10 @@ const file_plugin_proto_rawDesc = "" +
 	"\vinteractive\x18\x05 \x01(\bR\vinteractive\x12\x16\n" +
 	"\x06hidden\x18\x06 \x01(\bR\x06hidden\x12!\n" +
 	"\frequires_tty\x18\a \x01(\bR\vrequiresTty\x12#\n" +
-	"\rrequires_auth\x18\b \x01(\bR\frequiresAuth\":\n" +
+	"\rrequires_auth\x18\b \x01(\bR\frequiresAuth\x12\x1e\n" +
+	"\n" +
+	"visibility\x18\t \x01(\tR\n" +
+	"visibility\":\n" +
 	"\vCommandList\x12+\n" +
 	"\bcommands\x18\x01 \x03(\v2\x0f.v1.CommandInfoR\bcommands\"\x87\x01\n" +
 	"\x10ConfigureRequest\x128\n" +

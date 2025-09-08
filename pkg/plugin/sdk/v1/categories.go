@@ -125,3 +125,12 @@ var Categories = map[string]CategoryInfo{
 		Priority:    100,
 	},
 }
+
+// Visibility constants for command context visibility
+const (
+	VisibilityAlways       = "always"        // Show in all contexts (default)
+	VisibilityProjectOnly  = "project-only"  // Show only when in a project
+	VisibilityWorktreeOnly = "worktree-only" // Show only in worktrees (not at multi-worktree root)
+	VisibilityRootOnly     = "root-only"     // Show only at multi-worktree root
+	VisibilityNonRoot      = "non-root"      // Show everywhere except multi-worktree root
+)
