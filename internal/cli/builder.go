@@ -32,7 +32,7 @@ func (b *Builder) registerCommands() {
 		return NewSetupCommand(b.app.ProjectContext, b.app.Config)
 	}, Metadata{
 		Name:        "setup",
-		Category:    CategoryCore,
+		Category:    CategorySetup,
 		Description: "Initial setup and configuration",
 	})
 
@@ -58,7 +58,7 @@ func (b *Builder) registerCommands() {
 		return NewCompletionCommand(b.app.ProjectContext, b.app.Config)
 	}, Metadata{
 		Name:        "completion",
-		Category:    CategoryCore,
+		Category:    CategorySetup,
 		Description: "Generate shell completion scripts",
 	})
 
@@ -66,7 +66,7 @@ func (b *Builder) registerCommands() {
 		return NewGlobalCommand(b.app.ProjectContext, b.app.Config)
 	}, Metadata{
 		Name:        "global",
-		Category:    CategoryCore,
+		Category:    CategoryGlobal,
 		Description: "Global configuration management",
 	})
 
@@ -132,7 +132,7 @@ func (b *Builder) registerCommands() {
 		return NewTestCommand(b.app.ProjectContext, b.app.Config)
 	}, Metadata{
 		Name:        "test",
-		Category:    CategoryDeveloper,
+		Category:    CategoryTesting,
 		Description: "Run Pest tests with full argument pass-through",
 		Aliases:     []string{"t"},
 	})

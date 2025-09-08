@@ -30,8 +30,12 @@ type Category string
 const (
 	CategoryCore      Category = "core"
 	CategoryDocker    Category = "docker"
+	CategoryTesting   Category = "testing"
 	CategoryDatabase  Category = "database"
 	CategoryDeveloper Category = "developer"
+	CategorySetup     Category = "setup"
+	CategoryPlugin    Category = "plugin"
+	CategoryGlobal    Category = "global"
 	CategoryDebug     Category = "debug"
 	CategoryHelp      Category = "help"
 )
@@ -126,9 +130,23 @@ func (r *Registry) CreateAll() []*cobra.Command {
 	var commands []*cobra.Command
 	for name, factory := range r.factories {
 		cmd := factory()
-		// Set aliases on the cobra command if they exist
-		if meta, ok := r.metadata[name]; ok && len(meta.Aliases) > 0 {
-			cmd.Aliases = meta.Aliases
+		// Set metadata on the cobra command
+		if meta, ok := r.metadata[name]; ok {
+			// Set aliases if they exist
+			if len(meta.Aliases) > 0 {
+				cmd.Aliases = meta.Aliases
+			}
+			
+			// Store category in annotations for help system
+			if cmd.Annotations == nil {
+				cmd.Annotations = make(map[string]string)
+			}
+			cmd.Annotations["category"] = string(meta.Category)
+			
+			// Mark hidden commands
+			if meta.Hidden {
+				cmd.Hidden = true
+			}
 		}
 		commands = append(commands, cmd)
 	}

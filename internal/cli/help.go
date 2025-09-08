@@ -1,9 +1,15 @@
 package cli
 
 import (
+	"fmt"
+	"sort"
+	"strings"
+
+	"github.com/fatih/color"
 	"github.com/ivannovak/glide/internal/config"
 	"github.com/ivannovak/glide/internal/context"
 	"github.com/ivannovak/glide/pkg/output"
+	"github.com/ivannovak/glide/pkg/plugin"
 	"github.com/spf13/cobra"
 )
 
@@ -44,7 +50,8 @@ Examples:
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return hc.showContextAwareHelp()
+				// Show the default help
+				return hc.showHelp(cmd.Root())
 			}
 
 			topic := args[0]
@@ -65,125 +72,6 @@ Examples:
 	}
 
 	return cmd
-}
-
-// showContextAwareHelp displays help adapted to current context
-func (hc *HelpCommand) showContextAwareHelp() error {
-	// Detect context and show appropriate help
-	switch hc.ctx.DevelopmentMode {
-	case context.ModeMultiWorktree:
-		return hc.showMultiWorktreeHelp()
-	case context.ModeSingleRepo:
-		return hc.showSingleRepoHelp()
-	default:
-		return hc.showNoProjectHelp()
-	}
-}
-
-// showMultiWorktreeHelp shows help for multi-worktree mode
-func (hc *HelpCommand) showMultiWorktreeHelp() error {
-	output.Success("🏠 You're in a multi-worktree project")
-	output.Raw("\n")
-
-	// Show location-specific guidance
-	switch hc.ctx.Location {
-	case context.LocationRoot:
-		output.Info("📍 Current location: Project root (management directory)")
-		output.Raw("\n")
-		output.Raw("Quick Start - Global Operations:\n")
-		output.Raw("  glid global status       # Check all worktree statuses\n")
-		output.Raw("  glid global list         # List active worktrees\n")
-		output.Raw("  glid global worktree     # Create new feature branch\n")
-		output.Raw("  glid global down         # Stop all containers\n")
-
-	case context.LocationMainRepo:
-		output.Info("📍 Current location: Main repository (vcs/)")
-		output.Raw("\n")
-		output.Raw("Quick Start - Development Commands:\n")
-		output.Raw("  glid up                  # Start containers for main repo\n")
-		output.Raw("  glid test                # Run tests\n")
-		output.Raw("  glid shell               # Access PHP container\n")
-		output.Raw("  glid status              # Check container status\n")
-
-	case context.LocationWorktree:
-		worktreeName := hc.ctx.WorktreeName
-		if worktreeName == "" {
-			worktreeName = "current worktree"
-		}
-		output.Info("📍 Current location: Worktree (%s)", worktreeName)
-		output.Raw("\n")
-		output.Raw("Quick Start - Feature Development:\n")
-		output.Raw("  glid up                  # Start containers for this worktree\n")
-		output.Raw("  glid test                # Run tests for your changes\n")
-		output.Raw("  glid shell               # Access development environment\n")
-		output.Raw("  glid logs                # Monitor container logs\n")
-	}
-
-	output.Raw("\n")
-	output.Raw("💡 Common Workflows:\n")
-	output.Raw("  • New feature: glid global worktree feature/name\n")
-	output.Raw("  • Daily standup: glid global status\n")
-	output.Raw("  • End of day: glid global down\n")
-	output.Raw("  • Troubleshooting: glid help troubleshooting\n")
-
-	output.Raw("\n")
-	output.Raw("📚 Learn More:\n")
-	output.Raw("  glid help workflows      # Detailed workflow examples\n")
-	output.Raw("  glid help modes          # Multi-worktree vs single-repo\n")
-
-	return nil
-}
-
-// showSingleRepoHelp shows help for single-repo mode
-func (hc *HelpCommand) showSingleRepoHelp() error {
-	output.Success("📁 You're in a single-repository project")
-	output.Raw("\n")
-
-	output.Raw("Quick Start - Development Commands:\n")
-	output.Raw("  glid up                  # Start Docker containers\n")
-	output.Raw("  glid test                # Run your test suite\n")
-	output.Raw("  glid shell               # Access PHP container shell\n")
-	output.Raw("  glid mysql               # Access database shell\n")
-	output.Raw("  glid logs                # View container logs\n")
-	output.Raw("  glid down                # Stop containers\n")
-
-	output.Raw("\n")
-	output.Raw("💡 Common Workflows:\n")
-	output.Raw("  • Start work: glid up && glid test\n")
-	output.Raw("  • Run tests: glid test -- --filter MyTest\n")
-	output.Raw("  • Debug: glid shell → investigate\n")
-	output.Raw("  • Database: glid mysql → run queries\n")
-	output.Raw("  • Clean up: glid down\n")
-
-	output.Raw("\n")
-	output.Raw("📚 Learn More:\n")
-	output.Raw("  glid help workflows      # Detailed workflow examples\n")
-	output.Raw("  glid help modes          # Consider multi-worktree for larger teams\n")
-
-	return nil
-}
-
-// showNoProjectHelp shows help when not in a project
-func (hc *HelpCommand) showNoProjectHelp() error {
-	output.Warning("⚠️  You're not in a Glide project directory")
-	output.Raw("\n")
-
-	output.Raw("🚀 Getting Started:\n")
-	output.Raw("  glid setup               # Interactive project setup\n")
-	output.Raw("  glid help getting-started # Complete setup guide\n")
-
-	output.Raw("\n")
-	output.Raw("Or navigate to an existing project:\n")
-	output.Raw("  cd /path/to/your/project\n")
-	output.Raw("  glid help                # Context-aware help\n")
-
-	output.Raw("\n")
-	output.Raw("⚙️  Available Commands (without project):\n")
-	output.Raw("  glid setup               # Configure a new project\n")
-	output.Raw("  glid config              # Manage global configuration\n")
-	output.Raw("  glid version             # Show version information\n")
-
-	return nil
 }
 
 // showGettingStarted shows the complete getting started guide
@@ -397,4 +285,456 @@ func (hc *HelpCommand) showCommandHelp(commandName string) error {
 	output.Raw("  glid help getting-started # Complete setup guide\n")
 
 	return nil
+}
+
+// CategoryInfo holds information about a command category
+type CategoryInfo struct {
+	Name        string
+	Description string
+	Priority    int // Lower numbers appear first
+	Color       *color.Color
+}
+
+// Categories defines all command categories with their display properties
+var Categories = map[string]CategoryInfo{
+	"core": {
+		Name:        "Core Commands",
+		Description: "Essential development commands",
+		Priority:    1,
+		Color:       color.New(color.FgYellow, color.Bold),
+	},
+	"docker": {
+		Name:        "Docker Management",
+		Description: "Container and service control",
+		Priority:    2,
+		Color:       color.New(color.FgYellow, color.Bold),
+	},
+	"testing": {
+		Name:        "Testing",
+		Description: "Test execution and coverage",
+		Priority:    3,
+		Color:       color.New(color.FgYellow, color.Bold),
+	},
+	"developer": {
+		Name:        "Development Tools",
+		Description: "Code quality and utilities",
+		Priority:    4,
+		Color:       color.New(color.FgYellow, color.Bold),
+	},
+	"database": {
+		Name:        "Database",
+		Description: "Database management and access",
+		Priority:    5,
+		Color:       color.New(color.FgYellow, color.Bold),
+	},
+	"setup": {
+		Name:        "Setup & Configuration",
+		Description: "Project setup and configuration",
+		Priority:    6,
+		Color:       color.New(color.FgYellow, color.Bold),
+	},
+	"plugin": {
+		Name:        "Plugin Commands",
+		Description: "Commands from installed plugins",
+		Priority:    7,
+		Color:       color.New(color.FgYellow, color.Bold),
+	},
+	"help": {
+		Name:        "Help & Documentation",
+		Description: "Help topics and guides",
+		Priority:    8,
+		Color:       color.New(color.FgYellow, color.Bold),
+	},
+	"global": {
+		Name:        "Global Commands",
+		Description: "Multi-worktree management",
+		Priority:    9,
+		Color:       color.New(color.FgYellow, color.Bold),
+	},
+}
+
+// CommandEntry represents a command for display
+type CommandEntry struct {
+	Name        string
+	Description string
+	Aliases     []string
+	Category    string
+	IsPlugin    bool
+	PluginName  string
+}
+
+// showHelp displays the categorized, context-aware help
+func (hc *HelpCommand) showHelp(rootCmd *cobra.Command) error {
+	// Header
+	headerColor := color.New(color.FgWhite, color.Bold)
+	headerColor.Printf("\n%s", rootCmd.Use)
+	fmt.Printf(" - %s\n", rootCmd.Short)
+
+	// Show context-specific information if we have project context
+	if hc.ctx != nil {
+		hc.showContextInfo()
+	}
+
+	// Usage
+	fmt.Println("\nUsage:")
+	fmt.Printf("  %s [flags]\n", rootCmd.Use)
+	fmt.Printf("  %s [command]\n\n", rootCmd.Use)
+
+	// Collect all commands and organize by category
+	commandsByCategory := make(map[string][]CommandEntry)
+
+	// Process built-in commands
+	for _, cmd := range rootCmd.Commands() {
+		if cmd.Hidden {
+			continue
+		}
+
+		entry := CommandEntry{
+			Name:        cmd.Name(),
+			Description: cmd.Short,
+			Aliases:     cmd.Aliases,
+		}
+
+		// Get category from command annotations (set by registry)
+		category := "core" // default
+		if cmd.Annotations != nil {
+			if cat, ok := cmd.Annotations["category"]; ok {
+				category = cat
+			}
+			// Debug: Check if this is a plugin command
+			if _, isPlugin := cmd.Annotations["plugin"]; isPlugin && category == "core" {
+				// Plugin commands without explicit category should go to plugin category
+				category = "plugin"
+			}
+		}
+		entry.Category = category
+
+		// Special handling for plugin commands
+		if strings.HasPrefix(cmd.Use, "plugin:") || cmd.Annotations != nil && cmd.Annotations["plugin"] != "" {
+			entry.IsPlugin = true
+			// Plugin category might be overridden by the plugin itself
+			if cmd.Annotations != nil && cmd.Annotations["plugin_category"] != "" {
+				entry.Category = cmd.Annotations["plugin_category"]
+			}
+		}
+
+		commandsByCategory[category] = append(commandsByCategory[category], entry)
+	}
+
+	// Process plugin commands
+	pluginCommands := hc.getPluginCommands()
+	for _, pcmd := range pluginCommands {
+		commandsByCategory["plugin"] = append(commandsByCategory["plugin"], pcmd)
+	}
+
+	// Sort categories by priority
+	var sortedCategories []string
+	for cat := range commandsByCategory {
+		sortedCategories = append(sortedCategories, cat)
+	}
+	sort.Slice(sortedCategories, func(i, j int) bool {
+		catI, okI := Categories[sortedCategories[i]]
+		catJ, okJ := Categories[sortedCategories[j]]
+		if !okI {
+			return false
+		}
+		if !okJ {
+			return true
+		}
+		return catI.Priority < catJ.Priority
+	})
+
+	// Display commands by category
+	for _, category := range sortedCategories {
+		commands := commandsByCategory[category]
+		if len(commands) == 0 {
+			continue
+		}
+
+		// Context-aware filtering
+		if !hc.shouldShowCategory(category) {
+			continue
+		}
+
+		catInfo, ok := Categories[category]
+		if !ok {
+			catInfo = CategoryInfo{
+				Name:  strings.Title(category),
+				Color: color.New(color.FgWhite),
+			}
+		}
+
+		// Category header
+		fmt.Println()
+		if catInfo.Color != nil {
+			catInfo.Color.Printf("%s", catInfo.Name)
+		} else {
+			fmt.Printf("%s", catInfo.Name)
+		}
+
+		if catInfo.Description != "" {
+			color.New(color.Faint).Printf(" - %s", catInfo.Description)
+		}
+		fmt.Println()
+
+		// Sort commands alphabetically
+		sort.Slice(commands, func(i, j int) bool {
+			return commands[i].Name < commands[j].Name
+		})
+
+		// Find the longest command name and alias for alignment
+		maxLen := 0
+		maxAliasLen := 0
+		for _, cmd := range commands {
+			nameLen := len(cmd.Name)
+			if nameLen > maxLen {
+				maxLen = nameLen
+			}
+			
+			if len(cmd.Aliases) > 0 {
+				aliasLen := len(strings.Join(cmd.Aliases, ", "))
+				if aliasLen > maxAliasLen {
+					maxAliasLen = aliasLen
+				}
+			}
+		}
+		
+		// Add some padding if there are no aliases in this category
+		if maxAliasLen == 0 {
+			maxAliasLen = 1
+		}
+
+		// Display commands
+		commandColor := color.New(color.FgGreen)
+		aliasColor := color.New(color.Faint)
+		faintGray := color.New(color.Faint)
+		
+		for _, cmd := range commands {
+			// Print command name in green
+			fmt.Print("  ")
+			commandColor.Printf("%-*s", maxLen, cmd.Name)
+			
+			// Print aliases in faint gray (if any)
+			if len(cmd.Aliases) > 0 {
+				aliasStr := strings.Join(cmd.Aliases, ", ")
+				fmt.Print("  ")
+				aliasColor.Printf("%-*s", maxAliasLen, aliasStr)
+			} else {
+				fmt.Print("  ")
+				fmt.Printf("%-*s", maxAliasLen, "") // Empty space for alignment
+			}
+			
+			// Print description
+			fmt.Printf("  %s\n", cmd.Description)
+
+			// Show plugin source if applicable
+			if cmd.IsPlugin && cmd.PluginName != "" {
+				pluginColor := color.New(color.Faint, color.Italic)
+				fmt.Printf("  %-*s  %-*s  %s\n", maxLen, "", maxAliasLen, "", pluginColor.Sprintf("from %s plugin", cmd.PluginName))
+			}
+			
+			// Show plugin subcommands if this is a plugin
+			if category == "plugin" {
+				subcommands := hc.getPluginSubcommands(rootCmd, cmd.Name)
+				if len(subcommands) > 0 {
+					for i, subcmd := range subcommands {
+						fmt.Print("    ")
+						// Use └─ for last item, ├─ for others (in muted gray)
+						if i == len(subcommands)-1 {
+							faintGray.Print("└─ ")
+						} else {
+							faintGray.Print("├─ ")
+						}
+						// Print subcommand name in normal green
+						commandColor.Printf("%-*s", maxLen-3, subcmd.Name)
+						
+						if len(subcmd.Aliases) > 0 {
+							fmt.Print("  ")
+							aliasColor.Printf("%-*s", maxAliasLen, strings.Join(subcmd.Aliases, ", "))
+						} else {
+							fmt.Print("  ")
+							fmt.Printf("%-*s", maxAliasLen, "")
+						}
+						fmt.Printf("  %s\n", subcmd.Description)
+					}
+				}
+			}
+		}
+	}
+
+	// Footer with help topics
+	fmt.Println()
+	color.New(color.FgWhite, color.Bold).Println("Getting Help:")
+	fmt.Println("  glid help [command]         Show detailed help for a command")
+	fmt.Println("  glid [command] --help       Same as above")
+	fmt.Println("  glid help getting-started   New user guide")
+	fmt.Println("  glid help workflows         Common development patterns")
+
+	// Context-aware tips
+	if hc.ctx != nil {
+		fmt.Println()
+		hc.showContextTips()
+	}
+
+	// Version and more info
+	fmt.Println()
+	faintColor := color.New(color.Faint)
+	faintColor.Printf("Use \"glid [command] --help\" for more information about a command.\n")
+
+	return nil
+}
+
+
+// getPluginCommands retrieves commands from loaded plugins
+func (hc *HelpCommand) getPluginCommands() []CommandEntry {
+	var commands []CommandEntry
+
+	// Get plugin info from the plugin manager
+	plugins := plugin.List()
+	for _, p := range plugins {
+		meta := p.Metadata()
+		for _, cmd := range meta.Commands {
+			entry := CommandEntry{
+				Name:        cmd.Name,
+				Description: cmd.Description,
+				Category:    "plugin",
+				IsPlugin:    true,
+				PluginName:  meta.Name,
+			}
+
+			// Override category if plugin specifies one
+			if cmd.Category != "" {
+				// Map plugin categories to our categories
+				switch cmd.Category {
+				case "docker":
+					entry.Category = "docker"
+				case "database":
+					entry.Category = "database"
+				case "setup":
+					entry.Category = "setup"
+				default:
+					// Keep as plugin category
+				}
+			}
+
+			commands = append(commands, entry)
+		}
+	}
+
+	return commands
+}
+
+// SubcommandEntry represents a subcommand for display
+type SubcommandEntry struct {
+	Name        string
+	Description string
+	Aliases     []string
+}
+
+// getPluginSubcommands retrieves subcommands for a specific plugin
+func (hc *HelpCommand) getPluginSubcommands(rootCmd *cobra.Command, pluginName string) []SubcommandEntry {
+	var subcommands []SubcommandEntry
+	
+	// Find the plugin command
+	for _, cmd := range rootCmd.Commands() {
+		if cmd.Name() == pluginName {
+			// Get all subcommands of this plugin
+			for _, subcmd := range cmd.Commands() {
+				if !subcmd.Hidden {
+					subcommands = append(subcommands, SubcommandEntry{
+						Name:        subcmd.Name(),
+						Description: subcmd.Short,
+						Aliases:     subcmd.Aliases,
+					})
+				}
+			}
+			break
+		}
+	}
+	
+	// Sort subcommands alphabetically
+	sort.Slice(subcommands, func(i, j int) bool {
+		return subcommands[i].Name < subcommands[j].Name
+	})
+	
+	return subcommands
+}
+
+// shouldShowCategory determines if a category should be shown based on context
+func (hc *HelpCommand) shouldShowCategory(category string) bool {
+	// No context means show everything except global
+	if hc.ctx == nil {
+		return category != "global"
+	}
+
+	switch category {
+	case "global":
+		// Only show global commands in multi-worktree mode
+		return hc.ctx.DevelopmentMode == context.ModeMultiWorktree
+
+	case "docker", "testing", "developer", "database":
+		// Don't show development commands when not in a project
+		if hc.ctx.DevelopmentMode == "" {
+			return false
+		}
+		// Don't show these in the project root of multi-worktree
+		if hc.ctx.DevelopmentMode == context.ModeMultiWorktree && hc.ctx.Location == context.LocationRoot {
+			return false
+		}
+		return true
+
+	default:
+		// Show all other categories
+		return true
+	}
+}
+
+// showContextInfo displays context information at the top of help
+func (hc *HelpCommand) showContextInfo() {
+	contextColor := color.New(color.FgCyan)
+
+	switch hc.ctx.DevelopmentMode {
+	case context.ModeMultiWorktree:
+		contextColor.Print("📂 Multi-worktree mode")
+		switch hc.ctx.Location {
+		case context.LocationRoot:
+			fmt.Printf(" • Project root")
+		case context.LocationMainRepo:
+			fmt.Printf(" • Main repository (vcs/)")
+		case context.LocationWorktree:
+			if hc.ctx.WorktreeName != "" {
+				fmt.Printf(" • Worktree: %s", hc.ctx.WorktreeName)
+			} else {
+				fmt.Printf(" • Worktree")
+			}
+		}
+		fmt.Println()
+
+	case context.ModeSingleRepo:
+		contextColor.Println("📁 Single-repo mode")
+
+	default:
+		color.New(color.FgYellow).Println("⚠️  No project detected")
+	}
+}
+
+// showContextTips shows context-aware tips based on the current location
+func (hc *HelpCommand) showContextTips() {
+	tipColor := color.New(color.FgYellow)
+
+	switch hc.ctx.DevelopmentMode {
+	case context.ModeMultiWorktree:
+		switch hc.ctx.Location {
+		case context.LocationRoot:
+			tipColor.Println("💡 Tip: You're in the project root. Use 'glid global' commands to manage worktrees.")
+		case context.LocationMainRepo:
+			tipColor.Println("💡 Tip: You're in the main repository. Development commands work here.")
+		case context.LocationWorktree:
+			tipColor.Println("💡 Tip: You're in a worktree. All commands operate on this feature branch.")
+		}
+	case context.ModeSingleRepo:
+		tipColor.Println("💡 Tip: Single-repo mode active. All commands operate on the current branch.")
+	default:
+		tipColor.Println("💡 Tip: Run 'glid setup' to configure your project.")
+	}
 }

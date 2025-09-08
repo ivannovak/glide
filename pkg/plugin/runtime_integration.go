@@ -67,6 +67,10 @@ func (r *RuntimePluginIntegration) addPluginCommands(rootCmd *cobra.Command, plu
 			Use:   metadata.Name,
 			Short: metadata.Description,
 			Long:  fmt.Sprintf("%s\n\nVersion: %s\nAuthor: %s", metadata.Description, metadata.Version, metadata.Author),
+			Annotations: map[string]string{
+				"category": "plugin",
+				"plugin":   plugin.Name,
+			},
 		}
 
 		// Add plugin-level aliases
@@ -93,6 +97,10 @@ func (r *RuntimePluginIntegration) addPluginCommands(rootCmd *cobra.Command, plu
 				Aliases: metadata.Aliases,
 				Short:   metadata.Description,
 				Long:    fmt.Sprintf("%s\n\nVersion: %s\nAuthor: %s", metadata.Description, metadata.Version, metadata.Author),
+				Annotations: map[string]string{
+					"category": "plugin",
+					"plugin":   plugin.Name,
+				},
 			}
 
 			// Add the single command to the group
@@ -166,11 +174,17 @@ func (r *RuntimePluginIntegration) createPluginCommand(plugin *sdk.LoadedPlugin,
 		cmd.Hidden = true
 	}
 
-	// Add category annotation
+	// Add annotations
+	cmd.Annotations = make(map[string]string)
+	
+	// Mark as a plugin command
+	cmd.Annotations["plugin"] = plugin.Name
+	
+	// Add category - default to "plugin" if not specified
 	if cmdInfo.Category != "" {
-		cmd.Annotations = map[string]string{
-			"category": cmdInfo.Category,
-		}
+		cmd.Annotations["category"] = cmdInfo.Category
+	} else {
+		cmd.Annotations["category"] = "plugin"
 	}
 
 	return cmd
