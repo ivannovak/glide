@@ -300,55 +300,58 @@ var Categories = map[string]CategoryInfo{
 	"core": {
 		Name:        "Core Commands",
 		Description: "Essential development commands",
-		Priority:    1,
-		Color:       color.New(color.FgYellow, color.Bold),
-	},
-	"docker": {
-		Name:        "Docker Management",
-		Description: "Container and service control",
-		Priority:    2,
-		Color:       color.New(color.FgYellow, color.Bold),
-	},
-	"testing": {
-		Name:        "Testing",
-		Description: "Test execution and coverage",
-		Priority:    3,
-		Color:       color.New(color.FgYellow, color.Bold),
-	},
-	"developer": {
-		Name:        "Development Tools",
-		Description: "Code quality and utilities",
-		Priority:    4,
-		Color:       color.New(color.FgYellow, color.Bold),
-	},
-	"database": {
-		Name:        "Database",
-		Description: "Database management and access",
-		Priority:    5,
-		Color:       color.New(color.FgYellow, color.Bold),
-	},
-	"setup": {
-		Name:        "Setup & Configuration",
-		Description: "Project setup and configuration",
-		Priority:    6,
-		Color:       color.New(color.FgYellow, color.Bold),
-	},
-	"plugin": {
-		Name:        "Plugin Commands",
-		Description: "Commands from installed plugins",
-		Priority:    7,
-		Color:       color.New(color.FgYellow, color.Bold),
-	},
-	"help": {
-		Name:        "Help & Documentation",
-		Description: "Help topics and guides",
-		Priority:    8,
+		Priority:    10,
 		Color:       color.New(color.FgYellow, color.Bold),
 	},
 	"global": {
 		Name:        "Global Commands",
 		Description: "Multi-worktree management",
-		Priority:    9,
+		Priority:    20,
+		Color:       color.New(color.FgYellow, color.Bold),
+	},
+	"setup": {
+		Name:        "Setup & Configuration",
+		Description: "Project setup and configuration",
+		Priority:    30,
+		Color:       color.New(color.FgYellow, color.Bold),
+	},
+	// Project-specific categories (40-60) - will be moved to plugins
+	"docker": {
+		Name:        "Docker Management",
+		Description: "Container and service control",
+		Priority:    40,
+		Color:       color.New(color.FgYellow, color.Bold),
+	},
+	"testing": {
+		Name:        "Testing",
+		Description: "Test execution and coverage",
+		Priority:    50,
+		Color:       color.New(color.FgYellow, color.Bold),
+	},
+	"developer": {
+		Name:        "Development Tools",
+		Description: "Code quality and utilities",
+		Priority:    60,
+		Color:       color.New(color.FgYellow, color.Bold),
+	},
+	"database": {
+		Name:        "Database",
+		Description: "Database management and access",
+		Priority:    70,
+		Color:       color.New(color.FgYellow, color.Bold),
+	},
+	// Plugin commands get their own section
+	"plugin": {
+		Name:        "Plugin Commands",
+		Description: "Commands from installed plugins",
+		Priority:    80,
+		Color:       color.New(color.FgYellow, color.Bold),
+	},
+	// Help is always last
+	"help": {
+		Name:        "Help & Documentation",
+		Description: "Help topics and guides",
+		Priority:    90,
 		Color:       color.New(color.FgYellow, color.Bold),
 	},
 }

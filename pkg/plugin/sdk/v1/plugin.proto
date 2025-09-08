@@ -40,6 +40,7 @@ message PluginMetadata {
   repeated string tags = 9;  // Tags for categorization (e.g., "database", "testing")
   map<string, string> extra = 10;
   repeated string aliases = 11;  // Plugin name aliases (e.g., "db" for "database")
+  bool namespaced = 12;  // If true, commands are namespaced under plugin name (default: true)
 }
 
 message CommandInfo {

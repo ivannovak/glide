@@ -27,6 +27,7 @@ Each ADR follows this format:
 | [ADR-004](ADR-004-error-handling-approach.md) | Error Handling Approach | Accepted | 2025-09-03 |
 | [ADR-005](ADR-005-testing-strategy.md) | Testing Strategy | Accepted | 2025-09-03 |
 | [ADR-006](ADR-006-branding-customization.md) | Branding Customization System | Accepted | 2025-09-03 |
+| [ADR-007](ADR-007-plugin-architecture-evolution.md) | Plugin Architecture Evolution | Accepted | 2025-01-08 |
 
 ## Creating New ADRs
 

@@ -86,82 +86,10 @@ func (b *Builder) registerCommands() {
 		Description: "Context-aware help and guidance",
 	})
 
-	// Docker commands
-	b.registry.Register("up", func() *cobra.Command {
-		return NewUpCommand(b.app.ProjectContext, b.app.Config)
-	}, Metadata{
-		Name:        "up",
-		Category:    CategoryDocker,
-		Description: "Start Docker containers",
-	})
-
-	b.registry.Register("down", func() *cobra.Command {
-		return NewDownCommand(b.app.ProjectContext, b.app.Config)
-	}, Metadata{
-		Name:        "down",
-		Category:    CategoryDocker,
-		Description: "Stop Docker containers",
-	})
-
-	b.registry.Register("status", func() *cobra.Command {
-		return NewStatusCommand(b.app.ProjectContext, b.app.Config)
-	}, Metadata{
-		Name:        "status",
-		Category:    CategoryDocker,
-		Description: "Show container status",
-	})
-
-	b.registry.Register("logs", func() *cobra.Command {
-		return NewLogsCommand(b.app.ProjectContext, b.app.Config)
-	}, Metadata{
-		Name:        "logs",
-		Category:    CategoryDocker,
-		Description: "View container logs",
-	})
-
-	b.registry.Register("shell", func() *cobra.Command {
-		return NewShellCommand(b.app.ProjectContext, b.app.Config)
-	}, Metadata{
-		Name:        "shell",
-		Category:    CategoryDocker,
-		Description: "Attach to a container shell",
-	})
-
-	// Developer commands
-	b.registry.Register("test", func() *cobra.Command {
-		return NewTestCommand(b.app.ProjectContext, b.app.Config)
-	}, Metadata{
-		Name:        "test",
-		Category:    CategoryTesting,
-		Description: "Run Pest tests with full argument pass-through",
-		Aliases:     []string{"t"},
-	})
-
-	b.registry.Register("artisan", func() *cobra.Command {
-		return NewArtisanCommand(b.app.ProjectContext, b.app.Config)
-	}, Metadata{
-		Name:        "artisan",
-		Category:    CategoryDeveloper,
-		Description: "Run Artisan commands via Docker",
-		Aliases:     []string{"a"},
-	})
-
-	b.registry.Register("composer", func() *cobra.Command {
-		return NewComposerCommand(b.app.ProjectContext, b.app.Config)
-	}, Metadata{
-		Name:        "composer",
-		Category:    CategoryDeveloper,
-		Description: "Run Composer commands via Docker",
-		Aliases:     []string{"c"},
-	})
-
-	b.registry.Register("lint", func() *cobra.Command {
-		return NewLintCommand(b.app.ProjectContext, b.app.Config)
-	}, Metadata{
-		Name:        "lint",
-		Category:    CategoryDeveloper,
-		Description: "Run PHP CS Fixer",
-	})
+	// Project-specific commands have been moved to glide-plugin-chirocat
+	// Docker commands: up, down, status, logs, shell
+	// Developer commands: test, artisan, composer, lint
+	// These are now provided via the runtime plugin system
 
 	b.registry.Register("self-update", func() *cobra.Command {
 		return NewSelfUpdateCommand(b.app.ProjectContext, b.app.Config)

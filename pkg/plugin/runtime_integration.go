@@ -59,7 +59,44 @@ func (r *RuntimePluginIntegration) addPluginCommands(rootCmd *cobra.Command, plu
 
 	// Get metadata
 	metadata := plugin.Metadata
+	
+	// Check if plugin wants global registration (not namespaced)
+	// Default to namespaced (true) if not specified
+	namespaced := metadata.Namespaced || metadata.Namespaced == false && metadata.Namespaced
+	if metadata.GetNamespaced() == false {
+		namespaced = false
+	} else {
+		// Default to true for backward compatibility
+		namespaced = true
+	}
 
+	// If plugin requests global registration (not namespaced)
+	if !namespaced {
+		// Add commands directly to root
+		for _, cmd := range commandList.Commands {
+			pluginCommand := r.createPluginCommand(plugin, glidePlugin, cmd)
+			// Mark as coming from a plugin for help display
+			if pluginCommand.Annotations == nil {
+				pluginCommand.Annotations = make(map[string]string)
+			}
+			pluginCommand.Annotations["plugin"] = plugin.Name
+			pluginCommand.Annotations["global_plugin"] = "true"
+			
+			// Check for conflicts
+			for _, existing := range rootCmd.Commands() {
+				if existing.Name() == pluginCommand.Name() {
+					fmt.Fprintf(os.Stderr, "Warning: plugin %s command '%s' conflicts with existing command, skipping\n", 
+						plugin.Name, pluginCommand.Name())
+					continue
+				}
+			}
+			
+			rootCmd.AddCommand(pluginCommand)
+		}
+		return nil
+	}
+
+	// Default namespaced behavior (existing code)
 	// Create a group command for the plugin if it has multiple commands
 	if len(commandList.Commands) > 1 {
 		// Create group command
@@ -109,7 +146,7 @@ func (r *RuntimePluginIntegration) addPluginCommands(rootCmd *cobra.Command, plu
 
 			rootCmd.AddCommand(pluginCmd)
 		} else {
-			// No plugin aliases - add command directly to root
+			// No plugin aliases - add command directly to root (but still namespaced)
 			pluginCommand := r.createPluginCommand(plugin, glidePlugin, cmd)
 			rootCmd.AddCommand(pluginCommand)
 		}

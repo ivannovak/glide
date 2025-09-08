@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v5.29.3
-// source: plugin.proto
+// source: pkg/plugin/sdk/v1/plugin.proto
 
 package v1
 
@@ -318,5 +318,5 @@ var GlidePlugin_ServiceDesc = grpc.ServiceDesc{
 			ClientStreams: true,
 		},
 	},
-	Metadata: "plugin.proto",
+	Metadata: "pkg/plugin/sdk/v1/plugin.proto",
 }
