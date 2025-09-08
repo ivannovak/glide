@@ -118,10 +118,16 @@ func NewManager(config *ManagerConfig) *Manager {
 		config = DefaultConfig()
 	}
 
+	validator := NewValidator(config.SecurityStrict)
+	// Add all configured plugin directories as trusted paths
+	for _, dir := range config.PluginDirs {
+		validator.AddTrustedPath(dir)
+	}
+
 	return &Manager{
 		plugins:    make(map[string]*LoadedPlugin),
 		discoverer: NewDiscoverer(config.PluginDirs),
-		validator:  NewValidator(config.SecurityStrict),
+		validator:  validator,
 		cache:      NewCache(config.CacheTimeout),
 		config:     config,
 	}
