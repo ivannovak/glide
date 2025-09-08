@@ -677,9 +677,15 @@ func (hc *HelpCommand) getPluginSubcommands(rootCmd *cobra.Command, pluginName s
 
 // shouldShowCategory determines if a category should be shown based on context
 func (hc *HelpCommand) shouldShowCategory(category string) bool {
-	// No context means show everything except global
+	// No context means show everything except global and development categories
 	if hc.ProjectContext == nil {
-		return category != "global"
+		// Hide categories that require a project context
+		switch category {
+		case "global", "docker", "testing", "developer", "database":
+			return false
+		default:
+			return true
+		}
 	}
 
 	switch category {
@@ -716,8 +722,13 @@ func (hc *HelpCommand) shouldShowCommand(cmd *cobra.Command) bool {
 
 	// No project context means we're not in a project
 	if hc.ProjectContext == nil {
-		// Only show "always" commands when not in a project
-		return visibility == "always"
+		// Show commands that are always visible or explicitly allow non-project contexts
+		switch visibility {
+		case "always", "non-root":
+			return true
+		default:
+			return false
+		}
 	}
 
 	// Check visibility based on project context
@@ -745,7 +756,7 @@ func (hc *HelpCommand) shouldShowCommand(cmd *cobra.Command) bool {
 	
 	case "non-root":
 		// Show everywhere except multi-worktree root
-		if hc.ProjectContext.DevelopmentMode == context.ModeMultiWorktree {
+		if hc.ProjectContext != nil && hc.ProjectContext.DevelopmentMode == context.ModeMultiWorktree {
 			return hc.ProjectContext.Location != context.LocationRoot
 		}
 		return true
