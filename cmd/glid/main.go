@@ -105,14 +105,7 @@ func Execute() error {
 	// Initialize CLI with application
 	cli := cliPkg.New(application)
 
-	// Add commands based on development mode
-	if ctx.DevelopmentMode == context.ModeMultiWorktree {
-		// Add global command group
-		globalCmd := cli.NewGlobalCommand()
-		rootCmd.AddCommand(globalCmd)
-	}
-
-	// Add local commands (includes setup, config, plugins, help, and all other registered commands)
+	// Add local commands (includes setup, config, plugins, help, global, and all other registered commands)
 	cli.AddLocalCommands(rootCmd)
 
 	// Disable Cobra's default help command since we have our own
