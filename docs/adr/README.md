@@ -27,7 +27,9 @@ Each ADR follows this format:
 | [ADR-004](ADR-004-error-handling-approach.md) | Error Handling Approach | Accepted | 2025-09-03 |
 | [ADR-005](ADR-005-testing-strategy.md) | Testing Strategy | Accepted | 2025-09-03 |
 | [ADR-006](ADR-006-branding-customization.md) | Branding Customization System | Accepted | 2025-09-03 |
-| [ADR-007](ADR-007-plugin-architecture-evolution.md) | Plugin Architecture Evolution | Accepted | 2025-01-08 |
+| [ADR-007](ADR-007-plugin-architecture-evolution.md) | Plugin Architecture Evolution | Accepted | 2025-09-08 |
+| [ADR-008](ADR-008-generic-registry-pattern.md) | Generic Registry Pattern | Accepted | 2025-09-09 |
+| [ADR-009](ADR-009-command-builder-pattern.md) | Shell Command Builder Pattern | Accepted | 2025-09-09 |
 
 ## Creating New ADRs
 
