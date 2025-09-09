@@ -53,7 +53,7 @@ func TestRegistry_RegisterWithAliases(t *testing.T) {
 	}
 
 	// Register plugin
-	err := registry.Register(plugin)
+	err := registry.RegisterPlugin(plugin)
 	assert.NoError(t, err)
 
 	// Verify plugin can be retrieved by name
@@ -82,7 +82,7 @@ func TestRegistry_AliasConflicts(t *testing.T) {
 		name:    "database",
 		aliases: []string{"db"},
 	}
-	err := registry.Register(plugin1)
+	err := registry.RegisterPlugin(plugin1)
 	assert.NoError(t, err)
 
 	// Try to register second plugin with same alias
@@ -90,18 +90,18 @@ func TestRegistry_AliasConflicts(t *testing.T) {
 		name:    "debug",
 		aliases: []string{"db"}, // Conflict!
 	}
-	err = registry.Register(plugin2)
+	err = registry.RegisterPlugin(plugin2)
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "plugin alias db already registered")
+	assert.Contains(t, err.Error(), "alias db already registered")
 
 	// Try to register plugin with name that conflicts with existing alias
 	plugin3 := &MockAliasPlugin{
 		name:    "db", // Conflicts with alias
 		aliases: []string{},
 	}
-	err = registry.Register(plugin3)
+	err = registry.RegisterPlugin(plugin3)
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "plugin name db conflicts with existing alias")
+	assert.Contains(t, err.Error(), "item name db conflicts with existing alias")
 }
 
 func TestRegistry_ResolveAlias(t *testing.T) {
@@ -111,7 +111,7 @@ func TestRegistry_ResolveAlias(t *testing.T) {
 		name:    "composer",
 		aliases: []string{"c", "comp"},
 	}
-	registry.Register(plugin)
+	registry.RegisterPlugin(plugin)
 
 	// Test resolving aliases
 	canonical, ok := registry.ResolveAlias("c")
@@ -140,11 +140,11 @@ func TestRegistry_GetAliases(t *testing.T) {
 		name:    "terraform",
 		aliases: []string{"tf", "terra"},
 	}
-	registry.Register(plugin)
+	registry.RegisterPlugin(plugin)
 
 	// Get aliases for existing plugin
 	aliases := registry.GetAliases("terraform")
-	assert.Equal(t, []string{"tf", "terra"}, aliases)
+	assert.Equal(t, []string{"terra", "tf"}, aliases) // Aliases are sorted alphabetically
 
 	// Get aliases for non-existent plugin
 	aliases = registry.GetAliases("nonexistent")
@@ -158,7 +158,7 @@ func TestRegistry_IsAlias(t *testing.T) {
 		name:    "kubernetes",
 		aliases: []string{"k8s", "k"},
 	}
-	registry.Register(plugin)
+	registry.RegisterPlugin(plugin)
 
 	// Test checking aliases
 	assert.True(t, registry.IsAlias("k8s"))
@@ -178,7 +178,7 @@ func TestRegistry_MultiplePluginsWithAliases(t *testing.T) {
 	}
 
 	for _, p := range plugins {
-		err := registry.Register(p)
+		err := registry.RegisterPlugin(p)
 		assert.NoError(t, err)
 	}
 
@@ -220,7 +220,7 @@ func TestRegistry_LoadAllWithAliases(t *testing.T) {
 		name:    "example",
 		aliases: []string{"ex", "e"},
 	}
-	err := registry.Register(plugin)
+	err := registry.RegisterPlugin(plugin)
 	assert.NoError(t, err)
 
 	// Create root command
@@ -242,11 +242,7 @@ func TestRegistry_LoadAllWithAliases(t *testing.T) {
 // Test global registry functions
 func TestGlobalRegistry_WithAliases(t *testing.T) {
 	// Clear global registry for test
-	globalRegistry = &Registry{
-		plugins: make(map[string]Plugin),
-		aliases: make(map[string]string),
-		config:  make(map[string]interface{}),
-	}
+	globalRegistry = NewRegistry()
 
 	// Register plugin with aliases using global function
 	plugin := &MockAliasPlugin{

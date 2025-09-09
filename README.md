@@ -36,6 +36,36 @@ cd glide
 sudo mv dist/glid-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m) /usr/local/bin/glid
 ```
 
+### Shell Completion
+
+Enable tab autocompletion for your shell:
+
+#### Zsh (Oh My Zsh)
+```bash
+mkdir -p ~/.oh-my-zsh/completions
+glid completion zsh > ~/.oh-my-zsh/completions/_glid
+source ~/.zshrc
+```
+
+#### Zsh (Standard)
+```bash
+# Add to ~/.zshrc
+source <(glid completion zsh)
+```
+
+#### Bash
+```bash
+# Add to ~/.bashrc or ~/.bash_profile
+source <(glid completion bash)
+```
+
+#### Fish
+```bash
+glid completion fish > ~/.config/fish/completions/glid.fish
+```
+
+After installation, tab completion will work for all Glide commands, subcommands, flags, and plugin commands.
+
 ## Quick Start
 
 ### Initial Setup

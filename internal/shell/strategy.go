@@ -1,12 +1,10 @@
 package shell
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
 	"time"
 )
 
@@ -26,68 +24,9 @@ func NewBasicStrategy() *BasicStrategy {
 
 // Execute runs the command with basic execution
 func (s *BasicStrategy) Execute(ctx context.Context, cmd *Command) (*Result, error) {
-	start := time.Now()
-
-	var execCmd *exec.Cmd
-	if ctx != nil {
-		execCmd = exec.CommandContext(ctx, cmd.Name, cmd.Args...)
-	} else {
-		execCmd = exec.Command(cmd.Name, cmd.Args...)
-	}
-
-	// Set working directory if specified
-	if cmd.WorkingDir != "" {
-		execCmd.Dir = cmd.WorkingDir
-	}
-
-	// Set environment if specified
-	if len(cmd.Environment) > 0 {
-		execCmd.Env = os.Environ()
-		execCmd.Env = append(execCmd.Env, cmd.Environment...)
-	}
-
-	// Handle output capture
-	var stdout, stderr bytes.Buffer
-	if cmd.Options.CaptureOutput || cmd.CaptureOutput {
-		execCmd.Stdout = &stdout
-		execCmd.Stderr = &stderr
-	} else if cmd.Options.OutputWriter != nil {
-		execCmd.Stdout = cmd.Options.OutputWriter
-		execCmd.Stderr = cmd.Options.ErrorWriter
-	} else if cmd.Stdout != nil {
-		execCmd.Stdout = cmd.Stdout
-		execCmd.Stderr = cmd.Stderr
-	}
-
-	// Handle stdin
-	if cmd.Stdin != nil {
-		execCmd.Stdin = cmd.Stdin
-	}
-
-	// Execute the command
-	err := execCmd.Run()
-	duration := time.Since(start)
-
-	result := &Result{
-		Stdout:   stdout.Bytes(),
-		Stderr:   stderr.Bytes(),
-		Duration: duration,
-	}
-
-	if err != nil {
-		if ctx != nil && ctx.Err() == context.DeadlineExceeded {
-			result.Timeout = true
-			result.Error = fmt.Errorf("command timed out")
-		} else if exitError, ok := err.(*exec.ExitError); ok {
-			result.ExitCode = exitError.ExitCode()
-		} else {
-			result.ExitCode = -1
-		}
-		if !result.Timeout {
-			result.Error = err
-		}
-	}
-
+	builder := NewCommandBuilder(cmd).WithContext(ctx)
+	execCmd, stdout, stderr := builder.BuildWithMixedOutput()
+	result := builder.ExecuteAndCollectResult(execCmd, stdout, stderr)
 	return result, nil
 }
 
@@ -118,8 +57,15 @@ func (s *TimeoutStrategy) Execute(ctx context.Context, cmd *Command) (*Result, e
 		timeout = cmd.Timeout
 	}
 
-	// Create a timeout context
-	timeoutCtx, cancel := context.WithTimeout(context.Background(), timeout)
+	// Create a timeout context derived from the passed context
+	// This ensures parent context cancellation is respected
+	var timeoutCtx context.Context
+	var cancel context.CancelFunc
+	if ctx != nil {
+		timeoutCtx, cancel = context.WithTimeout(ctx, timeout)
+	} else {
+		timeoutCtx, cancel = context.WithTimeout(context.Background(), timeout)
+	}
 	defer cancel()
 
 	// Use basic strategy with timeout context
@@ -163,62 +109,9 @@ func NewStreamingStrategy(output, error io.Writer) *StreamingStrategy {
 
 // Execute runs the command with streaming output
 func (s *StreamingStrategy) Execute(ctx context.Context, cmd *Command) (*Result, error) {
-	start := time.Now()
-
-	var execCmd *exec.Cmd
-	if ctx != nil {
-		execCmd = exec.CommandContext(ctx, cmd.Name, cmd.Args...)
-	} else {
-		execCmd = exec.Command(cmd.Name, cmd.Args...)
-	}
-
-	// Set working directory if specified
-	if cmd.WorkingDir != "" {
-		execCmd.Dir = cmd.WorkingDir
-	}
-
-	// Set environment if specified
-	if len(cmd.Environment) > 0 {
-		execCmd.Env = os.Environ()
-		execCmd.Env = append(execCmd.Env, cmd.Environment...)
-	}
-
-	// Stream output - use command options if provided, otherwise use strategy defaults
-	outputWriter := s.outputWriter
-	errorWriter := s.errorWriter
-
-	if cmd.Options.OutputWriter != nil {
-		outputWriter = cmd.Options.OutputWriter
-	}
-	if cmd.Options.ErrorWriter != nil {
-		errorWriter = cmd.Options.ErrorWriter
-	}
-
-	execCmd.Stdout = outputWriter
-	execCmd.Stderr = errorWriter
-
-	// Handle stdin
-	if cmd.Stdin != nil {
-		execCmd.Stdin = cmd.Stdin
-	}
-
-	// Execute the command
-	err := execCmd.Run()
-	duration := time.Since(start)
-
-	result := &Result{
-		Duration: duration,
-	}
-
-	if err != nil {
-		if exitError, ok := err.(*exec.ExitError); ok {
-			result.ExitCode = exitError.ExitCode()
-		} else {
-			result.ExitCode = -1
-		}
-		result.Error = err
-	}
-
+	builder := NewCommandBuilder(cmd).WithContext(ctx)
+	execCmd := builder.BuildWithStreaming(s.outputWriter, s.errorWriter)
+	result := builder.ExecuteAndCollectResult(execCmd, nil, nil)
 	return result, nil
 }
 
@@ -241,60 +134,26 @@ func NewPipeStrategy(input io.Reader) *PipeStrategy {
 
 // Execute runs the command with input piping
 func (s *PipeStrategy) Execute(ctx context.Context, cmd *Command) (*Result, error) {
-	start := time.Now()
+	// Create a defensive copy to avoid mutating the original command
+	cmdCopy := *cmd
 
-	var execCmd *exec.Cmd
-	if ctx != nil {
-		execCmd = exec.CommandContext(ctx, cmd.Name, cmd.Args...)
+	// Override stdin if strategy has input
+	if s.inputReader != nil && cmdCopy.Stdin == nil {
+		cmdCopy.Stdin = s.inputReader
+	}
+
+	builder := NewCommandBuilder(&cmdCopy).WithContext(ctx)
+
+	// Use capture or not based on command options
+	if cmdCopy.Options.CaptureOutput || cmdCopy.CaptureOutput {
+		execCmd, stdout, stderr := builder.BuildWithCapture()
+		result := builder.ExecuteAndCollectResult(execCmd, stdout, stderr)
+		return result, nil
 	} else {
-		execCmd = exec.Command(cmd.Name, cmd.Args...)
+		execCmd := builder.Build()
+		result := builder.ExecuteAndCollectResult(execCmd, nil, nil)
+		return result, nil
 	}
-
-	// Set working directory if specified
-	if cmd.WorkingDir != "" {
-		execCmd.Dir = cmd.WorkingDir
-	}
-
-	// Set environment if specified
-	if len(cmd.Environment) > 0 {
-		execCmd.Env = os.Environ()
-		execCmd.Env = append(execCmd.Env, cmd.Environment...)
-	}
-
-	// Set input pipe - use command stdin if provided, otherwise use strategy input
-	if cmd.Stdin != nil {
-		execCmd.Stdin = cmd.Stdin
-	} else if s.inputReader != nil {
-		execCmd.Stdin = s.inputReader
-	}
-
-	// Handle output capture
-	var stdout, stderr bytes.Buffer
-	if cmd.Options.CaptureOutput || cmd.CaptureOutput {
-		execCmd.Stdout = &stdout
-		execCmd.Stderr = &stderr
-	}
-
-	// Execute the command
-	err := execCmd.Run()
-	duration := time.Since(start)
-
-	result := &Result{
-		Stdout:   stdout.Bytes(),
-		Stderr:   stderr.Bytes(),
-		Duration: duration,
-	}
-
-	if err != nil {
-		if exitError, ok := err.(*exec.ExitError); ok {
-			result.ExitCode = exitError.ExitCode()
-		} else {
-			result.ExitCode = -1
-		}
-		result.Error = err
-	}
-
-	return result, nil
 }
 
 // Name returns the strategy name

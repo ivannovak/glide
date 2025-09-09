@@ -35,7 +35,7 @@ func NewTestHarness(t *testing.T) *TestHarness {
 
 // RegisterPlugin registers a plugin in the test harness
 func (h *TestHarness) RegisterPlugin(p plugin.Plugin) error {
-	err := h.Registry.Register(p)
+	err := h.Registry.RegisterPlugin(p)
 	if err != nil {
 		return err
 	}

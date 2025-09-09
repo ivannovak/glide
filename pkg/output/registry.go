@@ -3,7 +3,8 @@ package output
 import (
 	"fmt"
 	"io"
-	"sync"
+
+	"github.com/ivannovak/glide/pkg/registry"
 )
 
 // Factory is a function that creates a Formatter
@@ -11,8 +12,7 @@ type Factory func(w io.Writer, noColor, quiet bool) Formatter
 
 // Registry manages formatter registration and creation
 type Registry struct {
-	mu        sync.RWMutex
-	factories map[Format]Factory
+	*registry.Registry[Factory]
 }
 
 // globalRegistry is the default registry instance
@@ -21,29 +21,18 @@ var globalRegistry = NewRegistry()
 // NewRegistry creates a new formatter registry
 func NewRegistry() *Registry {
 	return &Registry{
-		factories: make(map[Format]Factory),
+		Registry: registry.New[Factory](),
 	}
 }
 
 // Register adds a formatter factory to the registry
 func (r *Registry) Register(format Format, factory Factory) error {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	if _, exists := r.factories[format]; exists {
-		return fmt.Errorf("formatter %s already registered", format)
-	}
-
-	r.factories[format] = factory
-	return nil
+	return r.Registry.Register(string(format), factory)
 }
 
 // Create creates a formatter instance for the given format
 func (r *Registry) Create(format Format, w io.Writer, noColor, quiet bool) (Formatter, error) {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-
-	factory, ok := r.factories[format]
+	factory, ok := r.Get(string(format))
 	if !ok {
 		return nil, fmt.Errorf("unknown format: %s", format)
 	}
@@ -53,21 +42,15 @@ func (r *Registry) Create(format Format, w io.Writer, noColor, quiet bool) (Form
 
 // IsRegistered checks if a format is registered
 func (r *Registry) IsRegistered(format Format) bool {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-
-	_, ok := r.factories[format]
-	return ok
+	return r.Has(string(format))
 }
 
 // GetFormats returns all registered formats
 func (r *Registry) GetFormats() []Format {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-
-	formats := make([]Format, 0, len(r.factories))
-	for format := range r.factories {
-		formats = append(formats, format)
+	names := r.ListNames()
+	formats := make([]Format, len(names))
+	for i, name := range names {
+		formats[i] = Format(name)
 	}
 	return formats
 }

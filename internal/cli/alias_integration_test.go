@@ -173,7 +173,7 @@ func TestCLI_AliasConflictPrevention(t *testing.T) {
 		Name: "f",
 	})
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "command name f conflicts with existing alias")
+	assert.Contains(t, err.Error(), "item name f conflicts with existing alias")
 }
 
 // Helper function to find a command by name

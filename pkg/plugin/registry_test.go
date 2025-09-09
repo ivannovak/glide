@@ -25,7 +25,7 @@ func TestRegistry(t *testing.T) {
 		reg := plugin.NewRegistry()
 		p := plugintest.NewMockPlugin("test-plugin")
 
-		err := reg.Register(p)
+		err := reg.RegisterPlugin(p)
 		require.NoError(t, err)
 
 		// Plugin should be in registry
@@ -37,7 +37,7 @@ func TestRegistry(t *testing.T) {
 	t.Run("register nil plugin", func(t *testing.T) {
 		reg := plugin.NewRegistry()
 
-		err := reg.Register(nil)
+		err := reg.RegisterPlugin(nil)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "nil plugin")
 	})
@@ -46,7 +46,7 @@ func TestRegistry(t *testing.T) {
 		reg := plugin.NewRegistry()
 		p := plugintest.NewMockPlugin("")
 
-		err := reg.Register(p)
+		err := reg.RegisterPlugin(p)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "must have a name")
 	})
@@ -57,10 +57,10 @@ func TestRegistry(t *testing.T) {
 		p2 := plugintest.NewMockPlugin("test-plugin")
 		p2.VersionValue = "2.0.0"
 
-		err := reg.Register(p1)
+		err := reg.RegisterPlugin(p1)
 		require.NoError(t, err)
 
-		err = reg.Register(p2)
+		err = reg.RegisterPlugin(p2)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "already registered")
 	})
@@ -69,7 +69,7 @@ func TestRegistry(t *testing.T) {
 		reg := plugin.NewRegistry()
 		p := plugintest.NewMockPlugin("test-plugin")
 
-		err := reg.Register(p)
+		err := reg.RegisterPlugin(p)
 		require.NoError(t, err)
 
 		// Get existing plugin
@@ -92,9 +92,9 @@ func TestRegistry(t *testing.T) {
 		p3 := plugintest.NewMockPlugin("plugin3")
 		p3.VersionValue = "3.0.0"
 
-		require.NoError(t, reg.Register(p1))
-		require.NoError(t, reg.Register(p2))
-		require.NoError(t, reg.Register(p3))
+		require.NoError(t, reg.RegisterPlugin(p1))
+		require.NoError(t, reg.RegisterPlugin(p2))
+		require.NoError(t, reg.RegisterPlugin(p3))
 
 		plugins := reg.List()
 		assert.Len(t, plugins, 3)
@@ -113,7 +113,7 @@ func TestRegistry(t *testing.T) {
 		reg := plugin.NewRegistry()
 		p := plugintest.NewMockPlugin("test-plugin")
 
-		err := reg.Register(p)
+		err := reg.RegisterPlugin(p)
 		require.NoError(t, err)
 
 		// Set configuration
@@ -139,7 +139,7 @@ func TestRegistry(t *testing.T) {
 		p := plugintest.NewMockPlugin("test-plugin").
 			WithConfigError(errors.New("config error"))
 
-		err := reg.Register(p)
+		err := reg.RegisterPlugin(p)
 		require.NoError(t, err)
 
 		root := &cobra.Command{Use: "test"}
@@ -154,7 +154,7 @@ func TestRegistry(t *testing.T) {
 		p := plugintest.NewMockPlugin("test-plugin").
 			WithError(errors.New("register error"))
 
-		err := reg.Register(p)
+		err := reg.RegisterPlugin(p)
 		require.NoError(t, err)
 
 		root := &cobra.Command{Use: "test"}
@@ -232,7 +232,7 @@ func TestRegistryConcurrency(t *testing.T) {
 		for i := 0; i < 10; i++ {
 			go func(id int) {
 				p := plugintest.NewMockPlugin("concurrent-plugin")
-				err := reg.Register(p)
+				err := reg.RegisterPlugin(p)
 				if err != nil {
 					errors <- err
 				}
@@ -266,7 +266,7 @@ func TestRegistryConcurrency(t *testing.T) {
 		for i := 0; i < 5; i++ {
 			name := string(rune('a' + i))
 			p := plugintest.NewMockPlugin(name)
-			require.NoError(t, reg.Register(p))
+			require.NoError(t, reg.RegisterPlugin(p))
 		}
 
 		// Concurrent reads should work fine

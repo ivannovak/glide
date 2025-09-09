@@ -229,7 +229,7 @@ func TestRegistry_AliasConflicts(t *testing.T) {
 		Name: "a",
 	})
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "command name a conflicts with existing alias")
+	assert.Contains(t, err.Error(), "item name a conflicts with existing alias")
 }
 
 func TestRegistry_ResolveAlias(t *testing.T) {
