@@ -8,6 +8,7 @@ import (
 	"strings"
 	"text/tabwriter"
 
+	"github.com/ivannovak/glide/pkg/branding"
 	"github.com/ivannovak/glide/pkg/plugin/sdk"
 	v1 "github.com/ivannovak/glide/pkg/plugin/sdk/v1"
 	"github.com/spf13/cobra"
@@ -50,8 +51,8 @@ func newPluginListCommand() *cobra.Command {
 			if len(plugins) == 0 {
 				fmt.Println("No plugins found.")
 				fmt.Println("\nTo install plugins, place them in:")
-				fmt.Println("  ~/.glide/plugins/")
-				fmt.Println("  /usr/local/lib/glide/plugins/")
+				fmt.Printf("  %s\n", branding.GetGlobalPluginDir())
+				fmt.Printf("  /usr/local/lib/%s/plugins/\n", branding.CommandName)
 				return nil
 			}
 
@@ -196,12 +197,7 @@ func newPluginInstallCommand() *cobra.Command {
 			}
 
 			// Determine installation directory
-			home, err := os.UserHomeDir()
-			if err != nil {
-				return fmt.Errorf("failed to get home directory: %w", err)
-			}
-
-			installDir := filepath.Join(home, ".glide", "plugins")
+			installDir := branding.GetGlobalPluginDir()
 			if err := os.MkdirAll(installDir, 0755); err != nil {
 				return fmt.Errorf("failed to create plugins directory: %w", err)
 			}
@@ -267,9 +263,10 @@ func newPluginRemoveCommand() *cobra.Command {
 			}
 
 			// Check multiple locations
+			pluginDir := branding.GetGlobalPluginDir()
 			locations := []string{
-				filepath.Join(home, ".glide", "plugins", "glide-plugin-"+pluginName),
-				filepath.Join(home, ".glide", "plugins", pluginName),
+				filepath.Join(pluginDir, "glide-plugin-"+pluginName),
+				filepath.Join(pluginDir, pluginName),
 			}
 
 			var pluginPath string

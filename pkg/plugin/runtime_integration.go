@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/ivannovak/glide/pkg/branding"
 	"github.com/ivannovak/glide/pkg/plugin/sdk"
 	v1 "github.com/ivannovak/glide/pkg/plugin/sdk/v1"
 	"github.com/spf13/cobra"
@@ -286,11 +287,7 @@ func ExecuteRuntimePlugin(pluginName, commandName string, args []string) error {
 
 // GetRuntimePluginPath returns the path to runtime plugins directory
 func GetRuntimePluginPath() string {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return ""
-	}
-	return filepath.Join(home, ".glide", "plugins")
+	return branding.GetGlobalPluginDir()
 }
 
 // IsRuntimePluginInstalled checks if a runtime plugin is installed
