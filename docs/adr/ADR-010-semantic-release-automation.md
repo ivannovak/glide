@@ -4,7 +4,7 @@
 Proposed
 
 ## Context
-Currently, the Mew CLI release process requires manual version management and tag creation. The workflow triggers on manually created tags or through workflow_dispatch with explicit version input. This approach has several limitations:
+Currently, the Glide CLI release process requires manual version management and tag creation. The workflow triggers on manually created tags or through workflow_dispatch with explicit version input. This approach has several limitations:
 
 1. **Manual Version Management**: Developers must manually determine version numbers based on changes
 2. **Inconsistent Release Notes**: Release notes are generated from git commits but lack standardized formatting
