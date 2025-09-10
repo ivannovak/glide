@@ -1,3 +1,10 @@
+## [0.8.1](https://github.com/ivannovak/glide/compare/v0.8.0...v0.8.1) (2025-09-10)
+
+
+### Bug Fixes
+
+* **plugin:** use branding configuration for plugin discovery ([#5](https://github.com/ivannovak/glide/issues/5)) ([8b9d2f5](https://github.com/ivannovak/glide/commit/8b9d2f55e94bfdd74eeded45e54f26610c3c1ae2))
+
 ## [0.8.0](https://github.com/ivannovak/glide/compare/v0.7.1...v0.8.0) (2025-09-10)
 
 
