@@ -4,12 +4,15 @@ package sdk
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path/filepath"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/hashicorp/go-hclog"
@@ -325,7 +328,7 @@ func (m *Manager) ExecuteCommand(pluginName, command string, args []string) erro
 	// Execute command
 	if cmdInfo.Interactive {
 		// Handle interactive command
-		return m.executeInteractive(plugin, command, args)
+		return m.ExecuteInteractive(plugin, command, args)
 	} else {
 		// Execute non-interactive command
 		req := &v1.ExecuteRequest{
@@ -354,19 +357,117 @@ func (m *Manager) ExecuteCommand(pluginName, command string, args []string) erro
 	return nil
 }
 
-// executeInteractive handles interactive commands
-func (m *Manager) executeInteractive(plugin *LoadedPlugin, command string, args []string) error {
-	// This is a simplified example - real implementation would:
-	// 1. Create PTY for terminal interaction
-	// 2. Set up bidirectional streaming
-	// 3. Handle signals and resize events
-	// 4. Stream stdin/stdout/stderr
-
-	fmt.Printf("Starting interactive session for %s %s\n", plugin.Name, command)
-
-	// In a real implementation, we would use StartInteractive with streaming
-	// For now, return a placeholder message
-	return fmt.Errorf("interactive commands not fully implemented in this example")
+// ExecuteInteractive handles interactive commands with bidirectional streaming
+func (m *Manager) ExecuteInteractive(plugin *LoadedPlugin, command string, args []string) error {
+	// Create context for the interactive session
+	ctx := context.Background()
+	
+	// Start the interactive stream with the plugin
+	stream, err := plugin.Plugin.StartInteractive(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to start interactive session: %w", err)
+	}
+	
+	// Send the command name as the first message so the plugin knows which command to execute
+	// Use a special message type or format to indicate this is the command routing message
+	if err := stream.Send(&v1.StreamMessage{
+		Type: v1.StreamMessage_STDIN,
+		Data: []byte(command),
+	}); err != nil {
+		return fmt.Errorf("failed to send command name: %w", err)
+	}
+	
+	// Create channels for communication
+	errCh := make(chan error, 3)
+	
+	// Handle stdin forwarding to the plugin
+	go func() {
+		buf := make([]byte, 4096)
+		for {
+			n, err := os.Stdin.Read(buf)
+			if err != nil {
+				if err != io.EOF {
+					errCh <- fmt.Errorf("stdin read error: %w", err)
+				}
+				return
+			}
+			
+			if err := stream.Send(&v1.StreamMessage{
+				Type: v1.StreamMessage_STDIN,
+				Data: buf[:n],
+			}); err != nil {
+				errCh <- fmt.Errorf("failed to send stdin: %w", err)
+				return
+			}
+		}
+	}()
+	
+	// Handle output from the plugin
+	go func() {
+		for {
+			msg, err := stream.Recv()
+			if err == io.EOF {
+				errCh <- nil
+				return
+			}
+			if err != nil {
+				errCh <- fmt.Errorf("stream recv error: %w", err)
+				return
+			}
+			
+			switch msg.Type {
+			case v1.StreamMessage_STDOUT:
+				os.Stdout.Write(msg.Data)
+			case v1.StreamMessage_STDERR:
+				os.Stderr.Write(msg.Data)
+			case v1.StreamMessage_EXIT:
+				if msg.ExitCode != 0 {
+					errCh <- fmt.Errorf("command exited with code %d", msg.ExitCode)
+				} else {
+					errCh <- nil
+				}
+				return
+			case v1.StreamMessage_ERROR:
+				errCh <- fmt.Errorf("plugin error: %s", msg.Error)
+				return
+			}
+		}
+	}()
+	
+	// Handle signals (Ctrl+C, etc.)
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+	defer signal.Stop(sigCh)
+	
+	go func() {
+		for sig := range sigCh {
+			var signalStr string
+			switch sig {
+			case syscall.SIGINT:
+				signalStr = "SIGINT"
+			case syscall.SIGTERM:
+				signalStr = "SIGTERM"
+			default:
+				continue
+			}
+			
+			if err := stream.Send(&v1.StreamMessage{
+				Type:   v1.StreamMessage_SIGNAL,
+				Signal: signalStr,
+			}); err != nil {
+				// Log error but don't fail the session
+				continue
+			}
+			
+			if sig == syscall.SIGTERM {
+				errCh <- nil
+				return
+			}
+		}
+	}()
+	
+	// Wait for completion
+	return <-errCh
 }
 
 // ListPlugins returns all loaded plugins

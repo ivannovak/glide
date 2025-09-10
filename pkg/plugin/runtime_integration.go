@@ -252,18 +252,8 @@ func (r *RuntimePluginIntegration) createPluginCommand(plugin *sdk.LoadedPlugin,
 
 // executeInteractiveCommand handles interactive command execution
 func (r *RuntimePluginIntegration) executeInteractiveCommand(ctx context.Context, plugin *sdk.LoadedPlugin, glidePlugin v1.GlidePluginClient, command string, args []string) error {
-	// For now, return a placeholder message
-	// In a complete implementation, this would set up bidirectional streaming
-	fmt.Printf("Starting interactive session for command: %s\n", command)
-	fmt.Println("Note: Interactive commands are not fully implemented in this example")
-
-	// In the real implementation, we would:
-	// 1. Create a streaming client
-	// 2. Set up PTY
-	// 3. Handle stdin/stdout/stderr streaming
-	// 4. Handle terminal resize and signals
-
-	return nil
+	// Use the manager's executeInteractive implementation which handles all the streaming
+	return r.manager.ExecuteInteractive(plugin, command, args)
 }
 
 // LoadAllRuntimePlugins is the main entry point for loading runtime plugins
