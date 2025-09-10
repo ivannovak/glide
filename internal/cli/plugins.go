@@ -256,12 +256,6 @@ func newPluginRemoveCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			pluginName := args[0]
 
-			// Find plugin path
-			home, err := os.UserHomeDir()
-			if err != nil {
-				return fmt.Errorf("failed to get home directory: %w", err)
-			}
-
 			// Check multiple locations
 			pluginDir := branding.GetGlobalPluginDir()
 			locations := []string{
