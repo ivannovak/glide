@@ -14,6 +14,7 @@ import (
 
 	"github.com/hashicorp/go-hclog"
 	plugin "github.com/hashicorp/go-plugin"
+	"github.com/ivannovak/glide/pkg/branding"
 	v1 "github.com/ivannovak/glide/pkg/plugin/sdk/v1"
 )
 
@@ -82,25 +83,26 @@ type ManagerConfig struct {
 
 // DefaultConfig returns default manager configuration
 func DefaultConfig() *ManagerConfig {
-	home, _ := os.UserHomeDir()
-
 	// Build plugin directories list
 	pluginDirs := []string{
-		filepath.Join(home, ".glide", "plugins"), // Global plugins
+		branding.GetGlobalPluginDir(), // Global plugins
 	}
 
-	// Add all ancestor .glide/plugins directories up to root or home
+	// Add all ancestor plugin directories up to root or home
 	ancestorDirs := findAncestorPluginDirs()
 	pluginDirs = append(pluginDirs, ancestorDirs...)
 
-	// Add current directory .glide/plugins if not already included
-	if !contains(pluginDirs, "./.glide/plugins") {
-		pluginDirs = append(pluginDirs, "./.glide/plugins")
+	// Add current directory plugins if not already included
+	localPluginDir := branding.GetLocalPluginDir(".")
+	if !contains(pluginDirs, localPluginDir) {
+		pluginDirs = append(pluginDirs, localPluginDir)
 	}
 
 	// Add system-wide plugin directory if it exists
-	if _, err := os.Stat("/usr/local/lib/glide/plugins"); err == nil {
-		pluginDirs = append(pluginDirs, "/usr/local/lib/glide/plugins")
+	// Use the branded command name for system directory
+	systemPluginDir := fmt.Sprintf("/usr/local/lib/%s/plugins", branding.CommandName)
+	if _, err := os.Stat(systemPluginDir); err == nil {
+		pluginDirs = append(pluginDirs, systemPluginDir)
 	}
 
 	return &ManagerConfig{
@@ -471,7 +473,7 @@ func (d *Discoverer) Scan() ([]*PluginInfo, error) {
 	return plugins, nil
 }
 
-// findAncestorPluginDirs walks up the directory tree looking for .glide/plugins directories
+// findAncestorPluginDirs walks up the directory tree looking for plugin directories
 func findAncestorPluginDirs() []string {
 	var dirs []string
 
@@ -492,8 +494,8 @@ func findAncestorPluginDirs() []string {
 			break
 		}
 
-		// Check if .glide/plugins exists in this directory
-		pluginDir := filepath.Join(current, ".glide", "plugins")
+		// Check if branded plugin directory exists in this directory
+		pluginDir := branding.GetLocalPluginDir(current)
 		if info, err := os.Stat(pluginDir); err == nil && info.IsDir() {
 			dirs = append(dirs, pluginDir)
 		}

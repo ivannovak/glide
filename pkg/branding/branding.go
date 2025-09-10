@@ -52,6 +52,31 @@ both single-repository and multi-worktree development modes.`,
 		capitalize(CommandName))
 }
 
+// GetPluginDirName returns the base directory name for plugins (e.g., ".glide")
+// This is derived from the ConfigFileName by removing the extension
+func GetPluginDirName() string {
+	// Extract base name from ConfigFileName
+	// e.g., ".glide.yml" -> ".glide", ".mycli.yml" -> ".mycli"
+	base := ConfigFileName
+	ext := filepath.Ext(base)
+	if ext != "" && ext != base {
+		// Only remove extension if there's a name before it
+		base = base[:len(base)-len(ext)]
+	}
+	return base
+}
+
+// GetGlobalPluginDir returns the path to the global plugins directory
+func GetGlobalPluginDir() string {
+	homeDir, _ := os.UserHomeDir()
+	return filepath.Join(homeDir, GetPluginDirName(), "plugins")
+}
+
+// GetLocalPluginDir returns the path to a local plugins directory
+func GetLocalPluginDir(baseDir string) string {
+	return filepath.Join(baseDir, GetPluginDirName(), "plugins")
+}
+
 // GetCompletionPath returns the path for shell completion files
 func GetCompletionPath(shell string) string {
 	var dir string
