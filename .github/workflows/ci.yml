@@ -1,11 +1,13 @@
 name: CI
 
+# Note: This workflow does NOT run on pushes to main to avoid duplicate runs.
+# The semantic-release workflow handles main branch and calls this workflow first.
 on:
   push:
-    branches: [main, develop]
+    branches: [develop]  # Only develop - semantic-release handles main branch
   pull_request:
     branches: [main]
-  workflow_call:  # Allow reuse from release workflow
+  workflow_call:  # Called by semantic-release and release workflows
 
 env:
   GO_VERSION: '1.24'

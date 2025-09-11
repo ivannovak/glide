@@ -1,5 +1,8 @@
 name: Semantic Release
 
+# This workflow creates releases using semantic-release based on commit messages.
+# IMPORTANT: It only runs AFTER all CI tests pass to ensure we never release broken code.
+
 on:
   push:
     branches:
@@ -13,8 +16,17 @@ permissions:
   packages: write
 
 jobs:
+  # First, run all CI tests to ensure code quality
+  test:
+    name: Run CI Tests
+    uses: ./.github/workflows/ci.yml
+    permissions:
+      contents: read
+      security-events: write
+
   release:
     name: Semantic Release
+    needs: test  # Only run if tests pass
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
