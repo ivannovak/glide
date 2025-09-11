@@ -121,9 +121,9 @@ func (s *LocalInteractiveSession) RunInteractiveLoop() error {
 
 			switch msg.Type {
 			case StreamMessage_STDOUT:
-				os.Stdout.Write(msg.Data)
+				_, _ = os.Stdout.Write(msg.Data)
 			case StreamMessage_STDERR:
-				os.Stderr.Write(msg.Data)
+				_, _ = os.Stderr.Write(msg.Data)
 			case StreamMessage_EXIT:
 				errCh <- nil
 				return
@@ -145,12 +145,12 @@ func (s *LocalInteractiveSession) RunInteractiveLoop() error {
 
 			switch sig {
 			case syscall.SIGINT:
-				s.Send(&StreamMessage{
+				_ = s.Send(&StreamMessage{
 					Type:   StreamMessage_SIGNAL,
 					Signal: "INT",
 				})
 			case syscall.SIGTERM:
-				s.Send(&StreamMessage{
+				_ = s.Send(&StreamMessage{
 					Type:   StreamMessage_SIGNAL,
 					Signal: "TERM",
 				})
@@ -191,9 +191,14 @@ func (s *PTYSession) Recv() (*StreamMessage, error) {
 		if err == io.EOF {
 			// Process has exited
 			if s.cmd.ProcessState != nil {
+				exitCode := s.cmd.ProcessState.ExitCode()
+				// Ensure exit code fits in int32 range
+				if exitCode < -2147483648 || exitCode > 2147483647 {
+					exitCode = 1 // Default error exit code
+				}
 				return &StreamMessage{
 					Type:     StreamMessage_EXIT,
-					ExitCode: int32(s.cmd.ProcessState.ExitCode()),
+					ExitCode: int32(exitCode), // #nosec G115 - bounds checked above
 				}, nil
 			}
 			return nil, io.EOF
@@ -212,7 +217,7 @@ func (s *PTYSession) Recv() (*StreamMessage, error) {
 
 func (s *PTYSession) Close() error {
 	if s.ptmx != nil {
-		s.ptmx.Close()
+		_ = s.ptmx.Close()
 	}
 	if s.cmd != nil && s.cmd.Process != nil {
 		return s.cmd.Process.Kill()
