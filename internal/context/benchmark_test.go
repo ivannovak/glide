@@ -170,8 +170,8 @@ func BenchmarkProjectContext_GetComposeCommand(b *testing.B) {
 	}
 }
 
-// BenchmarkProjectContext_CanUseGlobalCommands benchmarks global command check
-func BenchmarkProjectContext_CanUseGlobalCommands(b *testing.B) {
+// BenchmarkProjectContext_CanUseProjectCommands benchmarks project command check
+func BenchmarkProjectContext_CanUseProjectCommands(b *testing.B) {
 	ctx := &ProjectContext{
 		DevelopmentMode: ModeMultiWorktree,
 	}
@@ -180,7 +180,7 @@ func BenchmarkProjectContext_CanUseGlobalCommands(b *testing.B) {
 	b.ReportAllocs()
 
 	for i := 0; i < b.N; i++ {
-		canUse := ctx.CanUseGlobalCommands()
+		canUse := ctx.CanUseProjectCommands()
 		_ = canUse
 	}
 }

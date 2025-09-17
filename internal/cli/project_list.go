@@ -14,8 +14,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// GlobalListCommand handles the global list command
-type GlobalListCommand struct {
+// ProjectListCommand handles the project list command
+type ProjectListCommand struct {
 	ctx *context.ProjectContext
 	cfg *config.Config
 }
@@ -31,17 +31,17 @@ type WorktreeInfo struct {
 	HasContainers bool
 }
 
-// ExecuteGlobalList is called from global.go
-func ExecuteGlobalList(ctx *context.ProjectContext, cfg *config.Config, cmd *cobra.Command, args []string) error {
-	glc := &GlobalListCommand{
+// ExecuteProjectList is called from global.go
+func ExecuteProjectList(ctx *context.ProjectContext, cfg *config.Config, cmd *cobra.Command, args []string) error {
+	glc := &ProjectListCommand{
 		ctx: ctx,
 		cfg: cfg,
 	}
 	return glc.Execute(cmd, args)
 }
 
-// Execute runs the global list command
-func (c *GlobalListCommand) Execute(cmd *cobra.Command, args []string) error {
+// Execute runs the project list command
+func (c *ProjectListCommand) Execute(cmd *cobra.Command, args []string) error {
 	// Validate we're in multi-worktree mode
 	if err := ValidateMultiWorktreeMode(c.ctx, "list"); err != nil {
 		return err
@@ -119,7 +119,7 @@ func (c *GlobalListCommand) Execute(cmd *cobra.Command, args []string) error {
 }
 
 // getWorktreeInfo collects information about a worktree
-func (c *GlobalListCommand) getWorktreeInfo(path string, name string) *WorktreeInfo {
+func (c *ProjectListCommand) getWorktreeInfo(path string, name string) *WorktreeInfo {
 	info := &WorktreeInfo{
 		Name: name,
 		Path: path,
@@ -167,7 +167,7 @@ func (c *GlobalListCommand) getWorktreeInfo(path string, name string) *WorktreeI
 }
 
 // displayTable displays worktrees in table format
-func (c *GlobalListCommand) displayTable(worktrees []WorktreeInfo) {
+func (c *ProjectListCommand) displayTable(worktrees []WorktreeInfo) {
 	if len(worktrees) == 0 {
 		output.Warning("No worktrees found")
 		return
@@ -220,7 +220,7 @@ func (c *GlobalListCommand) displayTable(worktrees []WorktreeInfo) {
 }
 
 // displayJSON displays worktrees in JSON format
-func (c *GlobalListCommand) displayJSON(worktrees []WorktreeInfo) {
+func (c *ProjectListCommand) displayJSON(worktrees []WorktreeInfo) {
 	output.Println("[")
 	for i, w := range worktrees {
 		output.Printf("  {\n")
@@ -240,7 +240,7 @@ func (c *GlobalListCommand) displayJSON(worktrees []WorktreeInfo) {
 }
 
 // formatRelativeTime formats a time as relative to now
-func (c *GlobalListCommand) formatRelativeTime(t time.Time) string {
+func (c *ProjectListCommand) formatRelativeTime(t time.Time) string {
 	duration := time.Since(t)
 
 	if duration < time.Minute {

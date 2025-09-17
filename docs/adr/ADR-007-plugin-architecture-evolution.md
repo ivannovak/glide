@@ -24,7 +24,7 @@ Key issues identified:
   - `plugins` - Manage plugins  
   - `version` - Version information
   - `help` - Help system
-  - `global` - Multi-worktree management (when in that mode)
+  - `project` - Multi-worktree management (when in that mode)
   - `self-update` - Update Glide itself
 
 - **Project-specific commands** move to plugins:
@@ -98,7 +98,7 @@ type CategoryDefinition struct {
 - Plugin dependency management
 - Plugin versioning and compatibility
 - Central plugin registry/marketplace
-- Conflict resolution strategies for global commands
+- Conflict resolution strategies for project commands
 - Plugin configuration inheritance (global → project → local)
 
 ## Implementation

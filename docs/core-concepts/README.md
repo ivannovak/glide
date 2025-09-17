@@ -71,44 +71,50 @@ User → Glide → Plugin Discovery → Command Routing → Plugin Execution
 
 ## Development Modes
 
-### Standard Mode
+Glide supports two development modes that fundamentally change how you work with your project:
 
-Quick, non-interactive commands that run and exit:
+### Single-Repo Mode
+
+The default mode for standard development workflows:
 
 ```bash
-glid status      # Check and exit
-glid build       # Build and exit
-glid deploy      # Deploy and exit
+# All commands operate on your current branch
+git checkout feature-branch
+glid help  # Shows "Single-repo mode"
 ```
 
 **Characteristics:**
-- Fast execution
-- Scriptable
-- Composable with pipes
-- Good for automation
+- One active branch at a time
+- Simple, straightforward workflow
+- Traditional Git workflow
+- All plugin commands work on current branch
 
-### Interactive Mode
+### Multi-Worktree Mode
 
-Full terminal sessions for complex interactions:
+Advanced mode for parallel development across multiple features:
 
 ```bash
-glid shell       # Interactive container shell
-glid db console  # Interactive database console
-glid repl        # Interactive REPL
+# Enable multi-worktree mode
+glid setup
+
+# Now you have access to project commands
+glid project worktree feature-a
+glid project worktree feature-b
+glid project status  # See all worktrees
 ```
 
 **Characteristics:**
-- Full TTY support
-- Real-time interaction
-- Preserves colors and formatting
-- Ideal for debugging
+- Multiple features active simultaneously
+- Each worktree has isolated environment
+- Enables `project` command group
+- No context switching between features
 
-### Mode Detection
+### Switching Between Modes
 
-Glide automatically determines the mode based on:
-- Command requirements
-- TTY availability
-- User preferences
+Use `glid setup` to configure your development mode:
+- Converts project structure when switching
+- Preserves your work and configuration
+- Can switch back at any time
 
 ## Worktree Management
 
@@ -180,7 +186,7 @@ When you run a command, Glide checks in order:
 
 Plugins can register commands at different levels:
 
-**Global commands** (common operations):
+**Project-wide commands** (common operations):
 ```bash
 glid test
 glid build

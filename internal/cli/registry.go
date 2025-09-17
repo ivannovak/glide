@@ -38,7 +38,7 @@ const (
 	CategoryDeveloper Category = "developer"
 	CategorySetup     Category = "setup"
 	CategoryPlugin    Category = "plugin"
-	CategoryGlobal    Category = "global"
+	CategoryProject   Category = "project"
 	CategoryDebug     Category = "debug"
 	CategoryHelp      Category = "help"
 	CategoryYAML      Category = "yaml" // User-defined YAML commands

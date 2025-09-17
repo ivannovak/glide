@@ -45,27 +45,58 @@ glid context
 # List all available commands
 glid help
 
-# Run a command (example with docker)
-glid up        # Start your project
-glid status    # Check project status
-glid down      # Stop your project
+# Manage plugins
+glid plugins list
+
+# Update Glide itself
+glid self-update
 ```
 
 ## Core Concepts
 
 ### 🎭 Two Development Modes
 
-Glide operates in two modes to match your workflow:
+Glide supports two development modes to match your workflow:
 
-1. **Standard Mode** - Quick commands for immediate tasks
-2. **Interactive Mode** - Full terminal sessions for complex operations
+1. **Single-Repo Mode** - Standard development on one branch at a time
+2. **Multi-Worktree Mode** - Work on multiple features simultaneously with isolated environments
 
 ```bash
-# Standard mode - quick command
-glid status
+# Check your current mode
+glid help  # Shows mode in the header
 
-# Interactive mode - when you need a full session
-glid shell  # Opens interactive shell in your container
+# Switch between modes
+glid setup
+
+# In multi-worktree mode, additional commands become available
+glid project status     # Check all worktrees
+glid project worktree   # Create new worktrees
+```
+
+### 📝 YAML-Defined Commands
+
+Define custom commands directly in your `.glide.yml` configuration:
+
+```yaml
+commands:
+  # Simple format
+  build: docker build --no-cache .
+  test: go test ./...
+
+  # Structured format with metadata
+  deploy:
+    cmd: ./scripts/deploy.sh $1
+    alias: d
+    description: Deploy to environment
+    help: Deploy the application to staging or production
+    category: deployment
+```
+
+These commands become available immediately:
+```bash
+glid build              # Run your custom build command
+glid deploy staging     # Pass arguments with $1, $2, etc.
+glid d production       # Use aliases for frequently used commands
 ```
 
 ### 🔌 Plugin System
@@ -76,22 +107,33 @@ Extend Glide with custom commands specific to your team or project:
 # List installed plugins
 glid plugins list
 
-# Plugins provide seamless commands
-glid deploy staging    # From a deployment plugin
-glid db backup        # From a database plugin
+# Install a plugin from a local file
+glid plugins install /path/to/docker-plugin
+
+# Get info about an installed plugin
+glid plugins info docker-plugin
+
+# Remove an installed plugin
+glid plugins remove docker-plugin
 ```
 
-### 🌳 Worktree Support
+### 🌳 Multi-Worktree Development
 
-Work on multiple features without context switching:
+Glide supports advanced multi-worktree development for working on multiple features simultaneously:
 
 ```bash
-# Create a new worktree for a feature
-glid worktree feature/new-feature
+# Set up multi-worktree mode
+glid setup
 
-# Each worktree maintains its own environment
-cd worktrees/feature-new-feature
-glid up  # Isolated environment for this feature
+# After setup, use project commands to manage worktrees
+glid project worktree feature/new-feature  # Create a new worktree
+glid p worktree feature/new-feature       # Short alias
+
+# List all worktrees
+glid project list
+
+# Check status across all worktrees
+glid project status
 ```
 
 ## Documentation
@@ -112,12 +154,13 @@ Glide includes essential commands out of the box:
 
 | Command | Description |
 |---------|------------|
-| `context` | Show detected project information |
-| `help` | Display available commands |
-| `version` | Show Glide version |
-| `plugins` | Manage plugins |
-| `worktree` | Manage Git worktrees |
+| `setup` | Interactive setup and configuration |
+| `help` | Context-aware help and guidance |
+| `version` | Display version information |
+| `plugins` | Manage runtime plugins |
+| `completion` | Generate shell completion scripts |
 | `self-update` | Update Glide to the latest version |
+| `project` | Multi-worktree commands (when enabled) |
 
 *Additional commands are provided by plugins based on your project context.*
 

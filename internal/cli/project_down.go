@@ -16,23 +16,23 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// GlobalDownCommand handles the global down command
-type GlobalDownCommand struct {
+// ProjectDownCommand handles the project down command
+type ProjectDownCommand struct {
 	ctx *context.ProjectContext
 	cfg *config.Config
 }
 
-// ExecuteGlobalDown is called from global.go
-func ExecuteGlobalDown(ctx *context.ProjectContext, cfg *config.Config, cmd *cobra.Command, args []string) error {
-	gdc := &GlobalDownCommand{
+// ExecuteProjectDown is called from global.go
+func ExecuteProjectDown(ctx *context.ProjectContext, cfg *config.Config, cmd *cobra.Command, args []string) error {
+	gdc := &ProjectDownCommand{
 		ctx: ctx,
 		cfg: cfg,
 	}
 	return gdc.Execute(cmd, args)
 }
 
-// Execute runs the global down command
-func (c *GlobalDownCommand) Execute(cmd *cobra.Command, args []string) error {
+// Execute runs the project down command
+func (c *ProjectDownCommand) Execute(cmd *cobra.Command, args []string) error {
 	// Validate we're in multi-worktree mode
 	if err := ValidateMultiWorktreeMode(c.ctx, "down"); err != nil {
 		return err
@@ -136,7 +136,7 @@ func (c *GlobalDownCommand) Execute(cmd *cobra.Command, args []string) error {
 }
 
 // stopContainers stops Docker containers in a directory
-func (c *GlobalDownCommand) stopContainers(dir string, removeOrphans bool, removeVolumes bool) error {
+func (c *ProjectDownCommand) stopContainers(dir string, removeOrphans bool, removeVolumes bool) error {
 	// Create a context for this directory
 	dirCtx := &context.ProjectContext{
 		WorkingDir:      dir,

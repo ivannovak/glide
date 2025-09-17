@@ -52,7 +52,7 @@ Commands should be assigned to appropriate categories for proper organization in
 | Category | ID | Priority | Description | Use For |
 |----------|-----|----------|-------------|---------|
 | **Core Commands** | `core` | 10 | Essential development commands | Version, plugins, self-update |
-| **Global Commands** | `global` | 20 | Multi-worktree management | Commands that operate across all worktrees |
+| **Global Commands** | `project` | 20 | Multi-worktree management | Commands that operate across all worktrees |
 | **Setup & Configuration** | `setup` | 30 | Project setup and configuration | Initial setup, configuration, completions |
 | **Docker Management** | `docker` | 40 | Container and service control | Docker compose operations, container management |
 | **Testing** | `testing` | 50 | Test execution and coverage | Test runners, coverage tools |

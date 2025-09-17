@@ -162,8 +162,8 @@ func TestDiscovererWithAncestorDirs(t *testing.T) {
 	require.NoError(t, os.MkdirAll(subPluginDir, 0755))
 
 	// Create plugin executables
-	projectPlugin := filepath.Join(projectPluginDir, "glide-plugin-project")
-	subPlugin := filepath.Join(subPluginDir, "glide-plugin-sub")
+	projectPlugin := filepath.Join(projectPluginDir, "project-plugin")
+	subPlugin := filepath.Join(subPluginDir, "sub-plugin")
 
 	require.NoError(t, os.WriteFile(projectPlugin, []byte("#!/bin/sh\n"), 0755))
 	require.NoError(t, os.WriteFile(subPlugin, []byte("#!/bin/sh\n"), 0755))

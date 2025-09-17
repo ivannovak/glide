@@ -89,8 +89,8 @@ func (c *ProjectContext) IsGlobalScope() bool {
 	return c.CommandScope == "global"
 }
 
-// CanUseGlobalCommands returns true if global commands are available
-func (c *ProjectContext) CanUseGlobalCommands() bool {
+// CanUseProjectCommands returns true if project-wide commands are available
+func (c *ProjectContext) CanUseProjectCommands() bool {
 	return c.DevelopmentMode == ModeMultiWorktree
 }
 

@@ -48,15 +48,15 @@ func (c *CLI) NewCompletionCommand() *cobra.Command {
 	return NewCompletionCommand(c.app.ProjectContext, c.app.Config)
 }
 
-// NewGlobalCommand creates the global command
-func (c *CLI) NewGlobalCommand() *cobra.Command {
-	return NewGlobalCommand(c.app.ProjectContext, c.app.Config)
+// NewProjectCommand creates the global command
+func (c *CLI) NewProjectCommand() *cobra.Command {
+	return NewProjectCommand(c.app.ProjectContext, c.app.Config)
 }
 
-// AddGlobalCommands adds global commands to the provided command
-func (c *CLI) AddGlobalCommands(cmd *cobra.Command) {
-	// Add all global subcommands to the parent global command
-	globalCmd := NewGlobalCommand(c.app.ProjectContext, c.app.Config)
+// AddProjectCommands adds global commands to the provided command
+func (c *CLI) AddProjectCommands(cmd *cobra.Command) {
+	// Add all project subcommands to the parent project command
+	globalCmd := NewProjectCommand(c.app.ProjectContext, c.app.Config)
 
 	// Add each subcommand directly to the provided command
 	for _, subCmd := range globalCmd.Commands() {

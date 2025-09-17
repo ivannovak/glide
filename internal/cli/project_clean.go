@@ -14,8 +14,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// GlobalCleanCommand handles the global clean command
-type GlobalCleanCommand struct {
+// ProjectCleanCommand handles the project clean command
+type ProjectCleanCommand struct {
 	ctx *context.ProjectContext
 	cfg *config.Config
 }
@@ -29,17 +29,17 @@ type CleanupStats struct {
 	SpaceReclaimed     string
 }
 
-// ExecuteGlobalClean is called from global.go
-func ExecuteGlobalClean(ctx *context.ProjectContext, cfg *config.Config, cmd *cobra.Command, args []string) error {
-	gcc := &GlobalCleanCommand{
+// ExecuteProjectClean is called from global.go
+func ExecuteProjectClean(ctx *context.ProjectContext, cfg *config.Config, cmd *cobra.Command, args []string) error {
+	gcc := &ProjectCleanCommand{
 		ctx: ctx,
 		cfg: cfg,
 	}
 	return gcc.Execute(cmd, args)
 }
 
-// Execute runs the global clean command
-func (c *GlobalCleanCommand) Execute(cmd *cobra.Command, args []string) error {
+// Execute runs the project clean command
+func (c *ProjectCleanCommand) Execute(cmd *cobra.Command, args []string) error {
 	// Validate we're in multi-worktree mode
 	if err := ValidateMultiWorktreeMode(c.ctx, "clean"); err != nil {
 		return err
@@ -158,7 +158,7 @@ func (c *GlobalCleanCommand) Execute(cmd *cobra.Command, args []string) error {
 }
 
 // promptForCleanup prompts the user for what to clean
-func (c *GlobalCleanCommand) promptForCleanup() (orphaned, volumes, images bool) {
+func (c *ProjectCleanCommand) promptForCleanup() (orphaned, volumes, images bool) {
 	output.Info("What would you like to clean?")
 	output.Println()
 
@@ -175,7 +175,7 @@ func (c *GlobalCleanCommand) promptForCleanup() (orphaned, volumes, images bool)
 }
 
 // cleanOrphanedContainers removes orphaned containers
-func (c *GlobalCleanCommand) cleanOrphanedContainers(dryRun bool, stats *CleanupStats) error {
+func (c *ProjectCleanCommand) cleanOrphanedContainers(dryRun bool, stats *CleanupStats) error {
 	// Find stopped containers that match our project name pattern
 	cmd := exec.Command("docker", "ps", "-a", "--filter", "status=exited", "--format", "{{.ID}} {{.Names}}")
 	output, err := cmd.Output()
@@ -224,7 +224,7 @@ func (c *GlobalCleanCommand) cleanOrphanedContainers(dryRun bool, stats *Cleanup
 }
 
 // cleanDanglingImages removes dangling images
-func (c *GlobalCleanCommand) cleanDanglingImages(dryRun bool, stats *CleanupStats) error {
+func (c *ProjectCleanCommand) cleanDanglingImages(dryRun bool, stats *CleanupStats) error {
 	// List dangling images
 	cmd := exec.Command("docker", "images", "-f", "dangling=true", "-q")
 	output, err := cmd.Output()
@@ -266,7 +266,7 @@ func (c *GlobalCleanCommand) cleanDanglingImages(dryRun bool, stats *CleanupStat
 }
 
 // cleanUnusedVolumes removes unused volumes
-func (c *GlobalCleanCommand) cleanUnusedVolumes(dryRun bool, stats *CleanupStats) error {
+func (c *ProjectCleanCommand) cleanUnusedVolumes(dryRun bool, stats *CleanupStats) error {
 	// List unused volumes
 	cmd := exec.Command("docker", "volume", "ls", "-qf", "dangling=true")
 	output, err := cmd.Output()
@@ -294,7 +294,7 @@ func (c *GlobalCleanCommand) cleanUnusedVolumes(dryRun bool, stats *CleanupStats
 }
 
 // cleanUnusedNetworks removes unused networks
-func (c *GlobalCleanCommand) cleanUnusedNetworks(dryRun bool, stats *CleanupStats) error {
+func (c *ProjectCleanCommand) cleanUnusedNetworks(dryRun bool, stats *CleanupStats) error {
 	// List custom networks (not default ones)
 	cmd := exec.Command("docker", "network", "ls", "--format", "{{.ID}} {{.Name}}")
 	output, err := cmd.Output()
@@ -340,7 +340,7 @@ func (c *GlobalCleanCommand) cleanUnusedNetworks(dryRun bool, stats *CleanupStat
 }
 
 // displayCleanupSummary displays a summary of what was cleaned
-func (c *GlobalCleanCommand) displayCleanupSummary(stats *CleanupStats) {
+func (c *ProjectCleanCommand) displayCleanupSummary(stats *CleanupStats) {
 	if stats.OrphanedContainers > 0 {
 		output.Printf("  Orphaned containers: %d\n", stats.OrphanedContainers)
 	}

@@ -264,7 +264,7 @@ func TestProjectContext_LocationHelpers(t *testing.T) {
 				assert.False(t, ctx.IsRoot)
 				assert.False(t, ctx.IsMainRepo)
 				assert.False(t, ctx.IsWorktree)
-				assert.False(t, ctx.CanUseGlobalCommands())
+				assert.False(t, ctx.CanUseProjectCommands())
 			},
 		},
 		{
@@ -280,7 +280,7 @@ func TestProjectContext_LocationHelpers(t *testing.T) {
 				assert.True(t, ctx.IsRoot)
 				assert.False(t, ctx.IsMainRepo)
 				assert.False(t, ctx.IsWorktree)
-				assert.True(t, ctx.CanUseGlobalCommands())
+				assert.True(t, ctx.CanUseProjectCommands())
 			},
 		},
 		{
@@ -296,7 +296,7 @@ func TestProjectContext_LocationHelpers(t *testing.T) {
 				assert.False(t, ctx.IsRoot)
 				assert.True(t, ctx.IsMainRepo)
 				assert.False(t, ctx.IsWorktree)
-				assert.True(t, ctx.CanUseGlobalCommands())
+				assert.True(t, ctx.CanUseProjectCommands())
 			},
 		},
 		{
@@ -314,7 +314,7 @@ func TestProjectContext_LocationHelpers(t *testing.T) {
 				assert.False(t, ctx.IsMainRepo)
 				assert.True(t, ctx.IsWorktree)
 				assert.Equal(t, "feature-branch", ctx.WorktreeName)
-				assert.True(t, ctx.CanUseGlobalCommands())
+				assert.True(t, ctx.CanUseProjectCommands())
 			},
 		},
 	}

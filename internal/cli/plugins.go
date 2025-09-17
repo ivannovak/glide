@@ -5,7 +5,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 	"text/tabwriter"
 
 	"github.com/ivannovak/glide/pkg/branding"
@@ -192,9 +191,6 @@ func newPluginInstallCommand() *cobra.Command {
 
 			// Get plugin name from path
 			pluginName := filepath.Base(pluginPath)
-			if !strings.HasPrefix(pluginName, "glide-plugin-") {
-				return fmt.Errorf("plugin name must start with 'glide-plugin-'")
-			}
 
 			// Determine installation directory
 			installDir := branding.GetGlobalPluginDir()
@@ -256,22 +252,11 @@ func newPluginRemoveCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			pluginName := args[0]
 
-			// Check multiple locations
+			// Check if plugin exists
 			pluginDir := branding.GetGlobalPluginDir()
-			locations := []string{
-				filepath.Join(pluginDir, "glide-plugin-"+pluginName),
-				filepath.Join(pluginDir, pluginName),
-			}
-
-			var pluginPath string
-			for _, path := range locations {
-				if _, err := os.Stat(path); err == nil {
-					pluginPath = path
-					break
-				}
-			}
-
-			if pluginPath == "" {
+			pluginPath := filepath.Join(pluginDir, pluginName)
+			
+			if _, err := os.Stat(pluginPath); err != nil {
 				return fmt.Errorf("plugin '%s' not found", pluginName)
 			}
 

@@ -54,8 +54,8 @@ func TestCLICommandCreation(t *testing.T) {
 		assert.Equal(t, "completion [shell]", cmd.Use)
 	})
 
-	t.Run("NewGlobalCommand", func(t *testing.T) {
-		cmd := cli.NewGlobalCommand()
+	t.Run("NewProjectCommand", func(t *testing.T) {
+		cmd := cli.NewProjectCommand()
 		assert.NotNil(t, cmd)
 		assert.Equal(t, "global", cmd.Use)
 	})

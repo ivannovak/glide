@@ -181,7 +181,7 @@ func TestModeSpecificCommands(t *testing.T) {
 		ctx := context.Detect()
 		require.NotNil(t, ctx)
 		assert.Equal(t, context.LocationRoot, ctx.Location)
-		assert.True(t, ctx.IsRoot, "Should be at root for global commands")
+		assert.True(t, ctx.IsRoot, "Should be at root for project-wide commands")
 
 		// Global commands should work from root
 		// Examples: glid status (shows all worktrees), glid down (stops all containers)

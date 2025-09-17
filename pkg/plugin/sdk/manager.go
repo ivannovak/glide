@@ -539,15 +539,20 @@ func (d *Discoverer) Scan() ([]*PluginInfo, error) {
 			continue
 		}
 
-		// Find plugin executables
-		matches, err := filepath.Glob(filepath.Join(dir, "glide-plugin-*"))
+		// Find all files in the plugin directory
+		entries, err := os.ReadDir(dir)
 		if err != nil {
 			continue
 		}
 
-		for _, path := range matches {
+		for _, entry := range entries {
+			if entry.IsDir() {
+				continue
+			}
+
+			path := filepath.Join(dir, entry.Name())
 			info, err := os.Stat(path)
-			if err != nil || info.IsDir() {
+			if err != nil {
 				continue
 			}
 
@@ -556,7 +561,8 @@ func (d *Discoverer) Scan() ([]*PluginInfo, error) {
 				continue
 			}
 
-			name := strings.TrimPrefix(filepath.Base(path), "glide-plugin-")
+			// Use the filename as the plugin name
+			name := entry.Name()
 
 			// Skip if we've already seen this plugin (project-local takes precedence)
 			if seen[name] {

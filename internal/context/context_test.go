@@ -33,7 +33,7 @@ func TestProjectContext_Methods(t *testing.T) {
 	assert.True(t, ctx.DockerRunning)
 	assert.Equal(t, []string{"docker-compose.yml"}, ctx.ComposeFiles)
 	assert.False(t, ctx.IsGlobalScope())
-	assert.True(t, ctx.CanUseGlobalCommands())
+	assert.True(t, ctx.CanUseProjectCommands())
 }
 
 func TestProjectContext_IsValid(t *testing.T) {

@@ -13,23 +13,23 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// GlobalStatusCommand handles the global status command
-type GlobalStatusCommand struct {
+// ProjectStatusCommand handles the project status command
+type ProjectStatusCommand struct {
 	ctx *context.ProjectContext
 	cfg *config.Config
 }
 
-// ExecuteGlobalStatus is called from global.go
-func ExecuteGlobalStatus(ctx *context.ProjectContext, cfg *config.Config, cmd *cobra.Command, args []string) error {
-	gsc := &GlobalStatusCommand{
+// ExecuteProjectStatus is called from project.go
+func ExecuteProjectStatus(ctx *context.ProjectContext, cfg *config.Config, cmd *cobra.Command, args []string) error {
+	psc := &ProjectStatusCommand{
 		ctx: ctx,
 		cfg: cfg,
 	}
-	return gsc.Execute(cmd, args)
+	return psc.Execute(cmd, args)
 }
 
-// Execute runs the global status command
-func (c *GlobalStatusCommand) Execute(cmd *cobra.Command, args []string) error {
+// Execute runs the project status command
+func (c *ProjectStatusCommand) Execute(cmd *cobra.Command, args []string) error {
 	// Validate we're in multi-worktree mode
 	if err := ValidateMultiWorktreeMode(c.ctx, "status"); err != nil {
 		return err
@@ -97,7 +97,7 @@ func (c *GlobalStatusCommand) Execute(cmd *cobra.Command, args []string) error {
 	if hasRunningContainers {
 		output.Success("✅ Docker containers are running")
 		output.Println("\nTo stop all containers, run:")
-		output.Info("  glid g down")
+		output.Info("  glid p down")
 	} else {
 		output.Warning("⚠️  No Docker containers are currently running")
 		output.Println("\nTo start containers in a worktree:")
@@ -109,7 +109,7 @@ func (c *GlobalStatusCommand) Execute(cmd *cobra.Command, args []string) error {
 }
 
 // getDockerStatus checks Docker status for a directory
-func (c *GlobalStatusCommand) getDockerStatus(dir string, name string) (string, bool) {
+func (c *ProjectStatusCommand) getDockerStatus(dir string, name string) (string, bool) {
 	// Create a context for this directory
 	dirCtx := &context.ProjectContext{
 		WorkingDir:      dir,
@@ -185,7 +185,7 @@ func (c *GlobalStatusCommand) getDockerStatus(dir string, name string) (string, 
 }
 
 // getBranchName gets the current branch name for a worktree
-func (c *GlobalStatusCommand) getBranchName(worktreePath string) string {
+func (c *ProjectStatusCommand) getBranchName(worktreePath string) string {
 	cmd := exec.Command("git", "branch", "--show-current")
 	cmd.Dir = worktreePath
 

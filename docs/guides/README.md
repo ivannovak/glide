@@ -2,6 +2,26 @@
 
 Real-world patterns and recipes for using Glide effectively.
 
+> **Note**: Many examples in this guide reference commands provided by plugins (like `up`, `down`, `status`, `logs`, `test`, etc.). The actual commands available to you depend on which plugins you have installed. Core Glide provides the framework; plugins provide the specific development commands.
+
+## Core vs Plugin Commands
+
+### Core Glide Commands (Always Available)
+- `glid help` - Context-aware help
+- `glid setup` - Configure Glide for your project
+- `glid plugins` - Manage plugins
+- `glid self-update` - Update Glide
+- `glid version` - Show version info
+- `glid completion` - Shell completions
+- `glid project` - Multi-worktree commands (when enabled)
+
+### Plugin Commands (Examples)
+The following are common commands that plugins might provide:
+- Docker plugin: `up`, `down`, `status`, `logs`, `shell`
+- Testing plugin: `test`, `lint`, `coverage`
+- Database plugin: `db`, `migrate`, `seed`
+- Deployment plugin: `deploy`, `build`
+
 ## Daily Development
 
 ### Morning Setup
@@ -9,29 +29,31 @@ Real-world patterns and recipes for using Glide effectively.
 Start your day efficiently:
 
 ```bash
-# Update tools
+# Update Glide itself
 glid self-update
+
+# Check your project context
+glid help
 
 # Pull latest changes
 git pull origin main
 
-# Start services
-glid up
-
-# Check everything is running
-glid status
-
-# See recent logs
-glid logs --since 5m
+# If you have a Docker plugin installed:
+# glid up       # Start services
+# glid status   # Check everything is running
+# glid logs     # See recent logs
 ```
 
 ### Feature Development
 
-Working on a new feature with isolation:
+Working on a new feature with isolation (requires multi-worktree mode):
 
 ```bash
+# First, ensure you're in multi-worktree mode
+glid setup
+
 # Create a feature worktree
-glid worktree feature/user-authentication
+glid project worktree feature/user-authentication
 
 # Navigate to the worktree
 cd worktrees/feature-user-authentication
@@ -39,14 +61,11 @@ cd worktrees/feature-user-authentication
 # Copy environment config
 cp ../../.env.example .env
 
-# Start isolated services
-glid up
-
-# Make changes, test locally
-glid test --watch
-
-# When done for the day
-glid down
+# Plugin commands would then be available in the worktree
+# For example, with a Docker plugin:
+# glid up         # Start isolated services
+# glid test       # Run tests
+# glid down       # Stop services
 ```
 
 ### Debugging Sessions
@@ -82,22 +101,54 @@ Create a `.glide.yml` for your team:
 
 ```yaml
 # .glide.yml - commit this to your repo
-version: 1
-project_name: awesome-app
 
-# Standardize commands across the team
-aliases:
-  reset: down && up --clean
-  fresh: |
-    down
-    docker system prune -f
-    up --build
-    
+# Define custom commands for your project
+commands:
+  # Simple commands for common tasks
+  lint: golangci-lint run ./...
+  fmt: go fmt ./...
+  build: docker build --no-cache .
+
+  # Commands with parameters
+  test: go test $@ ./...
+  deploy: ./scripts/deploy.sh $1
+
+  # Multi-line commands for complex workflows
+  setup: |
+    go mod download
+    docker-compose build
+    docker-compose run --rm app migrate
+    echo "Setup complete!"
+
+  # Structured commands with metadata
+  release:
+    cmd: |
+      go test ./...
+      git tag -a v$1 -m "Release version $1"
+      git push origin v$1
+    alias: r
+    description: Create a new release
+    help: |
+      Create a new release with the specified version.
+      This will run tests, create a git tag, and push it.
+      Usage: glid release 1.2.3
+    category: deployment
+
 # Plugin configurations
 plugins:
   docker:
     compose_file: docker-compose.dev.yml
-    project_name: ${project_name}
+```
+
+With YAML commands defined, your team gets consistent workflows:
+
+```bash
+# Everyone uses the same commands
+glid lint       # Run linter with team settings
+glid fmt        # Format code consistently
+glid setup      # New developers get started quickly
+glid test -v    # Parameters are passed through
+glid release 1.2.3  # Complex workflows simplified
 ```
 
 ### Onboarding New Developers
@@ -395,24 +446,6 @@ glid template save my-stack
 glid template use my-stack new-project
 ```
 
-### Custom Commands
-
-Extend Glide with your own commands:
-
-```yaml
-# .glide.yml
-commands:
-  deploy-all: |
-    echo "Deploying to all environments..."
-    glid deploy staging
-    glid deploy production
-    
-  reset-world: |
-    glid down --volumes
-    docker system prune -af
-    glid up --build
-    glid db seed
-```
 
 ## Next Steps
 

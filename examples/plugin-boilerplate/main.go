@@ -8,7 +8,7 @@
 // 1. Copy this directory to a new location
 // 2. Rename the plugin and update metadata
 // 3. Implement your custom commands
-// 4. Build with: go build -o glide-plugin-yourname
+// 4. Build with: go build -o yourplugin
 // 5. Install to: ~/.glide/plugins/
 //
 // This boilerplate uses the BasePlugin helper which automatically handles:

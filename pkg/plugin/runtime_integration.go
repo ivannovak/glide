@@ -283,14 +283,7 @@ func GetRuntimePluginPath() string {
 // IsRuntimePluginInstalled checks if a runtime plugin is installed
 func IsRuntimePluginInstalled(name string) bool {
 	pluginPath := GetRuntimePluginPath()
-	pluginFile := filepath.Join(pluginPath, "glide-plugin-"+name)
-
-	if _, err := os.Stat(pluginFile); err == nil {
-		return true
-	}
-
-	// Also check without prefix
-	pluginFile = filepath.Join(pluginPath, name)
+	pluginFile := filepath.Join(pluginPath, name)
 	_, err := os.Stat(pluginFile)
 	return err == nil
 }

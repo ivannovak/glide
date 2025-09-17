@@ -160,7 +160,7 @@ docker run hello-world
    glide test
    
    # Multi-worktree mode
-   glide global test
+   glide project test
    ```
 
 ### Configuration Issues
@@ -414,7 +414,7 @@ docker run hello-world
 **Solutions:**
 1. Stop all containers:
    ```bash
-   glide global down
+   glide project down
    ```
 
 2. Use unique project names:

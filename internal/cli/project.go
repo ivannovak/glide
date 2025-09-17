@@ -6,24 +6,24 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// GlobalCommand handles global commands for multi-worktree mode
-type GlobalCommand struct {
+// ProjectCommand handles project-wide commands for multi-worktree mode
+type ProjectCommand struct {
 	ctx *context.ProjectContext
 	cfg *config.Config
 }
 
-// NewGlobalCommand creates the global command group
-func NewGlobalCommand(ctx *context.ProjectContext, cfg *config.Config) *cobra.Command {
-	gc := &GlobalCommand{
+// NewProjectCommand creates the project command group
+func NewProjectCommand(ctx *context.ProjectContext, cfg *config.Config) *cobra.Command {
+	pc := &ProjectCommand{
 		ctx: ctx,
 		cfg: cfg,
 	}
 
 	cmd := &cobra.Command{
-		Use:     "global",
-		Aliases: []string{"g"},
-		Short:   "Global commands for managing all worktrees",
-		Long: `Global commands for multi-worktree development mode.
+		Use:     "project",
+		Aliases: []string{"p"},
+		Short:   "Project-wide commands for managing all worktrees",
+		Long: `Project-wide commands for multi-worktree development mode.
 
 These commands operate across all worktrees in your project.
 They are only available when using multi-worktree development mode.
@@ -36,35 +36,35 @@ Available Commands:
   clean          Clean up orphaned containers and resources
 
 Examples:
-  glid g status                    # Show status of all worktrees
-  glid g down                      # Stop all containers
-  glid g worktree feature/new      # Create new worktree
-  glid g list                      # List all worktrees
-  glid g clean --orphaned          # Clean orphaned containers
+  glid p status                    # Show status of all worktrees
+  glid p down                      # Stop all containers
+  glid p worktree feature/new      # Create new worktree
+  glid p list                      # List all worktrees
+  glid p clean --orphaned          # Clean orphaned containers
 
 Note:
   These commands are only available in multi-worktree mode.
   Use 'glid setup' to configure your development mode.`,
-		PersistentPreRunE: gc.validateMode,
+		PersistentPreRunE: pc.validateMode,
 	}
 
 	// Add subcommands
-	cmd.AddCommand(gc.newStatusCommand())
-	cmd.AddCommand(gc.newDownCommand())
-	cmd.AddCommand(gc.newWorktreeCommand())
-	cmd.AddCommand(gc.newListCommand())
-	cmd.AddCommand(gc.newCleanCommand())
+	cmd.AddCommand(pc.newStatusCommand())
+	cmd.AddCommand(pc.newDownCommand())
+	cmd.AddCommand(pc.newWorktreeCommand())
+	cmd.AddCommand(pc.newListCommand())
+	cmd.AddCommand(pc.newCleanCommand())
 
 	return cmd
 }
 
 // validateMode ensures we're in multi-worktree mode
-func (gc *GlobalCommand) validateMode(cmd *cobra.Command, args []string) error {
-	return ValidateMultiWorktreeMode(gc.ctx, "global")
+func (pc *ProjectCommand) validateMode(cmd *cobra.Command, args []string) error {
+	return ValidateMultiWorktreeMode(pc.ctx, "project")
 }
 
 // newStatusCommand creates the global status command
-func (gc *GlobalCommand) newStatusCommand() *cobra.Command {
+func (pc *ProjectCommand) newStatusCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "status",
 		Short: "Show Docker status for all worktrees",
@@ -81,9 +81,9 @@ Status includes:
   - Port mappings
 
 Examples:
-  glid g status                # Show all worktree statuses
-  glid g status --verbose      # Include detailed container info`,
-		RunE: gc.executeStatus,
+  glid p status                # Show all worktree statuses
+  glid p status --verbose      # Include detailed container info`,
+		RunE: pc.executeStatus,
 	}
 
 	// Add flags
@@ -93,7 +93,7 @@ Examples:
 }
 
 // newDownCommand creates the global down command
-func (gc *GlobalCommand) newDownCommand() *cobra.Command {
+func (pc *ProjectCommand) newDownCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "down",
 		Short: "Stop all Docker containers across all worktrees",
@@ -108,10 +108,10 @@ Options:
   --volumes         Remove volumes (WARNING: deletes data)
 
 Examples:
-  glid g down                    # Stop all containers
-  glid g down --remove-orphans   # Also remove orphaned containers
-  glid g down --volumes          # Also remove volumes (data loss!)`,
-		RunE: gc.executeDown,
+  glid p down                    # Stop all containers
+  glid p down --remove-orphans   # Also remove orphaned containers
+  glid p down --volumes          # Also remove volumes (data loss!)`,
+		RunE: pc.executeDown,
 	}
 
 	// Add flags
@@ -122,13 +122,13 @@ Examples:
 }
 
 // newWorktreeCommand creates the worktree management command
-func (gc *GlobalCommand) newWorktreeCommand() *cobra.Command {
+func (pc *ProjectCommand) newWorktreeCommand() *cobra.Command {
 	// Use the actual worktree implementation
-	return NewWorktreeCommand(gc.ctx, gc.cfg)
+	return NewWorktreeCommand(pc.ctx, pc.cfg)
 }
 
 // newListCommand creates the list command
-func (gc *GlobalCommand) newListCommand() *cobra.Command {
+func (pc *ProjectCommand) newListCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "list",
 		Aliases: []string{"ls"},
@@ -142,10 +142,10 @@ Shows information about each worktree:
   - Last commit
 
 Examples:
-  glid g list                      # List all worktrees
-  glid g ls                        # Short alias
-  glid g list --format json        # JSON output`,
-		RunE: gc.executeList,
+  glid p list                      # List all worktrees
+  glid p ls                        # Short alias
+  glid p list --format json        # JSON output`,
+		RunE: pc.executeList,
 	}
 
 	// Add flags
@@ -155,7 +155,7 @@ Examples:
 }
 
 // newCleanCommand creates the clean command
-func (gc *GlobalCommand) newCleanCommand() *cobra.Command {
+func (pc *ProjectCommand) newCleanCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "clean",
 		Short: "Clean up orphaned containers and resources",
@@ -175,11 +175,11 @@ Options:
   --dry-run      Show what would be cleaned without doing it
 
 Examples:
-  glid g clean                    # Interactive cleanup
-  glid g clean --orphaned         # Remove orphaned containers
-  glid g clean --all              # Full cleanup
-  glid g clean --dry-run          # Preview cleanup`,
-		RunE: gc.executeClean,
+  glid p clean                    # Interactive cleanup
+  glid p clean --orphaned         # Remove orphaned containers
+  glid p clean --all              # Full cleanup
+  glid p clean --dry-run          # Preview cleanup`,
+		RunE: pc.executeClean,
 	}
 
 	// Add flags
@@ -194,18 +194,18 @@ Examples:
 
 // Command implementations - delegated to separate files
 
-func (gc *GlobalCommand) executeStatus(cmd *cobra.Command, args []string) error {
-	return ExecuteGlobalStatus(gc.ctx, gc.cfg, cmd, args)
+func (pc *ProjectCommand) executeStatus(cmd *cobra.Command, args []string) error {
+	return ExecuteProjectStatus(pc.ctx, pc.cfg, cmd, args)
 }
 
-func (gc *GlobalCommand) executeDown(cmd *cobra.Command, args []string) error {
-	return ExecuteGlobalDown(gc.ctx, gc.cfg, cmd, args)
+func (pc *ProjectCommand) executeDown(cmd *cobra.Command, args []string) error {
+	return ExecuteProjectDown(pc.ctx, pc.cfg, cmd, args)
 }
 
-func (gc *GlobalCommand) executeList(cmd *cobra.Command, args []string) error {
-	return ExecuteGlobalList(gc.ctx, gc.cfg, cmd, args)
+func (pc *ProjectCommand) executeList(cmd *cobra.Command, args []string) error {
+	return ExecuteProjectList(pc.ctx, pc.cfg, cmd, args)
 }
 
-func (gc *GlobalCommand) executeClean(cmd *cobra.Command, args []string) error {
-	return ExecuteGlobalClean(gc.ctx, gc.cfg, cmd, args)
+func (pc *ProjectCommand) executeClean(cmd *cobra.Command, args []string) error {
+	return ExecuteProjectClean(pc.ctx, pc.cfg, cmd, args)
 }

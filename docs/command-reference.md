@@ -19,7 +19,7 @@ Many commands support short aliases for faster typing:
 | `artisan` | `a` | `glide a migrate` |
 | `composer` | `c` | `glide c install` |
 | `test` | `t` | `glide t --filter UserTest` |
-| `global` | `g` | `glide g status` |
+| `project` | `g` | `glide p status` |
 
 ### Global Flags
 
@@ -45,7 +45,7 @@ glide help modes              # Development modes explained
 ```
 
 **Context Detection:**
-- Multi-worktree root: Shows global commands
+- Multi-worktree root: Shows project commands
 - Main repo (`vcs/`): Shows standard commands
 - Worktree: Shows worktree-specific commands
 - No project: Shows setup instructions
@@ -259,15 +259,15 @@ glide ps -a                   # List all containers
 
 These commands are available when in a multi-worktree project.
 
-### `glide global`
+### `glide project`
 
 Execute commands from any location in the project.
 
 ```bash
-glide global status           # Project-wide status
-glide global list             # List all worktrees
-glide global down             # Stop all Docker containers
-glide global clean            # Clean all worktrees
+glide project status           # Project-wide status
+glide project list             # List all worktrees
+glide project down             # Stop all Docker containers
+glide project clean            # Clean all worktrees
 ```
 
 **Subcommands:**
@@ -279,14 +279,14 @@ glide global clean            # Clean all worktrees
 - `update` - Update all worktrees
 - `test` - Run tests across worktrees
 
-### `glide global worktree`
+### `glide project worktree`
 
 Manage Git worktrees.
 
 ```bash
-glide global worktree <name>              # Create worktree
-glide global worktree feature/api         # Create feature branch
-glide global worktree fix-123 origin/fix  # From remote branch
+glide project worktree <name>              # Create worktree
+glide project worktree feature/api         # Create feature branch
+glide project worktree fix-123 origin/fix  # From remote branch
 ```
 
 **Options:**
@@ -294,13 +294,13 @@ glide global worktree fix-123 origin/fix  # From remote branch
 - `--auto-setup` - Auto-configure worktree
 - `--no-checkout` - Don't checkout files
 
-### `glide global status`
+### `glide project status`
 
 Show comprehensive project status.
 
 ```bash
-glide global status           # All worktree statuses
-glide global status --docker  # Include Docker status
+glide project status           # All worktree statuses
+glide project status --docker  # Include Docker status
 ```
 
 **Output includes:**
@@ -577,17 +577,17 @@ plugins:
 
 ```bash
 # Start your day
-glide global status          # Check project status
+glide project status          # Check project status
 glide up                     # Start Docker
 glide test                   # Run tests
 
 # Create new feature
-glide global worktree feature/api
+glide project worktree feature/api
 cd worktrees/feature-api
 glide up && glide test
 
 # End of day
-glide global down            # Stop all containers
+glide project down            # Stop all containers
 ```
 
 ### Quick Commands

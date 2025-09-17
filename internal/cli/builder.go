@@ -71,12 +71,13 @@ func (b *Builder) registerCommands() {
 		Description: "Generate shell completion scripts",
 	})
 
-	b.registry.Register("global", func() *cobra.Command {
-		return NewGlobalCommand(b.app.ProjectContext, b.app.Config)
+	b.registry.Register("project", func() *cobra.Command {
+		return NewProjectCommand(b.app.ProjectContext, b.app.Config)
 	}, Metadata{
-		Name:        "global",
-		Category:    CategoryGlobal,
-		Description: "Global configuration management",
+		Name:        "project",
+		Category:    CategoryProject,
+		Description: "Project-wide commands for multi-worktree mode",
+		Aliases:     []string{"p"},
 	})
 
 	b.registry.Register("version", func() *cobra.Command {

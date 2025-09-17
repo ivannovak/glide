@@ -39,47 +39,53 @@ Get help for a specific command:
 glid help worktree
 ```
 
-### Working with Your Project
+### Working with Plugins
 
-If Glide detected a Docker project, you'll have commands like:
-
-```bash
-# Start your project
-glid up
-
-# Check status
-glid status
-
-# View logs
-glid logs
-
-# Stop everything
-glid down
-```
-
-## The Two Modes
-
-### Standard Mode
-Most commands run quickly and return:
+Glide's power comes from plugins that provide project-specific commands:
 
 ```bash
-glid status
-# Output appears, then back to your shell
+# See available plugins
+glid plugins list
+
+# Install a plugin from a local file
+glid plugins install /path/to/plugin
+
+# Get info about a plugin
+glid plugins info [plugin-name]
+
+# Once plugins are installed, their commands become available
+# For example, a Docker plugin might provide:
+# glid up, glid down, glid status, glid logs
 ```
 
-### Interactive Mode
-Some commands need a full terminal session:
+## Development Modes
+
+Glide supports two development modes:
+
+### Single-Repo Mode
+The default mode for standard development:
+- Work on one branch at a time
+- Simple, straightforward workflow
+- All commands operate on your current branch
+
+### Multi-Worktree Mode
+Advanced mode for parallel development:
+- Work on multiple features simultaneously
+- Each worktree has its own isolated environment
+- Additional `project` commands for managing all worktrees
 
 ```bash
-glid shell
-# You're now inside your container
-# Type 'exit' to return
-```
+# Check your current mode
+glid help  # Shows mode in the header
 
-Interactive commands are perfect for:
-- Debugging inside containers
-- Running database clients
-- Interactive testing sessions
+# Switch to multi-worktree mode
+glid setup
+
+# Once in multi-worktree mode
+glid project worktree feature/new    # Create a worktree
+glid project list                     # List all worktrees
+glid project status                   # Status across all worktrees
+```
 
 ## Working with Plugins
 
@@ -104,22 +110,27 @@ glid test --watch      # Testing plugin
 glid deploy staging    # Deployment plugin
 ```
 
-## Your First Worktree
+## Multi-Worktree Development
 
-Glide makes working on multiple features easy with Git worktrees:
+For advanced workflows, Glide supports multi-worktree development:
 
 ```bash
-# Create a worktree for a new feature
-glid worktree feature/awesome-feature
+# First, set up multi-worktree mode
+glid setup
 
-# The worktree is created in: worktrees/feature-awesome-feature
-cd worktrees/feature-awesome-feature
+# Once enabled, use project commands:
+glid project worktree feature/awesome-feature
+# Or use the short alias:
+glid p worktree feature/awesome-feature
 
-# Start this feature's isolated environment
-glid up
+# List all worktrees
+glid p list
+
+# Check status across all worktrees
+glid p status
 ```
 
-Now you can switch between features without stopping and restarting services!
+This mode allows you to work on multiple features simultaneously with isolated environments.
 
 ## Configuration
 
@@ -128,17 +139,72 @@ Glide looks for configuration in this order:
 1. Project-specific: `.glide.yml` in your project
 2. Global: `~/.glide/config.yml`
 
-Example `.glide.yml`:
+### YAML-Defined Commands
+
+You can define custom commands directly in your configuration files. These become first-class commands available through `glid`:
+
 ```yaml
-# Project-specific configuration
+# .glide.yml
+commands:
+  # Simple format - just the command to run
+  build: docker build --no-cache .
+  test: go test ./...
+
+  # Structured format with additional metadata
+  deploy:
+    cmd: ./scripts/deploy.sh $1
+    alias: d
+    description: Deploy to environment
+    help: |
+      Deploy the application to the specified environment.
+      Usage: glid deploy [staging|production]
+    category: deployment
+
+  # Multi-line commands
+  setup: |
+    npm install
+    docker-compose build
+    docker-compose run --rm app migrate
+```
+
+#### Command Features
+
+- **Parameter Substitution**: Use `$1`, `$2`, etc. for positional arguments, `$@` or `$*` for all arguments
+- **Multi-line Execution**: Commands with multiple lines are executed in sequence
+- **Command Priority**: Local commands override plugin commands but cannot override core Glide commands
+- **Recursive Discovery**: Commands are discovered from configuration files up the directory tree
+
+#### Using YAML Commands
+
+Once defined, YAML commands work just like built-in commands:
+
+```bash
+# Run a simple command
+glid build
+
+# Pass arguments to commands
+glid deploy staging
+
+# Use command aliases
+glid d production
+
+# Commands appear in help
+glid help
+```
+
+### Plugin Configuration
+
+Example `.glide.yml` with both commands and plugin configuration:
+```yaml
+# Custom commands
+commands:
+  lint: golangci-lint run ./...
+  fmt: go fmt ./...
+
+# Plugin-specific configuration
 plugins:
   docker:
     compose_file: docker-compose.dev.yml
-  
-# Custom aliases
-aliases:
-  build: docker build --no-cache
-  clean: docker system prune -af
 ```
 
 ## Tips for Success
@@ -203,8 +269,8 @@ glid test
 ## Next Steps
 
 - Learn about [Core Concepts](../core-concepts/README.md)
-- Set up Glide for [Your Project](project-setup.md)
 - Explore [Common Workflows](../guides/README.md)
+- Review [Troubleshooting](../troubleshooting.md) if you encounter issues
 
 ## Getting Help
 
