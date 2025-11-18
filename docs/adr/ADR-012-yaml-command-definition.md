@@ -114,15 +114,18 @@ func ExecuteYAMLCommand(cmdStr string, args []string) error {
     // Expand parameters
     expanded := ExpandCommand(cmdStr, args)
 
-    // Handle multi-line commands
-    if strings.Contains(expanded, "\n") {
-        return executeMultiCommand(expanded)
-    }
-
-    // Execute via shell
+    // Execute as a shell script
+    // This properly handles:
+    // - Single commands
+    // - Multi-line scripts
+    // - Pipes and redirects
+    // - Control structures (if/then/else, loops, etc.)
+    // - Shell built-ins and functions
     return executeShellCommand(expanded)
 }
 ```
+
+All YAML commands are executed through `sh -c`, ensuring consistent behavior whether they are single-line commands or complex multi-line shell scripts. This approach preserves shell semantics including control flow, variable scope, and pipe behaviors.
 
 ### Registry Integration
 YAML commands are registered in the same registry as plugin commands:

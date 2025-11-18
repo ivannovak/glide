@@ -77,9 +77,9 @@ func TestBuilder_CommandCategories(t *testing.T) {
 	assert.Contains(t, setupCommands, "setup")
 	assert.Contains(t, setupCommands, "completion")
 
-	// Check global commands
-	globalCommands := registry.GetByCategory(CategoryGlobal)
-	assert.Contains(t, globalCommands, "global")
+	// Check project commands
+	projectCommands := registry.GetByCategory(CategoryProject)
+	assert.Contains(t, projectCommands, "project")
 
 	// Docker, Testing, and Developer commands have been moved to plugins
 }

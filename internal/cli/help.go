@@ -9,6 +9,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/ivannovak/glide/internal/config"
 	"github.com/ivannovak/glide/internal/context"
+	"github.com/ivannovak/glide/pkg/branding"
 	"github.com/ivannovak/glide/pkg/output"
 	"github.com/ivannovak/glide/pkg/plugin"
 	"github.com/spf13/cobra"
@@ -675,22 +676,87 @@ func (hc *HelpCommand) getPluginSubcommands(rootCmd *cobra.Command, pluginName s
 	return subcommands
 }
 
+// areCompletionsInstalled checks if shell completions are already installed
+func (hc *HelpCommand) areCompletionsInstalled() bool {
+	// Check common completion locations for various shells
+	homeDir := os.Getenv("HOME")
+
+	// Locations to check for installed completions
+	completionPaths := []string{
+		// Bash completions
+		fmt.Sprintf("/usr/local/etc/bash_completion.d/%s", branding.CommandName),
+		fmt.Sprintf("/etc/bash_completion.d/%s", branding.CommandName),
+		fmt.Sprintf("%s/.bash_completion.d/%s", homeDir, branding.CommandName),
+
+		// Zsh completions
+		fmt.Sprintf("/usr/local/share/zsh/site-functions/_%s", branding.CommandName),
+		fmt.Sprintf("/usr/share/zsh/site-functions/_%s", branding.CommandName),
+		fmt.Sprintf("%s/.zsh/completions/_%s", homeDir, branding.CommandName),
+
+		// Fish completions
+		fmt.Sprintf("%s/.config/fish/completions/%s.fish", homeDir, branding.CommandName),
+	}
+
+	// Also check if completion content exists in shell config files
+	shellConfigs := []string{
+		fmt.Sprintf("%s/.bashrc", homeDir),
+		fmt.Sprintf("%s/.bash_profile", homeDir),
+		fmt.Sprintf("%s/.bash_completion", homeDir),
+		fmt.Sprintf("%s/.zshrc", homeDir),
+	}
+
+	// Check if any completion file exists
+	for _, path := range completionPaths {
+		if _, err := os.Stat(path); err == nil {
+			return true
+		}
+	}
+
+	// Check if completion is sourced in shell configs
+	for _, configPath := range shellConfigs {
+		if data, err := os.ReadFile(configPath); err == nil {
+			if strings.Contains(string(data), branding.CommandName) &&
+			   strings.Contains(string(data), "complete") {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
 // shouldShowCategory determines if a category should be shown based on context
 func (hc *HelpCommand) shouldShowCategory(category string) bool {
 	// No context means show everything except global and development categories
 	if hc.ProjectContext == nil {
 		// Hide categories that require a project context
 		switch category {
-		case "global", "docker", "testing", "developer", "database":
+		case "global", "project", "docker", "testing", "developer", "database":
 			return false
 		default:
 			return true
 		}
 	}
 
+	// In standalone mode, hide project-oriented categories
+	if hc.ProjectContext.DevelopmentMode == context.ModeStandalone {
+		switch category {
+		case "project", "docker", "testing", "database":
+			// These are Git/project-oriented and don't make sense in standalone
+			return false
+		case "setup":
+			// In standalone mode, only completion might be useful
+			// The setup command itself doesn't apply to non-Git directories
+			// This is handled at the command level in shouldShowCommand
+			return true
+		default:
+			return true
+		}
+	}
+
 	switch category {
-	case "global":
-		// Only show global commands in multi-worktree mode
+	case "global", "project":
+		// Only show project commands in multi-worktree mode
 		return hc.ProjectContext.DevelopmentMode == context.ModeMultiWorktree
 
 	case "docker", "testing", "developer", "database":
@@ -710,6 +776,20 @@ func (hc *HelpCommand) shouldShowCategory(category string) bool {
 
 // shouldShowCommand checks if a command should be shown based on its visibility setting
 func (hc *HelpCommand) shouldShowCommand(cmd *cobra.Command) bool {
+	// Special handling for specific commands
+	switch cmd.Name() {
+	case "setup":
+		// Setup doesn't make sense in standalone mode (no Git to configure)
+		if hc.ProjectContext != nil && hc.ProjectContext.DevelopmentMode == context.ModeStandalone {
+			return false
+		}
+	case "completion":
+		// Hide if completions are already installed
+		if hc.areCompletionsInstalled() {
+			return false
+		}
+	}
+
 	// Commands without visibility annotation are always shown
 	if cmd.Annotations == nil {
 		return true
@@ -806,6 +886,9 @@ func (hc *HelpCommand) showContextInfo() {
 	case context.ModeSingleRepo:
 		contextColor.Println("📁 Single-repo mode")
 
+	case context.ModeStandalone:
+		contextColor.Println("📄 Standalone mode")
+
 	default:
 		color.New(color.FgYellow).Println("⚠️  No project detected")
 	}
@@ -827,6 +910,8 @@ func (hc *HelpCommand) showContextTips() {
 		}
 	case context.ModeSingleRepo:
 		tipColor.Println("💡 Tip: Single-repo mode active. All commands operate on the current branch.")
+	case context.ModeStandalone:
+		tipColor.Println("💡 Tip: Standalone mode active. Commands from .glide.yml are available.")
 	default:
 		tipColor.Println("💡 Tip: Run 'glid setup' to configure your project.")
 	}

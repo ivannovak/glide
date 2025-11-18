@@ -54,12 +54,13 @@ glid self-update
 
 ## Core Concepts
 
-### 🎭 Two Development Modes
+### 🎭 Three Development Modes
 
-Glide supports two development modes to match your workflow:
+Glide adapts to your project structure automatically:
 
-1. **Single-Repo Mode** - Standard development on one branch at a time
+1. **Single-Repo Mode** - Standard Git repository development
 2. **Multi-Worktree Mode** - Work on multiple features simultaneously with isolated environments
+3. **Standalone Mode** - Use Glide in any directory with just a `.glide.yml` file (no Git required)
 
 ```bash
 # Check your current mode
@@ -90,6 +91,17 @@ commands:
     description: Deploy to environment
     help: Deploy the application to staging or production
     category: deployment
+
+  # Multi-line scripts with shell features
+  reset:
+    cmd: |
+      echo "Resetting project..."
+      if [ -f .env ]; then
+        echo "Keeping .env file"
+      fi
+      rm -rf build/ dist/ node_modules/
+      echo "Reset complete!"
+    description: Clean project build artifacts
 ```
 
 These commands become available immediately:
@@ -97,7 +109,32 @@ These commands become available immediately:
 glid build              # Run your custom build command
 glid deploy staging     # Pass arguments with $1, $2, etc.
 glid d production       # Use aliases for frequently used commands
+glid reset              # Run multi-line shell scripts
 ```
+
+#### 📄 Standalone Mode
+
+Use Glide in any directory without a Git repository. Just create a `.glide.yml` file:
+
+```bash
+# Create a .glide.yml in any directory
+cat > .glide.yml << 'EOF'
+commands:
+  hello:
+    cmd: echo "Hello from Glide!"
+    description: Say hello
+EOF
+
+# Commands are immediately available
+glid hello              # Works without any Git repository!
+glid help               # Shows "📄 Standalone mode" at the top
+```
+
+This is perfect for:
+- Personal automation scripts
+- Temporary project directories
+- Build environments without Git
+- Quick command organization
 
 ### 🔌 Plugin System
 

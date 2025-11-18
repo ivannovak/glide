@@ -27,8 +27,8 @@ func NewBuilder(application *app.Application) *Builder {
 	// Register all commands
 	builder.registerCommands()
 
-	// Load YAML-defined commands
-	builder.loadYAMLCommands()
+	// YAML commands are loaded later in AddLocalCommands
+	// after the working directory is established
 
 	return builder
 }

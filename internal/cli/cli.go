@@ -75,6 +75,9 @@ func (c *CLI) AddLocalCommands(cmd *cobra.Command) {
 	// Add debug commands
 	c.addDebugCommands(cmd)
 
+	// Load YAML commands from current directory
+	c.builder.loadYAMLCommands()
+
 	// Add all registered commands from the builder's registry
 	// This ensures aliases are properly set
 	for _, subCmd := range c.builder.registry.CreateAll() {

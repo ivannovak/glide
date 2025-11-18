@@ -16,6 +16,7 @@ type DevelopmentMode string
 const (
 	ModeMultiWorktree DevelopmentMode = "multi-worktree"
 	ModeSingleRepo    DevelopmentMode = "single-repo"
+	ModeStandalone    DevelopmentMode = "standalone" // Non-Git project with .glide.yml
 	ModeUnknown       DevelopmentMode = ""
 )
 

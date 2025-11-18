@@ -71,11 +71,11 @@ User → Glide → Plugin Discovery → Command Routing → Plugin Execution
 
 ## Development Modes
 
-Glide supports two development modes that fundamentally change how you work with your project:
+Glide supports three development modes that adapt to your project structure:
 
 ### Single-Repo Mode
 
-The default mode for standard development workflows:
+The default mode for standard Git repository workflows:
 
 ```bash
 # All commands operate on your current branch
@@ -109,12 +109,31 @@ glid project status  # See all worktrees
 - Enables `project` command group
 - No context switching between features
 
+### Standalone Mode
+
+For directories without Git repositories:
+
+```bash
+# Create a .glide.yml in any directory
+echo 'commands: { hello: "echo Hello!" }' > .glide.yml
+glid help  # Shows "📄 Standalone mode"
+glid hello # Your commands work immediately
+```
+
+**Characteristics:**
+- No Git repository required
+- Commands defined in `.glide.yml` only
+- Perfect for automation scripts
+- Minimal project overhead
+- Works in temporary directories
+
 ### Switching Between Modes
 
 Use `glid setup` to configure your development mode:
 - Converts project structure when switching
 - Preserves your work and configuration
 - Can switch back at any time
+- Standalone mode is automatic when `.glide.yml` exists without Git
 
 ## Worktree Management
 
@@ -182,6 +201,53 @@ glid worktree list
 glid worktree remove feature/old-thing
 ```
 
+## YAML-Defined Commands
+
+### Command Definition
+
+Define custom commands in `.glide.yml` without writing plugins:
+
+```yaml
+commands:
+  # Simple format
+  build: make build
+
+  # Full format with metadata
+  deploy:
+    cmd: |
+      echo "Deploying to $1..."
+      ./scripts/deploy.sh $1
+      echo "Deploy complete!"
+    alias: d
+    description: Deploy to environment
+    help: |
+      Deploy the application to specified environment.
+
+      Usage: glid deploy [staging|production]
+    category: deployment
+```
+
+### Command Features
+
+**Parameter Expansion**: Pass arguments to commands
+```bash
+glid deploy staging  # $1 = staging
+glid test unit integration  # $1 = unit, $2 = integration
+```
+
+**Shell Script Support**: Full shell capabilities
+- Multi-line scripts
+- Control structures (if/then/else, loops)
+- Pipes and redirections
+- Environment variables
+- Shell functions
+
+**Command Metadata**:
+- `alias`: Short alternative name
+- `description`: One-line description for help
+- `help`: Detailed help text
+- `category`: Group in help output
+
 ## Command Resolution
 
 ### Priority Order
@@ -189,9 +255,11 @@ glid worktree remove feature/old-thing
 When you run a command, Glide checks in order:
 
 1. **Built-in commands** - Core Glide functionality
-2. **Plugin commands** - From active plugins
-3. **Aliases** - User-defined shortcuts
-4. **Pass-through** - To system commands
+2. **Local YAML commands** - From `.glide.yml` in current/parent directories
+3. **Plugin commands** - From active plugins
+4. **Global YAML commands** - From `~/.glide/config.yml`
+5. **Aliases** - User-defined shortcuts
+6. **Pass-through** - To system commands
 
 ### Command Namespacing
 

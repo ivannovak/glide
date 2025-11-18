@@ -22,10 +22,15 @@ func ParseCommands(rawCommands CommandMap) (map[string]*Command, error) {
 
 // parseCommand handles both string and map formats
 func parseCommand(name string, value interface{}) (*Command, error) {
+
 	switch v := value.(type) {
 	case string:
 		// Simple format: commands: build: "docker build"
 		return &Command{Cmd: v}, nil
+
+	case CommandMap:
+		// Handle CommandMap type (which is map[string]interface{})
+		return parseCommand(name, map[string]interface{}(v))
 
 	case map[string]interface{}:
 		// Structured format with additional properties

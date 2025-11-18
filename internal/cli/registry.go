@@ -192,8 +192,8 @@ func (r *Registry) AddYAMLCommand(name string, cmd *config.Command) error {
 			category = CategorySetup
 		case "plugin":
 			category = CategoryPlugin
-		case "global":
-			category = CategoryGlobal
+		case "global", "project":
+			category = CategoryProject
 		case "debug":
 			category = CategoryDebug
 		case "help":

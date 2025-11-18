@@ -55,6 +55,13 @@ func (f *StandardProjectRootFinder) FindRoot(workingDir string) (string, error) 
 	traversed := 0
 
 	for traversed < f.maxTraversal {
+		// Check for .glide.yml file (indicates a Glide project)
+		glidePath := filepath.Join(current, ".glide.yml")
+		if _, err := os.Stat(glidePath); err == nil {
+			// Found .glide.yml, this is a project root
+			return current, nil
+		}
+
 		// Check for multi-worktree structure (has vcs/ directory)
 		vcsPath := filepath.Join(current, "vcs")
 		if info, err := os.Stat(vcsPath); err == nil && info.IsDir() {
@@ -130,6 +137,12 @@ func (d *StandardDevelopmentModeDetector) DetectMode(projectRoot string) Develop
 		return ModeSingleRepo
 	}
 
+	// Check for .glide.yml file (standalone/non-Git project)
+	glidePath := filepath.Join(projectRoot, ".glide.yml")
+	if _, err := os.Stat(glidePath); err == nil {
+		return ModeStandalone
+	}
+
 	return ModeUnknown
 }
 
@@ -173,6 +186,8 @@ func (i *StandardLocationIdentifier) IdentifyLocation(ctx *ProjectContext, worki
 			return LocationRoot
 		}
 	case ModeSingleRepo:
+		return LocationProject
+	case ModeStandalone:
 		return LocationProject
 	default:
 		return LocationUnknown
