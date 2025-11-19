@@ -4,24 +4,17 @@ Welcome! This guide will walk you through your first 5 minutes with Glide.
 
 ## Understanding Context
 
-Glide's superpower is understanding your project context. Let's see what it detects:
+Glide adapts to your project structure automatically:
 
 ```bash
 cd your-project
-glid context
+glid help
 ```
 
-Example output:
-```
-Project Context:
-  Type: Docker Compose Project
-  Language: Go
-  Git Branch: main
-  Working Directory: /Users/you/project
-  Available Plugins: docker, git-tools
-```
-
-Glide detected your project type and loaded relevant plugins automatically.
+The header shows your current mode:
+- 📁 **Single-repo mode** - Standard Git repository
+- 🌳 **Multi-worktree mode** - Multiple features in parallel
+- 📄 **Standalone mode** - Non-Git directory with `.glide.yml`
 
 ## Essential Commands
 
@@ -39,28 +32,52 @@ Get help for a specific command:
 glid help worktree
 ```
 
-### Working with Plugins
+### Extending with Custom Commands
 
-Glide's power comes from plugins that provide project-specific commands:
+You can extend Glide with custom commands in two ways:
+
+#### YAML-Defined Commands (Recommended)
+Define commands directly in `.glide.yml`:
+
+```yaml
+commands:
+  build: make build
+  test: go test ./...
+  deploy:
+    cmd: ./scripts/deploy.sh $1
+    description: Deploy to environment
+```
+
+These become available immediately:
+```bash
+glid build
+glid test
+glid deploy staging
+```
+
+#### Runtime Plugins (Advanced)
+For complex integrations, you can install runtime plugins:
 
 ```bash
-# See available plugins
+# List installed plugins
 glid plugins list
 
-# Install a plugin from a local file
+# Install a plugin binary
 glid plugins install /path/to/plugin
 
-# Get info about a plugin
+# Get plugin information
 glid plugins info [plugin-name]
-
-# Once plugins are installed, their commands become available
-# For example, a Docker plugin might provide:
-# glid up, glid down, glid status, glid logs
 ```
+
+**Getting Plugins**: 
+- Build your own using the [Plugin Development Guide](../plugin-development.md)
+- Check community repositories and examples
+- Currently no centralized marketplace (coming in future releases)
+- Most users should start with YAML commands and only use plugins for complex needs
 
 ## Development Modes
 
-Glide supports two development modes:
+Glide supports three development modes:
 
 ### Single-Repo Mode
 The default mode for standard development:
@@ -87,28 +104,20 @@ glid project list                     # List all worktrees
 glid project status                   # Status across all worktrees
 ```
 
-## Working with Plugins
-
-### See What's Available
-
-```bash
-# List installed plugins
-glid plugins list
-
-# See commands from a specific plugin
-glid plugins info docker
-```
-
-### Plugin Commands Feel Native
-
-Once a plugin is installed, its commands work like built-in ones:
+### Standalone Mode
+For directories without Git repositories:
+- Use Glide anywhere with just a `.glide.yml` file
+- Perfect for personal scripts and automation
+- No Git required
 
 ```bash
-# These might come from different plugins
-glid db migrate        # Database plugin
-glid test --watch      # Testing plugin
-glid deploy staging    # Deployment plugin
+# Create a .glide.yml in any directory
+echo 'commands: { hello: "echo Hello!" }' > .glide.yml
+
+# Commands work immediately
+glid hello
 ```
+
 
 ## Multi-Worktree Development
 
@@ -192,20 +201,6 @@ glid d production
 glid help
 ```
 
-### Plugin Configuration
-
-Example `.glide.yml` with both commands and plugin configuration:
-```yaml
-# Custom commands
-commands:
-  lint: golangci-lint run ./...
-  fmt: go fmt ./...
-
-# Plugin-specific configuration
-plugins:
-  docker:
-    compose_file: docker-compose.dev.yml
-```
 
 ## Tips for Success
 
@@ -219,12 +214,16 @@ glid <TAB><TAB>
 ```
 
 ### 3. Explore Gradually
-Start with basic commands, then explore plugins as you need them.
+Start with basic commands, then add YAML commands as you need them.
 
-### 4. Check Plugin Ecosystem
-Many common workflows already have plugins:
-```bash
-glid plugins search database
+### 4. Build Your Command Library
+Start with simple YAML commands and expand as needed:
+```yaml
+# Start simple, grow over time
+commands:
+  clean: rm -rf build/
+  fresh: git pull && make build
+  review: gh pr create --draft
 ```
 
 ## Common Workflows
@@ -234,36 +233,44 @@ glid plugins search database
 # Update Glide
 glid self-update
 
-# Pull latest code
-git pull
-
-# Start your environment
-glid up
-
-# Check everything's running
-glid status
+# Pull latest code and run your custom setup
+# (assuming you've defined these in .glide.yml)
+glid fresh  # Runs: git pull && make build
 ```
 
-### Switching Features
+### Working with Multiple Features (Multi-Worktree Mode)
 ```bash
-# Save current work
-git commit -am "WIP"
+# Create a new worktree for a feature
+glid project worktree feature/new-thing
 
-# Switch to another feature
-cd ~/project/worktrees/feature-other
-glid up
+# Switch to it
+cd ~/project/worktrees/feature-new-thing
+
+# List all worktrees
+glid project list
 ```
 
-### Debugging
-```bash
-# Check logs
-glid logs --tail 50
+### Creating Your Own Workflows
+Define commands for your specific needs in `.glide.yml`:
+```yaml
+commands:
+  # Morning routine
+  fresh: |
+    git pull
+    npm install
+    docker-compose up -d
+    echo "Ready to work!"
 
-# Jump into container
-glid shell
+  # Quick test
+  check: |
+    npm run lint
+    npm run test
 
-# Run tests
-glid test
+  # Deploy
+  ship:
+    cmd: ./deploy.sh $1
+    description: Deploy to environment
+    help: "Usage: glid ship [staging|production]"
 ```
 
 ## Next Steps

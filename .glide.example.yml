@@ -87,6 +87,32 @@ commands:
     # Usage: glid run-in ./subdir "npm test"
     # Runs: npm test in ./subdir
 
+  # Recursive Glide command examples
+  test-and-deploy:
+    cmd: |
+      echo "Running full test suite..."
+      glid test
+      echo "Tests passed! Deploying..."
+      glid deploy $1
+    description: "Run tests then deploy"
+    help: |
+      Runs the test command, and if successful, runs the deploy command.
+      This demonstrates calling other Glide commands from YAML.
+      
+      Usage: glid test-and-deploy staging
+    # Usage: glid test-and-deploy staging
+    # This will run 'glid test' then 'glid deploy staging'
+
+  full-refresh:
+    cmd: |
+      glid down
+      glid clean
+      glid build
+      glid up
+    description: "Complete environment refresh"
+    help: "Stops, cleans, rebuilds, and restarts the entire environment"
+    # Chains multiple Glide commands together
+
 # Plugin configuration (if you have plugins installed)
 plugins:
   docker:

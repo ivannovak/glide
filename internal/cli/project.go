@@ -80,6 +80,8 @@ Status includes:
   - Resource usage
   - Port mappings
 
+Note: vcs/ should typically stay on the main branch as a reference.
+
 Examples:
   glid p status                # Show all worktree statuses
   glid p status --verbose      # Include detailed container info`,

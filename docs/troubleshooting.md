@@ -2,27 +2,27 @@
 
 ## Quick Diagnostics
 
-Before diving into specific issues, run Glide's built-in diagnostics:
+Check your Glide installation and context:
 
 ```bash
-glide doctor          # Run diagnostic checks
-glide doctor --fix    # Attempt automatic fixes
-glide context         # Show current context
-glide version --full  # Display detailed version info
+glid version          # Verify Glide is installed
+glid context          # Show detected project context
+glid help            # See available commands
 ```
 
 ## Common Issues and Solutions
 
 ### Installation Issues
 
-#### "Command not found: glide"
+#### "Command not found: glid"
 
 **Problem:** Glide is not in your PATH or not installed.
 
 **Solutions:**
 1. Check if Glide is installed:
    ```bash
-   ls -la /usr/local/bin/glide
+   ls -la /usr/local/bin/glid
+   which glid
    ```
 
 2. Add to PATH if installed elsewhere:
@@ -33,597 +33,425 @@ glide version --full  # Display detailed version info
 
 3. Reinstall Glide:
    ```bash
-   curl -sSL https://glide.dev/install | bash
+   # Download latest release
+   curl -L https://github.com/ivannovak/glide/releases/latest/download/glid-$(uname -s)-$(uname -m) -o glid
+   chmod +x glid
+   sudo mv glid /usr/local/bin/
    ```
 
-#### "Permission denied" when running glide
+#### "Permission denied" when running glid
 
 **Problem:** Glide binary lacks execute permission.
 
 **Solution:**
 ```bash
-chmod +x /usr/local/bin/glide
+chmod +x /usr/local/bin/glid
 ```
-
-### Docker Issues
-
-#### "Docker daemon is not running"
-
-**Problem:** Docker Desktop is not started or Docker service is stopped.
-
-**Solutions:**
-
-**macOS:**
-```bash
-# Start Docker Desktop
-open -a Docker
-# Wait for Docker to start, then verify
-docker info
-```
-
-**Linux:**
-```bash
-sudo systemctl start docker
-sudo systemctl enable docker
-```
-
-#### "Cannot connect to Docker daemon"
-
-**Problem:** User lacks permission to access Docker socket.
-
-**Solution:**
-```bash
-# Add user to docker group (Linux)
-sudo usermod -aG docker $USER
-# Log out and back in, then verify
-docker run hello-world
-```
-
-#### "Port already in use"
-
-**Problem:** Required ports are occupied by other services.
-
-**Solutions:**
-1. Find what's using the port:
-   ```bash
-   lsof -i :80    # Check port 80
-   lsof -i :3306  # Check port 3306
-   ```
-
-2. Stop conflicting service or change Glide's ports:
-   ```yaml
-   # docker-compose.override.yml
-   services:
-     nginx:
-       ports:
-         - "8080:80"  # Use 8080 instead
-   ```
-
-#### "No such service" error
-
-**Problem:** Trying to execute commands in non-existent container.
-
-**Solutions:**
-1. Check available services:
-   ```bash
-   glide ps
-   docker-compose ps
-   ```
-
-2. Ensure services are running:
-   ```bash
-   glide up
-   ```
 
 ### Context Detection Issues
 
-#### "Not in a Glide project directory"
+#### "No project detected"
 
-**Problem:** Glide cannot detect project structure.
+**Problem:** Glide cannot find a project in the current directory.
 
 **Solutions:**
-1. Navigate to project directory:
-   ```bash
-   cd ~/Code/myproject
-   ```
 
-2. Initialize project if new:
+1. **For Git repositories:**
    ```bash
-   glide setup
-   ```
-
-3. Check for `.git` directory:
-   ```bash
-   ls -la .git
-   # If missing, initialize Git
+   # Ensure you're in a Git repository
+   git status
+   # If not, initialize Git
    git init
+   ```
+
+2. **For standalone projects (no Git):**
+   ```bash
+   # Create a .glide.yml file
+   cat > .glide.yml << 'EOF'
+   commands:
+     hello: echo "Hello from Glide!"
+   EOF
+   ```
+
+3. **Navigate to project root:**
+   ```bash
+   # Find your project root
+   find . -name ".git" -o -name ".glide.yml"
+   cd /path/to/project
    ```
 
 #### "Command only available in multi-worktree mode"
 
-**Problem:** Trying to use multi-worktree commands in single-repo mode.
+**Problem:** Trying to use `glid project` commands in single-repo mode.
 
 **Solutions:**
 1. Check current mode:
    ```bash
-   glide context
+   glid context
    ```
 
-2. Convert to multi-worktree (if desired):
+2. Convert to multi-worktree mode:
    ```bash
-   glide setup --mode multi
+   glid setup --mode multi
    ```
 
-3. Use appropriate commands for your mode:
-   ```bash
-   # Single-repo mode
-   glide test
-   
-   # Multi-worktree mode
-   glide project test
-   ```
+3. Or stay in single-repo mode and avoid `project` commands.
 
-### Configuration Issues
+### YAML Command Issues
 
-#### "Configuration file not found"
+#### "Command not found" for YAML-defined command
 
-**Problem:** Glide cannot find or read configuration.
+**Problem:** Your YAML command isn't being recognized.
 
 **Solutions:**
-1. Create default configuration:
-   ```bash
-   glide config init
-   ```
 
-2. Check configuration location:
-   ```bash
-   echo $GLIDE_CONFIG
-   ls -la ~/.glide.yml
-   ```
-
-3. Validate existing configuration:
-   ```bash
-   glide config validate
-   ```
-
-#### "Invalid configuration"
-
-**Problem:** Configuration file has syntax errors or invalid values.
-
-**Solutions:**
-1. Validate configuration:
-   ```bash
-   glide config validate
-   ```
-
-2. Reset to defaults:
-   ```bash
-   mv ~/.glide.yml ~/.glide.yml.backup
-   glide config init
-   ```
-
-3. Fix YAML syntax:
+1. **Check YAML syntax:**
    ```yaml
-   # Correct indentation and structure
-   projects:
-     myproject:
-       path: /path/to/project
-       mode: multi
+   # .glide.yml - Correct format
+   commands:
+     build: docker build .
+     test: npm test
    ```
 
-### Test Execution Issues
+2. **Verify file location:**
+   ```bash
+   # Must be in current or parent directory
+   ls -la .glide.yml
+   cat .glide.yml
+   ```
 
-#### "No test framework detected"
+3. **Check for typos:**
+   ```bash
+   # List available commands
+   glid help
+   # Your YAML commands should appear in the list
+   ```
 
-**Problem:** Glide cannot identify test runner.
+#### YAML command fails to execute
+
+**Problem:** Command is recognized but execution fails.
 
 **Solutions:**
-1. Specify test framework explicitly:
+
+1. **Test command directly:**
    ```bash
-   glide test --framework phpunit
-   glide test --framework jest
+   # If this works:
+   docker build .
+
+   # But this doesn't:
+   glid build  # where build: docker build .
+
+   # Check for shell issues
    ```
 
-2. Ensure test framework is installed:
-   ```bash
-   # PHP
-   composer require --dev phpunit/phpunit
-   
-   # JavaScript
-   npm install --save-dev jest
-   ```
-
-#### "Tests failing in Docker"
-
-**Problem:** Tests pass locally but fail in containers.
-
-**Solutions:**
-1. Ensure database is migrated:
-   ```bash
-   glide exec php artisan migrate --env=testing
-   ```
-
-2. Check environment variables:
-   ```bash
-   glide exec php printenv | grep DB_
-   ```
-
-3. Clear caches:
-   ```bash
-   glide exec php artisan cache:clear
-   glide exec php composer dump-autoload
-   ```
-
-### Database Issues
-
-#### "Connection refused" to database
-
-**Problem:** Cannot connect to MySQL/PostgreSQL.
-
-**Solutions:**
-1. Ensure database container is running:
-   ```bash
-   glide ps
-   glide up mysql
-   ```
-
-2. Check connection parameters:
-   ```bash
-   glide exec php printenv | grep DB_
-   ```
-
-3. Wait for database to be ready:
-   ```bash
-   glide exec mysql mysqladmin ping -h mysql --wait
-   ```
-
-#### "Access denied for user"
-
-**Problem:** Database credentials are incorrect.
-
-**Solutions:**
-1. Verify credentials in `.env`:
-   ```bash
-   grep DB_ .env
-   ```
-
-2. Grant permissions:
-   ```bash
-   glide exec mysql mysql -u root -p
-   # In MySQL:
-   GRANT ALL ON *.* TO 'user'@'%';
-   FLUSH PRIVILEGES;
-   ```
-
-### Performance Issues
-
-#### "Glide commands are slow"
-
-**Problem:** Commands take too long to execute.
-
-**Solutions:**
-1. Check Docker resource allocation:
-   - Docker Desktop → Preferences → Resources
-   - Increase CPU and Memory limits
-
-2. Clean Docker system:
-   ```bash
-   docker system prune -a
-   docker volume prune
-   ```
-
-3. Disable unnecessary services:
+2. **Use shell explicitly for complex commands:**
    ```yaml
-   # docker-compose.override.yml
-   services:
-     redis:
-       profiles: ["cache"]  # Only start when needed
+   commands:
+     # Instead of:
+     complex: cd dir && npm install
+
+     # Use:
+     complex: |
+       cd dir
+       npm install
    ```
 
-#### "High memory usage"
-
-**Problem:** Docker containers consuming too much memory.
-
-**Solutions:**
-1. Limit container memory:
+3. **Debug parameter substitution:**
    ```yaml
-   services:
-     php:
-       mem_limit: 512m
-   ```
-
-2. Check for memory leaks:
-   ```bash
-   glide exec php php -i | grep memory_limit
-   docker stats
+   commands:
+     # Test with echo first
+     deploy: echo "Would deploy to: $1"
    ```
 
 ### Plugin Issues
 
-#### "Plugin not found"
+#### "Plugin not found" after installation
 
-**Problem:** Installed plugin is not recognized.
+**Problem:** Installed plugin isn't recognized.
 
 **Solutions:**
-1. Check plugin installation:
+
+1. **Verify installation:**
    ```bash
-   glide plugins list
+   glid plugins list
    ls -la ~/.glide/plugins/
    ```
 
-2. Ensure plugin has correct name:
+2. **Check plugin binary name:**
    ```bash
-   # Must start with 'glide-plugin-'
-   mv myplugin glide-plugin-myplugin
+   # Plugin binaries should be executable
+   chmod +x ~/.glide/plugins/plugin-name
    ```
 
-3. Verify plugin permissions:
+3. **Ensure plugin is valid:**
    ```bash
-   chmod +x ~/.glide/plugins/glide-plugin-*
+   # Get plugin info
+   glid plugins info plugin-name
    ```
 
-#### "Plugin command failed"
+#### Cannot install plugin
 
-**Problem:** Plugin executes but returns errors.
+**Problem:** `glid plugins install` fails.
 
 **Solutions:**
-1. Check plugin logs:
+
+1. **Verify plugin binary exists:**
    ```bash
-   GLIDE_PLUGIN_DEBUG=1 glide myplugin command
+   ls -la /path/to/plugin
+   file /path/to/plugin  # Should show executable
    ```
 
-2. Verify plugin dependencies:
+2. **Check plugin directory permissions:**
    ```bash
-   glide plugins info myplugin
+   mkdir -p ~/.glide/plugins
+   chmod 755 ~/.glide/plugins
    ```
 
-3. Reinstall plugin:
+3. **Install with full path:**
    ```bash
-   glide plugins uninstall myplugin
-   glide plugins install /path/to/plugin
+   glid plugins install /absolute/path/to/plugin
    ```
 
 ### Multi-Worktree Issues
 
 #### "Cannot create worktree"
 
-**Problem:** Git worktree creation fails.
+**Problem:** `glid project worktree` fails.
 
 **Solutions:**
-1. Check if worktree already exists:
+
+1. **Ensure you're in multi-worktree mode:**
+   ```bash
+   glid context  # Should show "multi-worktree"
+   # If not:
+   glid setup --mode multi
+   ```
+
+2. **Check if worktree already exists:**
    ```bash
    git worktree list
+   ls worktrees/
    ```
 
-2. Remove stale worktree:
+3. **Remove stale worktree:**
    ```bash
-   git worktree remove worktrees/feature-name
-   rm -rf worktrees/feature-name
+   git worktree remove worktrees/branch-name
+   rm -rf worktrees/branch-name
    ```
 
-3. Ensure branch doesn't exist:
+4. **Ensure branch name is valid:**
    ```bash
-   git branch -a | grep feature-name
-   git branch -D feature-name  # If local
+   # Use valid Git branch names
+   glid project worktree feature/my-feature  # Good
+   glid project worktree "my feature"        # Bad (spaces)
    ```
 
-#### "Worktree Docker conflicts"
+#### Wrong directory structure after setup
 
-**Problem:** Multiple worktrees' Docker containers conflict.
+**Problem:** Multi-worktree setup created unexpected structure.
+
+**Expected structure:**
+```
+project/
+├── vcs/          # Main repository
+│   └── .git/
+└── worktrees/    # Feature branches
+    └── feature-a/
+```
 
 **Solutions:**
-1. Stop all containers:
+1. **Verify structure:**
    ```bash
-   glide project down
+   ls -la
+   # Should show vcs/ and worktrees/ directories
    ```
 
-2. Use unique project names:
+2. **Manual fix if needed:**
    ```bash
-   # In each worktree's .env
-   COMPOSE_PROJECT_NAME=project_feature_name
+   # If setup failed midway
+   mv .git vcs/.git
+   mv * vcs/ 2>/dev/null || true
+   mkdir -p worktrees
    ```
 
-3. Use different ports per worktree:
-   ```yaml
-   # worktrees/feature1/docker-compose.override.yml
-   services:
-     nginx:
-       ports:
-         - "8081:80"
-   ```
+### Shell Completion Issues
 
-### File Permission Issues
+#### Completion not working
 
-#### "Permission denied" on files
-
-**Problem:** Cannot read/write project files.
+**Problem:** Tab completion doesn't work after installation.
 
 **Solutions:**
-1. Fix ownership:
+
+1. **Generate completion for your shell:**
    ```bash
-   sudo chown -R $(whoami):$(whoami) .
+   # Bash
+   glid completion bash > /tmp/glid.bash
+   source /tmp/glid.bash
+
+   # Zsh
+   glid completion zsh > ~/.zsh/completions/_glid
+   source ~/.zshrc
+
+   # Fish
+   glid completion fish > ~/.config/fish/completions/glid.fish
    ```
 
-2. Fix permissions:
+2. **Verify completion is loaded:**
    ```bash
-   find . -type f -exec chmod 644 {} \;
-   find . -type d -exec chmod 755 {} \;
-   chmod +x vendor/bin/*
+   # Bash
+   complete -p | grep glid
+
+   # Zsh
+   print -l $_comps | grep glid
    ```
 
-3. In Docker, match user IDs:
-   ```dockerfile
-   ARG UID=1000
-   ARG GID=1000
-   RUN usermod -u $UID www-data && groupmod -g $GID www-data
-   ```
+### Configuration Issues
 
-### Network Issues
+#### Cannot find configuration
 
-#### "Could not resolve host"
-
-**Problem:** DNS resolution failing in containers.
+**Problem:** Glide can't find `.glide.yml`.
 
 **Solutions:**
-1. Check Docker DNS settings:
-   ```json
-   // ~/.docker/daemon.json
-   {
-     "dns": ["8.8.8.8", "8.8.4.4"]
-   }
-   ```
 
-2. Restart Docker:
+1. **Check current directory:**
    ```bash
-   # macOS
-   osascript -e 'quit app "Docker"'
-   open -a Docker
-   
-   # Linux
-   sudo systemctl restart docker
+   pwd
+   ls -la .glide.yml
    ```
 
-#### "Connection timeout"
+2. **Check parent directories:**
+   ```bash
+   # Glide searches up to 5 levels
+   find . -maxdepth 5 -name ".glide.yml"
+   ```
 
-**Problem:** Network requests timing out.
+3. **Create minimal config:**
+   ```bash
+   cat > .glide.yml << 'EOF'
+   # Minimal Glide configuration
+   commands:
+     init: echo "Initialized"
+   EOF
+   ```
+
+### Update Issues
+
+#### Self-update fails
+
+**Problem:** `glid self-update` doesn't work.
 
 **Solutions:**
-1. Check proxy settings:
+
+1. **Check GitHub connectivity:**
    ```bash
-   echo $HTTP_PROXY
-   echo $HTTPS_PROXY
+   curl -I https://api.github.com
    ```
 
-2. Configure Docker proxy:
-   ```json
-   // ~/.docker/config.json
-   {
-     "proxies": {
-       "default": {
-         "httpProxy": "http://proxy:8080",
-         "httpsProxy": "http://proxy:8080",
-         "noProxy": "localhost,127.0.0.1"
-       }
-     }
-   }
+2. **Manual update:**
+   ```bash
+   # Download specific version
+   VERSION=v1.0.0  # Replace with desired version
+   curl -L "https://github.com/ivannovak/glide/releases/download/$VERSION/glid-$(uname -s)-$(uname -m)" -o glid
+   chmod +x glid
+   sudo mv glid /usr/local/bin/
+   ```
+
+3. **Check current version:**
+   ```bash
+   glid version
    ```
 
 ## Debug Mode
 
-Enable debug output for more information:
+Get more information about issues:
 
 ```bash
-# Verbose output
-glide --verbose test
+# Show detailed context information
+glid context --json
 
-# Debug plugins
-GLIDE_PLUGIN_DEBUG=1 glide myplugin command
+# Check what commands are available
+glid help
 
-# Docker compose debug
-COMPOSE_DEBUG=1 glide up
+# See if YAML commands are loaded
+grep -A 10 "^commands:" .glide.yml
 ```
 
 ## Getting Help
 
-If issues persist after trying these solutions:
+If issues persist:
 
-1. **Check documentation:**
+1. **Gather debug information:**
    ```bash
-   glide help troubleshooting
-   glide help <command>
+   glid version > debug.txt
+   glid context >> debug.txt
+   cat .glide.yml >> debug.txt
    ```
 
-2. **Run diagnostics:**
-   ```bash
-   glide doctor --verbose
-   ```
+2. **Check for known issues:**
+   - Visit: https://github.com/ivannovak/glide/issues
 
-3. **Gather debug information:**
-   ```bash
-   glide context --json > glide-context.json
-   glide doctor --json > glide-doctor.json
-   docker info > docker-info.txt
-   ```
-
-4. **Report issue:**
-   - Include output from debug commands
-   - Describe steps to reproduce
-   - Mention OS and Glide version
-   - File issue at: https://github.com/ivannovak/glide/issues
+3. **Report new issue with:**
+   - OS and version (`uname -a`)
+   - Glide version (`glid version`)
+   - Project structure (`ls -la`)
+   - Debug output from above
 
 ## Emergency Recovery
 
-If Glide becomes completely non-functional:
-
-### Reset Everything
+### Reset Glide Configuration
 
 ```bash
-# Stop all Docker containers
-docker stop $(docker ps -aq)
+# Backup existing config
+mv ~/.glide ~/.glide.backup
 
-# Remove Glide configuration
-rm -rf ~/.glide.yml
-rm -rf ~/.glide/
+# Remove project config
+mv .glide.yml .glide.yml.backup
 
-# Clean Docker
-docker system prune -a --volumes
-
-# Reinstall Glide
-curl -sSL https://glide.dev/install | bash
-
-# Reconfigure
-glide setup
+# Start fresh
+glid setup
 ```
 
 ### Manual Fallback
 
-If Glide won't run at all, use manual commands:
+If Glide won't run, execute your commands directly:
 
 ```bash
-# Instead of 'glide up'
-docker-compose up -d
+# Instead of YAML command
+# glid build
+# Run the actual command:
+docker build .
 
-# Instead of 'glide test'
-docker-compose exec php vendor/bin/phpunit
-
-# Instead of 'glide exec'
-docker-compose exec php bash
+# Instead of plugin command
+# Just run the underlying tool directly
 ```
 
 ## Platform-Specific Issues
 
 ### macOS
-
-- **Slow file system:** Use delegated mounts in docker-compose.yml
-- **Port conflicts:** Check for services using `lsof -i :<port>`
-- **Docker Desktop issues:** Reset Docker Desktop from preferences
+- **Binary not trusted:** System Preferences → Security & Privacy → Allow glid
+- **PATH issues:** Add to `.zshrc` instead of `.bashrc`
 
 ### Linux
-
-- **SELinux conflicts:** Add `:Z` to volume mounts
-- **Systemd issues:** Check `journalctl -u docker`
-- **Permission issues:** Add user to docker group
+- **Permission issues:** Ensure user owns `~/.glide/` directory
+- **Binary architecture:** Download correct version (amd64 vs arm64)
 
 ### Windows (WSL2)
+- **Line endings:** Use Unix line endings in `.glide.yml`
+- **Path format:** Use Unix paths (`/mnt/c/...` not `C:\...`)
 
-- **Path issues:** Use Unix-style paths in WSL
-- **Line endings:** Configure Git: `git config --global core.autocrlf input`
-- **Performance:** Keep projects in WSL filesystem, not Windows
+## Maintenance
 
-## Maintenance Commands
-
-Regular maintenance can prevent issues:
+Keep Glide running smoothly:
 
 ```bash
-# Weekly cleanup
-glide clean --all
-docker system prune
-glide update
-
 # Check for updates
-glide upgrade --check
+glid self-update --check
 
-# Validate setup
-glide doctor
-glide config validate
+# Clean old plugins
+ls -la ~/.glide/plugins/
+# Remove unused plugins manually
+
+# Verify setup
+glid context
+glid help
 ```

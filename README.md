@@ -107,6 +107,7 @@ commands:
 These commands become available immediately:
 ```bash
 glid build              # Run your custom build command
+glid test               # Run your test suite
 glid deploy staging     # Pass arguments with $1, $2, etc.
 glid d production       # Use aliases for frequently used commands
 glid reset              # Run multi-line shell scripts
@@ -178,12 +179,11 @@ glid project status
 ### 🚀 Getting Started
 - [**Installation Guide**](docs/getting-started/installation.md) - Get Glide running in 2 minutes
 - [**First Steps**](docs/getting-started/first-steps.md) - Essential commands and concepts
-- [**Project Setup**](docs/getting-started/project-setup.md) - Configure Glide for your project
 
 ### 📚 Learn More
 - [**Core Concepts**](docs/core-concepts/README.md) - Understand how Glide works
 - [**Common Workflows**](docs/guides/README.md) - Real-world usage patterns
-- [**Plugin Development**](docs/plugin-development/README.md) - Create your own plugins
+- [**Plugin Development**](docs/plugin-development.md) - Create your own plugins
 
 ## Built-in Commands
 
@@ -222,7 +222,7 @@ We welcome contributions! See our [Contributing Guide](CONTRIBUTING.md) for deta
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
+MIT License
 
 ---
 

@@ -902,9 +902,9 @@ func (hc *HelpCommand) showContextTips() {
 	case context.ModeMultiWorktree:
 		switch hc.ProjectContext.Location {
 		case context.LocationRoot:
-			tipColor.Println("💡 Tip: You're in the project root. Use 'glid global' commands to manage worktrees.")
+			tipColor.Println("💡 Tip: You're in the project root. Use 'glid project' commands to manage worktrees.")
 		case context.LocationMainRepo:
-			tipColor.Println("💡 Tip: You're in the main repository. Development commands work here.")
+			tipColor.Println("💡 Tip: You're in vcs/ (main branch). Create worktrees with 'glid project worktree <branch>'.")
 		case context.LocationWorktree:
 			tipColor.Println("💡 Tip: You're in a worktree. All commands operate on this feature branch.")
 		}

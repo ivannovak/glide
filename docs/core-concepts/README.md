@@ -10,64 +10,88 @@ Glide's context system is what makes it feel magical. Instead of remembering dif
 
 When you run any Glide command, it:
 
-1. **Scans your environment** - Looks for familiar files and patterns
-2. **Identifies project type** - Docker, Node.js, Go, Rails, etc.
-3. **Loads relevant plugins** - Only the tools you need
-4. **Provides appropriate commands** - Contextual to your project
+1. **Scans your environment** - Looks for project markers (.git, .glide.yml, vcs/)
+2. **Identifies development mode** - Single-repo, multi-worktree, or standalone
+3. **Loads configuration** - From .glide.yml and global config
+4. **Provides appropriate commands** - Based on your mode and configuration
 
 ### Example: Same Command, Different Contexts
 
-The command `glid test` adapts to your project:
+Define context-specific commands in your `.glide.yml`:
 
-```bash
-# In a Go project
-glid test  # Runs: go test ./...
+```yaml
+# Go project .glide.yml
+commands:
+  test: go test ./...
 
-# In a Node.js project  
-glid test  # Runs: npm test
+# Node.js project .glide.yml
+commands:
+  test: npm test
 
-# In a Rails project
-glid test  # Runs: rails test
+# Rails project .glide.yml
+commands:
+  test: rails test
 ```
 
-You use the same mental model across all projects.
+Then use the same command across all projects:
+```bash
+glid test  # Runs the appropriate test command
+```
 
-## Plugin Architecture
+## Extensibility
 
-### What Are Plugins?
+### Two Ways to Extend Glide
 
-Plugins are standalone programs that extend Glide with new commands. They:
-- Run in separate processes (secure)
-- Communicate via gRPC (fast)
-- Can be written in any language
-- Install to `~/.glide/plugins/`
+Glide supports two extension mechanisms:
 
-### How Plugins Work
+1. **YAML Commands** (Recommended for most users)
+   - Simple to define in configuration files
+   - No compilation required
+   - Perfect for project-specific workflows
+
+2. **Runtime Plugins** (Advanced)
+   - Compiled binaries that integrate via gRPC
+   - Can provide complex functionality
+   - Installed manually (no marketplace yet)
+
+### YAML Commands
+
+```
+User → Glide → Config Loading → Command Resolution → Shell Execution
+```
+
+Define commands in:
+- **Project level**: `.glide.yml`
+- **Global level**: `~/.glide/config.yml`
+
+```yaml
+commands:
+  build: docker build .
+  test: go test ./...
+  deploy: ./scripts/deploy.sh $1
+```
+
+### Runtime Plugins
 
 ```
 User → Glide → Plugin Discovery → Command Routing → Plugin Execution
 ```
 
-1. **Discovery**: Glide finds plugins at startup
-2. **Registration**: Plugins declare their commands
-3. **Routing**: Glide routes commands to the right plugin
+1. **Discovery**: Glide finds plugins in `~/.glide/plugins/`
+2. **Registration**: Plugins declare their commands via gRPC
+3. **Routing**: Glide routes commands to plugins
 4. **Execution**: Plugin handles the command
 
-### Plugin Types
+**Installing Plugins**:
+```bash
+# Install from a binary file
+glid plugins install /path/to/plugin-binary
 
-**Runtime Plugins**: Always available
-```yaml
-# Provide commands regardless of context
-- git-tools
-- deployment-utils
+# List installed plugins
+glid plugins list
 ```
 
-**Context Plugins**: Activate based on project
-```yaml
-# Only load in relevant projects
-- docker (when docker-compose.yml exists)
-- node (when package.json exists)
-```
+**Note**: Currently, you need to build or obtain plugin binaries yourself. There's no plugin marketplace or automatic discovery mechanism.
 
 ## Development Modes
 
@@ -87,7 +111,7 @@ glid help  # Shows "Single-repo mode"
 - One active branch at a time
 - Simple, straightforward workflow
 - Traditional Git workflow
-- All plugin commands work on current branch
+- All commands work on current branch
 
 ### Multi-Worktree Mode
 
@@ -152,7 +176,7 @@ docker-compose up
 With Glide worktrees:
 ```bash
 # From project root
-cd vcs/                  # Main repo for hotfixes
+cd vcs/                    # Main branch stays clean as reference
 cd ../worktrees/feature-a  # Full environment running
 cd ../worktrees/feature-b  # Different environment running
 # No context loss, complete isolation!
@@ -160,11 +184,13 @@ cd ../worktrees/feature-b  # Different environment running
 
 ### How Worktrees Work
 
+When you run `glid setup` and choose multi-worktree mode, Glide automatically creates this structure:
+
 ```
 project-root/
 ├── vcs/                  # Main Git repository
-│   ├── .git/            # Git directory
-│   └── ...              # Project files (for hotfixes/exploration)
+│   ├── .git/            # Git directory (stays on main/master)
+│   └── ...              # Project files (reference copy)
 └── worktrees/
     ├── feature-a/       # Git worktree checkout
     │   ├── .git         # File pointing to main repo
@@ -176,9 +202,12 @@ project-root/
         └── ...          # All project files
 ```
 
+**Note**: You don't create this structure manually. The `glid setup` command handles the conversion from a standard Git repository to this multi-worktree layout automatically.
+
 Key architecture points:
-- **vcs/**: Contains the primary Git checkout for hotfixes and exploratory work
-- **worktrees/**: Contains all Git worktrees, completely separate from main repo
+- **vcs/**: Contains the main Git repository, kept on the default branch (main/master) as a clean reference for creating new worktrees
+- **worktrees/**: Contains all Git worktrees, each branched from vcs/
+- **Best Practice**: Keep vcs/ on the latest main branch; do all development work in worktrees
 - **No .gitignore changes needed**: Worktrees live outside the Git context
 - **Clean separation**: Main repository remains unaware of worktree existence
 
@@ -256,27 +285,33 @@ When you run a command, Glide checks in order:
 
 1. **Built-in commands** - Core Glide functionality
 2. **Local YAML commands** - From `.glide.yml` in current/parent directories
-3. **Plugin commands** - From active plugins
+3. **Plugin commands** - From installed runtime plugins
 4. **Global YAML commands** - From `~/.glide/config.yml`
 5. **Aliases** - User-defined shortcuts
 6. **Pass-through** - To system commands
 
-### Command Namespacing
+### Command Organization
 
-Plugins can register commands at different levels:
+Commands can be organized by category:
 
-**Project-wide commands** (common operations):
-```bash
-glid test
-glid build
-glid deploy
+**Common operations**:
+```yaml
+commands:
+  test:
+    cmd: npm test
+    category: testing
+  build:
+    cmd: npm run build
+    category: build
+  deploy:
+    cmd: ./deploy.sh $1
+    category: deployment
 ```
 
-**Namespaced commands** (plugin-specific):
+**Grouped in help output**:
 ```bash
-glid docker ps
-glid docker logs
-glid k8s status
+glid help
+# Commands appear grouped by category
 ```
 
 ## Configuration Hierarchy
@@ -298,18 +333,17 @@ Later sources override earlier ones.
 **Global** - Applies everywhere:
 ```yaml
 # ~/.glide/config.yml
-editor: vim
-theme: dark
-plugins:
-  global: true
+commands:
+  morning: git pull && make
+  review: gh pr create
 ```
 
 **Project** - Specific to one project:
 ```yaml
 # .glide.yml
-plugins:
-  docker:
-    compose_file: docker-compose.dev.yml
+commands:
+  test: npm test
+  deploy: ./scripts/deploy.sh $1
 environment:
   NODE_ENV: development
 ```
@@ -319,38 +353,38 @@ environment:
 ### Lazy Loading
 
 Glide only loads what's needed:
-- Plugins load on-demand
+- Configuration loads on first access
 - Commands are discovered once and cached
 - Context detection runs only when needed
 
 ### Speed Optimizations
 
 - **Binary distribution**: No runtime dependencies
-- **Parallel plugin loading**: Concurrent initialization
+- **Fast startup**: Minimal initialization overhead
 - **Smart caching**: Reuse context detection
 - **Minimal overhead**: < 50ms startup time
 
 ## Security Model
 
-### Plugin Isolation
+### Command Execution
 
-Each plugin:
-- Runs in a separate process
-- Has no access to Glide internals
-- Communicates via defined RPC interface
-- Can be sandboxed by the OS
+YAML commands:
+- Run via shell in your user context
+- Have access to your environment variables
+- Execute with your filesystem permissions
+- Should be reviewed before running
 
 ### Trust Levels
 
-1. **Official plugins**: Maintained by Glide team
-2. **Community plugins**: Reviewed and verified
-3. **Local plugins**: Your own development
-4. **Third-party**: Use with caution
+1. **Your commands**: Defined in your .glide.yml
+2. **Team commands**: Shared via version control
+3. **Global commands**: In ~/.glide/config.yml
+4. **Third-party configs**: Review carefully before using
 
 ## Next Steps
 
 Now that you understand the core concepts:
 
 - Explore [Common Workflows](../guides/README.md)
-- Learn about [Plugin Development](../plugin-development/README.md)
-- Configure Glide for [Your Project](../getting-started/project-setup.md)
+- Review [Command Reference](../command-reference.md)
+- Check [Troubleshooting](../troubleshooting.md) if you encounter issues

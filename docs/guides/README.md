@@ -2,25 +2,57 @@
 
 Real-world patterns and recipes for using Glide effectively.
 
-> **Note**: Many examples in this guide reference commands provided by plugins (like `up`, `down`, `status`, `logs`, `test`, etc.). The actual commands available to you depend on which plugins you have installed. Core Glide provides the framework; plugins provide the specific development commands.
+> **Note**: Many examples in this guide show custom commands that you can define in your `.glide.yml` file or that might be provided by plugins you've installed. Core Glide provides the framework; you extend it with YAML commands or runtime plugins.
 
-## Core vs Plugin Commands
+## Core vs Extension Commands
 
 ### Core Glide Commands (Always Available)
 - `glid help` - Context-aware help
 - `glid setup` - Configure Glide for your project
-- `glid plugins` - Manage plugins
+- `glid plugins` - Manage runtime plugins
 - `glid self-update` - Update Glide
 - `glid version` - Show version info
 - `glid completion` - Shell completions
 - `glid project` - Multi-worktree commands (when enabled)
 
-### Plugin Commands (Examples)
-The following are common commands that plugins might provide:
-- Docker plugin: `up`, `down`, `status`, `logs`, `shell`
-- Testing plugin: `test`, `lint`, `coverage`
-- Database plugin: `db`, `migrate`, `seed`
-- Deployment plugin: `deploy`, `build`
+### Extension Commands
+You can extend Glide with:
+
+1. **YAML Commands** - Define in `.glide.yml`:
+```yaml
+commands:
+  # Docker operations
+  up: docker-compose up -d
+  down: docker-compose down
+  status: docker ps
+  logs: docker-compose logs $@
+  shell: docker-compose exec $1 /bin/bash
+
+  # Testing commands
+  test: npm test $@
+  lint: npm run lint
+  coverage: npm run test:coverage
+
+  # Database operations
+  db: docker-compose exec db psql
+  migrate: npm run migrate
+  seed: npm run seed
+
+  # Deployment
+  deploy: ./scripts/deploy.sh $1
+  build: docker build --no-cache .
+```
+
+2. **Runtime Plugins** - Install compiled plugin binaries:
+```bash
+# Install a plugin (you need the binary)
+glid plugins install /path/to/plugin
+
+# List installed plugins
+glid plugins list
+```
+
+Note: There's no plugin marketplace yet. You need to build or obtain plugin binaries yourself.
 
 ## Daily Development
 
@@ -38,7 +70,7 @@ glid help
 # Pull latest changes
 git pull origin main
 
-# If you have a Docker plugin installed:
+# If you have Docker commands defined in .glide.yml:
 # glid up       # Start services
 # glid status   # Check everything is running
 # glid logs     # See recent logs
@@ -61,8 +93,8 @@ cd worktrees/feature-user-authentication
 # Copy environment config
 cp ../../.env.example .env
 
-# Plugin commands would then be available in the worktree
-# For example, with a Docker plugin:
+# Your custom commands work in the worktree
+# For example, with Docker commands in .glide.yml:
 # glid up         # Start isolated services
 # glid test       # Run tests
 # glid down       # Stop services
@@ -73,6 +105,8 @@ cp ../../.env.example .env
 When things go wrong:
 
 ```bash
+# Assuming these commands are defined in your .glide.yml:
+
 # Check service status
 glid status
 
@@ -134,10 +168,9 @@ commands:
       Usage: glid release 1.2.3
     category: deployment
 
-# Plugin configurations
-plugins:
-  docker:
-    compose_file: docker-compose.dev.yml
+# Environment variables for commands
+environment:
+  COMPOSE_FILE: docker-compose.dev.yml
 ```
 
 With YAML commands defined, your team gets consistent workflows:
@@ -166,9 +199,8 @@ curl -sSL https://raw.githubusercontent.com/ivannovak/glide/main/install.sh | ba
 git clone https://github.com/team/project.git
 cd project
 
-# Install required plugins
-glid plugins install docker
-glid plugins install node-tools
+# Install plugins if you have any plugin binaries
+# glid plugins install /path/to/plugin
 
 # Setup environment
 cp .env.example .env
@@ -184,19 +216,30 @@ echo "Setup complete! Run 'glid help' to see available commands"
 
 ### Continuous Testing
 
-Run tests automatically on changes:
+Define test commands in your `.glide.yml`:
 
+```yaml
+commands:
+  test: npm test $@
+  test:watch: npm test -- --watch
+  test:unit: npm test -- --testPathPattern=unit
+  test:integration: npm test -- --testPathPattern=integration
+  test:e2e: npm run test:e2e
+  test:coverage: npm test -- --coverage
+```
+
+Then run tests:
 ```bash
 # Watch mode for unit tests
-glid test --watch
+glid test:watch
 
 # Run specific test suites
-glid test unit
-glid test integration
-glid test e2e
+glid test:unit
+glid test:integration
+glid test:e2e
 
 # Test with coverage
-glid test --coverage
+glid test:coverage
 ```
 
 ### Pre-commit Testing
@@ -208,7 +251,7 @@ Add to `.git/hooks/pre-commit`:
 # Run tests before committing
 
 echo "Running tests..."
-glid test --quick
+glid test
 
 if [ $? -ne 0 ]; then
   echo "Tests failed! Commit aborted."
@@ -271,98 +314,116 @@ cd ~/project/worktrees/feature-a
 
 ### Database Management
 
-Common database tasks:
+Define database commands in `.glide.yml`:
 
-```bash
-# Access database console
-glid db console
+```yaml
+commands:
+  # Database access
+  db:console: docker-compose exec db psql -U postgres
 
-# Run migrations
-glid db migrate
+  # Migrations
+  db:migrate: npm run migrate
+  db:rollback: npm run migrate:rollback
+  db:seed: npm run seed
 
-# Rollback migrations
-glid db rollback
+  # Backup/restore
+  db:backup: docker-compose exec -T db pg_dump -U postgres
+  db:restore: docker-compose exec -T db psql -U postgres
 
-# Seed development data
-glid db seed
-
-# Backup database
-glid db backup > backup.sql
-
-# Restore database
-glid db restore < backup.sql
+  # Debugging
+  db:ping: docker-compose exec db pg_isready
+  db:queries: docker-compose exec db psql -U postgres -c "SELECT * FROM pg_stat_activity"
 ```
 
-### Database Debugging
-
+Then use them:
 ```bash
+# Access database console
+glid db:console
+
+# Run migrations
+glid db:migrate
+
+# Backup database
+glid db:backup > backup.sql
+
 # Check connection
-glid db ping
-
-# View running queries
-glid db queries
-
-# Analyze slow queries
-glid db explain "SELECT * FROM users WHERE..."
+glid db:ping
 ```
 
 ## Deployment Workflows
 
 ### Staging Deployment
 
-```bash
-# Run tests first
-glid test
+Define deployment commands in `.glide.yml`:
 
-# Build for staging
-glid build --target staging
+```yaml
+commands:
+  deploy:staging:
+    cmd: |
+      echo "Running tests..."
+      npm test
+      echo "Building for staging..."
+      docker build --target staging -t myapp:staging .
+      echo "Deploying to staging..."
+      ./scripts/deploy.sh staging
+      echo "Deployment complete!"
+    description: Deploy to staging environment
 
-# Deploy to staging
-glid deploy staging
-
-# Verify deployment
-glid healthcheck --env staging
-
-# View staging logs
-glid logs --env staging --follow
+  deploy:production:
+    cmd: |
+      echo "WARNING: Deploying to production!"
+      read -p "Are you sure? (y/N) " -n 1 -r
+      echo
+      if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        exit 1
+      fi
+      npm test
+      docker build --target production -t myapp:production .
+      ./scripts/deploy.sh production
+    description: Deploy to production with confirmation
 ```
 
-### Production Deployment
-
+Then deploy:
 ```bash
-# Ensure on main branch
-git checkout main
-git pull
+# Deploy to staging
+glid deploy:staging
 
-# Run full test suite
-glid test all
-
-# Build production image
-glid build --target production
-
-# Deploy with confirmation
-glid deploy production --confirm
-
-# Monitor deployment
-glid monitor production
+# Deploy to production
+glid deploy:production
 ```
 
 ## Troubleshooting Patterns
 
 ### Container Issues
 
+Define troubleshooting commands:
+
+```yaml
+commands:
+  rebuild: |
+    docker-compose down
+    docker-compose build --no-cache
+    docker-compose up -d
+
+  clean: |
+    docker-compose down -v
+    docker system prune -af
+    docker-compose build --no-cache
+    docker-compose up -d
+
+  stats: docker stats
+```
+
+Then use them:
 ```bash
 # Rebuild containers
-glid down
-glid up --build
+glid rebuild
 
 # Clean rebuild
-glid down --volumes
-docker system prune -af
-glid up --build
+glid clean
 
 # Check resource usage
-docker stats
+glid stats
 ```
 
 ### Network Issues
@@ -391,31 +452,132 @@ glid shell web
 
 ### Speeding Up Development
 
-```bash
-# Use cached builds
-glid build --cache
+Optimize with custom commands:
 
-# Parallel service startup
-glid up --parallel
+```yaml
+commands:
+  # Fast builds
+  build:cache: docker build .
+  build:nocache: docker build --no-cache .
 
-# Skip unnecessary services
-glid up --only web,database
+  # Service management
+  up:fast: docker-compose up -d web database
+  up:all: docker-compose up -d
 
-# Use minimal rebuild
-glid build --only-changed
+  # Cleanup
+  cleanup: docker system prune -f
+  cleanup:all: docker system prune -af --volumes
 ```
 
-### Resource Management
+Use them for speed:
+```bash
+# Fast cached build
+glid build:cache
+
+# Start only essential services
+glid up:fast
+
+# Clean up resources
+glid cleanup
+```
+
+## Standalone Mode Workflows
+
+### Personal Automation Scripts
+
+Use Glide in any directory without Git for personal automation:
 
 ```bash
-# Limit resource usage
-glid up --memory 2g --cpus 2
+# Create a scripts directory
+mkdir ~/my-scripts
+cd ~/my-scripts
 
-# Clean up unused resources
+# Create .glide.yml
+cat > .glide.yml << 'EOF'
+commands:
+  backup:
+    cmd: |
+      DATE=$(date +%Y%m%d)
+      tar -czf ~/backups/home-$DATE.tar.gz ~/Documents ~/Projects
+      echo "Backup created: home-$DATE.tar.gz"
+    description: Backup important directories
+
+  sync-notes:
+    cmd: rsync -av ~/Notes/ ~/Dropbox/Notes/
+    description: Sync notes to Dropbox
+
+  cleanup:
+    cmd: |
+      echo "Cleaning temporary files..."
+      rm -rf ~/Downloads/*.tmp
+      rm -rf ~/.cache/thumbnails/*
+      echo "Cleanup complete!"
+    description: Clean temporary files
+EOF
+
+# Use your commands
+glid backup
+glid sync-notes
 glid cleanup
+```
 
-# Prune system
-docker system prune -af
+### Build Environment Scripts
+
+Create project-agnostic build commands:
+
+```bash
+# In a build environment directory
+cat > .glide.yml << 'EOF'
+commands:
+  docker-prune:
+    cmd: docker system prune -af --volumes
+    description: Deep clean Docker resources
+
+  check-ports:
+    cmd: lsof -i -P -n | grep LISTEN
+    description: List all listening ports
+
+  monitor:
+    cmd: |
+      echo "=== CPU Usage ==="
+      top -bn1 | head -5
+      echo ""
+      echo "=== Memory Usage ==="
+      free -h
+      echo ""
+      echo "=== Disk Usage ==="
+      df -h
+    description: System resource monitoring
+EOF
+```
+
+### Temporary Project Directories
+
+Use Glide in ephemeral directories:
+
+```bash
+# Create a temporary experiment
+mkdir /tmp/experiment
+cd /tmp/experiment
+
+# Add Glide commands for the experiment
+cat > .glide.yml << 'EOF'
+commands:
+  init:
+    cmd: |
+      npm init -y
+      npm install express
+      echo "Experiment initialized!"
+    description: Initialize experiment
+
+  run: node server.js
+  clean: rm -rf node_modules package*.json
+EOF
+
+# Work with your experiment
+glid init
+glid run
+glid clean
 ```
 
 ## Tips and Tricks
@@ -436,19 +598,21 @@ alias gt='glid test'
 
 ### Project Templates
 
-Create a template for new projects:
+Share your `.glide.yml` as a template:
 
 ```bash
-# Save current setup as template
-glid template save my-stack
+# Copy your configuration to a new project
+cp .glide.yml ~/templates/my-stack.yml
 
-# Create new project from template
-glid template use my-stack new-project
+# Use in a new project
+cp ~/templates/my-stack.yml new-project/.glide.yml
+cd new-project
+glid help  # Your commands are ready!
 ```
 
 
 ## Next Steps
 
-- Learn about [Plugin Development](../plugin-development/README.md)
 - Read [Core Concepts](../core-concepts/README.md) for deeper understanding
+- Review the [Command Reference](../command-reference.md) for all commands
 - Check [GitHub](https://github.com/ivannovak/glide) for updates

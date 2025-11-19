@@ -2,617 +2,300 @@
 
 ## Overview
 
-Glide is a context-aware development CLI that adapts its behavior based on your project structure and current location. It supports both single-repository and multi-worktree development modes.
+Glide is a context-aware development CLI that adapts its behavior based on your project structure and current location. This reference covers the core commands built into Glide. Additional commands can be added through YAML configuration or runtime plugins.
 
 ## Command Structure
 
 ```
-glide [global-flags] <command> [subcommand] [flags] [arguments]
+glid [command] [subcommand] [flags] [arguments]
 ```
-
-### Command Aliases
-
-Many commands support short aliases for faster typing:
-
-| Command | Aliases | Example |
-|---------|---------|---------|
-| `artisan` | `a` | `glide a migrate` |
-| `composer` | `c` | `glide c install` |
-| `test` | `t` | `glide t --filter UserTest` |
-| `project` | `g` | `glide p status` |
-
-### Global Flags
-
-- `--help, -h` - Show help for any command
-- `--version, -v` - Display version information
-- `--verbose` - Enable verbose output
-- `--quiet, -q` - Suppress non-essential output
-- `--config <path>` - Use alternate configuration file
-- `--no-color` - Disable colored output
 
 ## Core Commands
 
-### `glide help`
+These commands are always available, regardless of context or configuration.
 
-Display contextual help based on your current location.
+### `glid help`
+
+Display context-aware help based on your current location and development mode.
 
 ```bash
-glide help                    # Context-aware help
-glide help getting-started    # Getting started guide
-glide help workflows          # Common workflow examples
-glide help troubleshooting    # Troubleshooting guide
-glide help modes              # Development modes explained
+glid help                     # Show available commands
+glid help [command]           # Get help for a specific command
 ```
 
-**Context Detection:**
-- Multi-worktree root: Shows project commands
-- Main repo (`vcs/`): Shows standard commands
-- Worktree: Shows worktree-specific commands
-- No project: Shows setup instructions
+**Context Awareness:**
+- Shows different commands based on development mode (single-repo, multi-worktree, standalone)
+- Hides irrelevant commands (e.g., project commands in single-repo mode)
+- Displays YAML-defined commands from your `.glide.yml`
 
-### `glide setup`
+### `glid version`
 
-Interactive project setup and configuration.
+Display version information for Glide.
 
 ```bash
-glide setup                   # Interactive setup wizard
-glide setup --mode single     # Configure single-repo mode
-glide setup --mode multi      # Configure multi-worktree mode
-glide setup --minimal         # Skip optional features
+glid version                  # Show version, build date, and commit
+glid version --json           # Output as JSON
 ```
 
-**Options:**
-- `--mode <single|multi>` - Development mode (default: auto-detect)
-- `--path <dir>` - Project directory (default: current)
-- `--minimal` - Minimal setup without Docker/testing
-- `--force` - Overwrite existing configuration
+**Aliases:** `v`
 
-### `glide config`
+### `glid self-update`
 
-Manage Glide configuration.
+Update Glide to the latest version.
 
 ```bash
-glide config                  # Show current configuration
-glide config get <key>        # Get specific config value
-glide config set <key> <val>  # Set configuration value
-glide config edit             # Open config in editor
-glide config validate         # Validate configuration
+glid self-update              # Download and install latest version
+glid self-update --check      # Check for updates without installing
+glid self-update --force      # Force reinstall even if up-to-date
+```
+
+**Aliases:** `update`, `upgrade`
+
+### `glid plugins`
+
+Manage runtime plugins that extend Glide's functionality.
+
+```bash
+glid plugins list             # List installed plugins
+glid plugins install <path>   # Install a plugin from binary
+glid plugins info <name>      # Get detailed plugin information
+glid plugins uninstall <name> # Remove an installed plugin
 ```
 
 **Subcommands:**
-- `get` - Retrieve configuration value
-- `set` - Update configuration value
-- `edit` - Open configuration in `$EDITOR`
-- `validate` - Check configuration validity
+- `list` - Show all installed plugins with their commands
+- `install` - Install a plugin binary (requires path to compiled plugin)
+- `info` - Display detailed information about a plugin
+- `uninstall` - Remove a plugin
 
-### `glide context`
+**Note:** There is currently no plugin marketplace. Plugins must be built or obtained as binaries.
 
-Display current project context information.
+## Setup & Configuration Commands
 
-```bash
-glide context                 # Show all context info
-glide context --json          # Output as JSON
-```
+### `glid setup`
 
-**Output includes:**
-- Project root location
-- Development mode (single/multi)
-- Current location type
-- Active worktree (if applicable)
-- Docker status
-- Configuration status
-
-## Development Commands
-
-### `glide test` (alias: `t`)
-
-Run project tests with intelligent detection.
+Configure Glide for your project, including development mode selection.
 
 ```bash
-glide test                    # Run all tests
-glide t unit                  # Run unit tests only (using alias)
-glide test feature            # Run feature tests
-glide t <pattern>             # Run tests matching pattern (using alias)
-glide test --coverage         # Generate coverage report
+glid setup                    # Interactive setup wizard
+glid setup --mode single      # Configure single-repo mode
+glid setup --mode multi       # Configure multi-worktree mode
 ```
 
 **Options:**
-- `--coverage` - Generate coverage report
-- `--filter <pattern>` - Filter tests by pattern
-- `--parallel` - Run tests in parallel
-- `--bail` - Stop on first failure
-- `--verbose` - Show detailed output
+- `--mode <single|multi>` - Set development mode
+- `--force` - Overwrite existing configuration
 
-**Framework Detection:**
-- PHP: PHPUnit or Pest
-- JavaScript: Jest or Mocha
-- Go: `go test`
-- Python: pytest
-- Ruby: RSpec
+**What it does:**
+- In single-repo mode: Creates `.glide.yml` configuration
+- In multi-worktree mode: Restructures project with `vcs/` and `worktrees/` directories
 
-### `glide lint`
+### `glid completion`
 
-Run code quality checks.
+Generate shell completion scripts for your shell.
 
 ```bash
-glide lint                    # Run all linters
-glide lint --fix              # Auto-fix issues
-glide lint <file>             # Lint specific file
+glid completion bash          # Generate bash completion
+glid completion zsh           # Generate zsh completion
+glid completion fish          # Generate fish completion
+glid completion powershell    # Generate PowerShell completion
 ```
 
-**Options:**
-- `--fix` - Automatically fix issues
-- `--format <fmt>` - Output format (text/json/xml)
-- `--severity <level>` - Minimum severity to report
+**Note:** This command is automatically hidden once completions are installed.
 
-**Tool Detection:**
-- PHP: PHP-CS-Fixer, PHPStan
-- JavaScript: ESLint, Prettier
-- Go: golangci-lint
-- Python: pylint, black
-- General: EditorConfig
+### `glid config`
 
-### `glide format`
-
-Format code according to project standards.
+View current configuration (debug command).
 
 ```bash
-glide format                  # Format all files
-glide format <file>           # Format specific file
-glide format --check          # Check without modifying
+glid config                   # Display all configuration
+glid config --json            # Output as JSON
 ```
-
-**Options:**
-- `--check` - Check formatting without changes
-- `--diff` - Show formatting differences
-
-## Docker Commands
-
-### `glide up`
-
-Start Docker development environment.
-
-```bash
-glide up                      # Start all services
-glide up <service>            # Start specific service
-glide up --detach             # Run in background
-glide up --build              # Rebuild containers
-```
-
-**Options:**
-- `--detach, -d` - Run in background
-- `--build` - Force rebuild containers
-- `--no-cache` - Build without cache
-- `--pull` - Pull latest images
-
-### `glide down`
-
-Stop Docker environment.
-
-```bash
-glide down                    # Stop containers
-glide down --volumes          # Also remove volumes
-glide down --rmi all          # Also remove images
-```
-
-**Options:**
-- `--volumes, -v` - Remove volumes
-- `--rmi <all|local>` - Remove images
-- `--remove-orphans` - Remove orphan containers
-
-### `glide restart`
-
-Restart Docker services.
-
-```bash
-glide restart                 # Restart all services
-glide restart <service>       # Restart specific service
-```
-
-### `glide logs`
-
-View Docker container logs.
-
-```bash
-glide logs                    # Show all logs
-glide logs <service>          # Show service logs
-glide logs -f                 # Follow log output
-glide logs --tail 100         # Show last 100 lines
-```
-
-**Options:**
-- `--follow, -f` - Follow log output
-- `--tail <n>` - Number of lines to show
-- `--since <time>` - Show logs since timestamp
-- `--timestamps` - Show timestamps
-
-### `glide exec`
-
-Execute commands in Docker containers.
-
-```bash
-glide exec <service> <cmd>    # Run command in service
-glide exec php composer inst  # Example: Composer install
-glide exec -T mysql mysqldump # Non-TTY execution
-```
-
-**Options:**
-- `-T` - Disable pseudo-TTY allocation
-- `--user <user>` - Run as specific user
-- `--workdir <dir>` - Working directory
-- `--env <key=val>` - Set environment variable
-
-### `glide ps`
-
-Show Docker container status.
-
-```bash
-glide ps                      # List running containers
-glide ps -a                   # List all containers
-```
-
-**Options:**
-- `--all, -a` - Show all containers
-- `--quiet, -q` - Only display IDs
 
 ## Multi-Worktree Commands
 
-These commands are available when in a multi-worktree project.
+These commands are only available when in multi-worktree mode.
 
-### `glide project`
+### `glid project`
 
-Execute commands from any location in the project.
+Manage multiple worktrees and project-wide operations.
 
 ```bash
-glide project status           # Project-wide status
-glide project list             # List all worktrees
-glide project down             # Stop all Docker containers
-glide project clean            # Clean all worktrees
+glid project status           # Status of all worktrees
+glid project list             # List all worktrees
+glid project worktree <name>  # Create new worktree
 ```
+
+**Aliases:** `p`
 
 **Subcommands:**
-- `status` - Show status of all worktrees
-- `list` - List active worktrees
-- `worktree` - Create new worktree
-- `down` - Stop all Docker containers
-- `clean` - Clean build artifacts
-- `update` - Update all worktrees
-- `test` - Run tests across worktrees
+- `status` - Show git status across all worktrees
+- `list` - List all worktrees with their branches
+- `worktree` - Create a new worktree for a branch
 
-### `glide project worktree`
+**Example:**
+```bash
+glid project worktree feature/new-feature
+cd worktrees/feature-new-feature
+# Work in isolated environment
+```
 
-Manage Git worktrees.
+## Debug Commands
+
+These commands are available for debugging and troubleshooting.
+
+### `glid context`
+
+Display detailed information about the detected project context.
 
 ```bash
-glide project worktree <name>              # Create worktree
-glide project worktree feature/api         # Create feature branch
-glide project worktree fix-123 origin/fix  # From remote branch
+glid context                  # Show context information
+glid context --json           # Output as JSON
 ```
 
-**Options:**
-- `--from <branch>` - Base branch (default: main)
-- `--auto-setup` - Auto-configure worktree
-- `--no-checkout` - Don't checkout files
+**Shows:**
+- Project root location
+- Development mode (single-repo, multi-worktree, standalone)
+- Current location type
+- Working directory
+- Docker status (if applicable)
 
-### `glide project status`
+## YAML-Defined Commands
 
-Show comprehensive project status.
+You can extend Glide by defining custom commands in configuration files:
 
-```bash
-glide project status           # All worktree statuses
-glide project status --docker  # Include Docker status
-```
+### Project Commands (`.glide.yml`)
 
-**Output includes:**
-- Worktree locations and branches
-- Git status for each worktree
-- Docker container status
-- Active development sessions
-
-## Database Commands
-
-### `glide db`
-
-Database management commands.
-
-```bash
-glide db migrate              # Run migrations
-glide db seed                 # Seed database
-glide db reset                # Reset database
-glide db backup               # Create backup
-glide db restore <file>       # Restore from backup
-```
-
-**Subcommands:**
-- `migrate` - Run pending migrations
-- `seed` - Seed with test data
-- `reset` - Drop and recreate
-- `backup` - Create database backup
-- `restore` - Restore from backup
-- `shell` - Open database shell
-
-## Plugin Commands
-
-### `glide plugins`
-
-Manage Glide plugins.
-
-```bash
-glide plugins list            # List installed plugins
-glide plugins info <plugin>   # Show plugin details
-glide plugins install <path>  # Install plugin
-glide plugins uninstall <name> # Remove plugin
-```
-
-**Subcommands:**
-- `list` - Show all installed plugins
-- `info` - Display plugin information
-- `install` - Install new plugin
-- `uninstall` - Remove plugin
-- `update` - Update plugin
-
-### Plugin-Specific Commands
-
-Installed plugins register their own commands:
-
-```bash
-glide <plugin> <command>      # Execute plugin command
-```
-
-## Shell Utilities
-
-### `glide shell`
-
-Open interactive shell in container.
-
-```bash
-glide shell                   # Default shell
-glide shell <service>         # Specific service shell
-glide shell php               # PHP container shell
-glide shell mysql             # MySQL shell
-```
-
-### `glide run`
-
-Run one-off commands.
-
-```bash
-glide run <command>           # Run in appropriate context
-glide run composer install    # Runs in PHP container
-glide run npm install         # Runs in Node container
-```
-
-## Project Commands
-
-### `glide build`
-
-Build project artifacts.
-
-```bash
-glide build                   # Full build
-glide build --production      # Production build
-glide build --watch           # Watch mode
-```
-
-### `glide clean`
-
-Clean generated files and caches.
-
-```bash
-glide clean                   # Clean build artifacts
-glide clean --all             # Clean everything
-glide clean cache             # Clear caches only
-```
-
-### `glide update`
-
-Update project dependencies.
-
-```bash
-glide update                  # Update all dependencies
-glide update composer         # Update PHP dependencies
-glide update npm              # Update Node dependencies
-```
-
-## Utility Commands
-
-### `glide version`
-
-Display version information.
-
-```bash
-glide version                 # Show version
-glide version --full          # Detailed version info
-```
-
-### `glide doctor`
-
-Diagnose common issues.
-
-```bash
-glide doctor                  # Run diagnostics
-glide doctor --fix            # Attempt auto-fixes
-```
-
-**Checks:**
-- Docker installation and daemon
-- Required tools and dependencies
-- Configuration validity
-- File permissions
-- Network connectivity
-
-### `glide upgrade`
-
-Self-update Glide to latest version.
-
-```bash
-glide upgrade                 # Update to latest
-glide upgrade --check         # Check for updates
-glide upgrade --force         # Force reinstall
-```
-
-## Environment Detection
-
-Glide automatically detects and adapts to your environment:
-
-### Project Structure Detection
-- **Multi-worktree**: Presence of `worktrees/` directory
-- **Single-repo**: Standard Git repository
-- **Docker**: Presence of `docker-compose.yml`
-
-### Location Context
-- **Project Root**: Management directory in multi-worktree
-- **Main Repo**: `vcs/` directory
-- **Worktree**: `worktrees/<name>/`
-- **No Project**: Outside any Glide project
-
-### Framework Detection
-- **Laravel**: `artisan` file
-- **Symfony**: `bin/console`
-- **Node.js**: `package.json`
-- **Go**: `go.mod`
-- **Python**: `requirements.txt` or `pyproject.toml`
-
-## Branding Customization
-
-Glide supports complete branding customization for organizations that want to create their own branded CLI tools. This allows you to:
-
-- Change the CLI name (e.g., from `glide` to `acme`)
-- Customize help text and descriptions
-- Modify command outputs and messages
-- Create organization-specific distributions
-
-### Build-Time Branding
-
-Create a custom-branded build:
-
-```bash
-# Build with custom branding
-make build BRAND=acme
-
-# Or use build tags
-go build -tags brand_acme -o acme cmd/glid/main.go
-```
-
-### Branding Configuration
-
-Define branding in `internal/branding/brands/`:
-
-```go
-// internal/branding/brands/acme.go
-//go:build brand_acme
-
-package brands
-
-func init() {
-    Current = Brand{
-        Name:        "acme",
-        DisplayName: "ACME CLI",
-        Description: "ACME's development toolkit",
-        CompanyName: "ACME Corporation",
-        Website:     "https://acme.example.com",
-        // Custom configuration
-    }
-}
-```
-
-### Available Brands
-
-- **glide** (default): Standard Glide branding
-- **Custom**: Create your own brand definition
-
-## Configuration
-
-### Configuration File
-
-Default location: `~/.glide.yml`
+Define commands specific to your project:
 
 ```yaml
-# Development mode preference
-mode: multi  # or 'single'
+commands:
+  # Simple command
+  build: docker build --no-cache .
 
-# Project configurations
-projects:
-  acme:
-    path: /Users/username/Code/acme
-    mode: multi
-    docker: true
-    
-# Global settings
-editor: vim
-color: auto
-verbose: false
+  # Command with parameters
+  test: go test $@ ./...
 
-# Plugin settings
-plugins:
-  acme:
-    region: us-west-2
-    profile: default
+  # Multi-line command
+  setup: |
+    go mod download
+    docker-compose build
+    echo "Setup complete!"
+
+  # Structured format with metadata
+  deploy:
+    cmd: ./scripts/deploy.sh $1
+    alias: d
+    description: Deploy to environment
+    help: |
+      Deploy the application.
+      Usage: glid deploy [staging|production]
+    category: deployment
 ```
 
-### Environment Variables
+### Global Commands (`~/.glide/config.yml`)
 
-- `GLIDE_CONFIG` - Configuration file path
-- `GLIDE_PROJECT` - Active project name
-- `GLIDE_MODE` - Force development mode
-- `GLIDE_NO_COLOR` - Disable colored output
-- `GLIDE_VERBOSE` - Enable verbose output
-- `GLIDE_BRAND` - Override CLI branding (for custom builds)
+Define commands available in all projects:
+
+```yaml
+commands:
+  morning: git pull && make
+  review: gh pr create --draft
+```
+
+### Command Priority
+
+When you run a command, Glide resolves it in this order:
+
+1. **Core commands** - Built-in Glide commands (this document)
+2. **Local YAML commands** - From `.glide.yml` in current/parent directories
+3. **Plugin commands** - From installed runtime plugins
+4. **Global YAML commands** - From `~/.glide/config.yml`
+
+## Development Modes
+
+Glide adapts its behavior based on three development modes:
+
+### Single-Repo Mode (Default)
+- Standard Git repository workflow
+- Work on one branch at a time
+- All commands operate on current branch
+
+### Multi-Worktree Mode
+- Enabled via `glid setup`
+- Work on multiple features simultaneously
+- Each worktree has isolated environment
+- Adds `project` commands for worktree management
+
+### Standalone Mode
+- Activated by `.glide.yml` in non-Git directory
+- No Git repository required
+- Only YAML-defined commands available
+- Perfect for automation scripts
+
+## Environment Variables
+
+Glide respects the following environment variables:
+
+- `GLIDE_CONFIG` - Alternative config file location
+- `GLIDE_HOME` - Override `~/.glide` directory
+- `NO_COLOR` - Disable colored output
+- `EDITOR` - Editor for `glid config edit`
 
 ## Exit Codes
 
 - `0` - Success
 - `1` - General error
 - `2` - Misuse of command
-- `3` - Configuration error
-- `4` - Docker not available
-- `5` - Project not found
-- `126` - Command found but not executable
 - `127` - Command not found
-- `130` - Interrupted (Ctrl+C)
 
 ## Examples
 
-### Daily Workflow
-
+### Getting Started
 ```bash
-# Start your day
-glide project status          # Check project status
-glide up                     # Start Docker
-glide test                   # Run tests
+# Check what commands are available
+glid help
 
-# Create new feature
-glide project worktree feature/api
-cd worktrees/feature-api
-glide up && glide test
+# Set up a project for multi-worktree development
+glid setup --mode multi
 
-# End of day
-glide project down            # Stop all containers
+# Create a worktree for a new feature
+glid project worktree feature/awesome
 ```
 
-### Quick Commands
+### Defining Custom Commands
+```yaml
+# .glide.yml
+commands:
+  # Docker operations
+  up: docker-compose up -d
+  down: docker-compose down
+  logs: docker-compose logs -f
 
+  # Testing
+  test: npm test
+  test:watch: npm test -- --watch
+
+  # Database
+  db: docker-compose exec db psql -U postgres
+  migrate: npm run migrate
+```
+
+### Using Plugins
 ```bash
-# Run tests
-glide test
+# Install a plugin (requires binary)
+glid plugins install ~/Downloads/docker-plugin
 
-# Format and lint
-glide format && glide lint
+# List plugin commands
+glid plugins list
 
-# Database operations
-glide db migrate && glide db seed
-
-# View logs
-glide logs -f php
-
-# Execute in container
-glide exec php composer update
+# Use plugin commands
+glid docker:status  # If docker plugin provides this
 ```
 
 ## See Also
 
-- `glide help getting-started` - Getting started guide
-- `glide help workflows` - Common workflow examples
-- `glide help troubleshooting` - Troubleshooting guide
-- [Runtime Plugin Architecture](runtime-plugin-architecture.md)
-- [Plugin Development Guide](runtime-plugin-sdk.md)
+- [Getting Started Guide](getting-started/first-steps.md)
+- [Core Concepts](core-concepts/README.md)
+- [Common Workflows](guides/README.md)
+- [Troubleshooting](troubleshooting.md)

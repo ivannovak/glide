@@ -480,8 +480,8 @@ This is a multi-worktree development environment managed by Glide.
 
 ## Structure
 
-- **vcs/**: Main repository (do not work directly here)
-- **worktrees/**: Feature branch worktrees
+- **vcs/**: Main repository (kept on main branch as reference)
+- **worktrees/**: Feature branch worktrees (do all work here)
 - **scripts/**: Management scripts
 - **docker-compose.override.yml**: Shared Docker configuration
 
