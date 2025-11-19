@@ -168,6 +168,27 @@ func (c *CLI) showContext(cmd *cobra.Command) {
 		cmd.Printf("Override File: %s\n", ctx.ComposeOverride)
 	}
 
+	// Display detected frameworks
+	if len(ctx.DetectedFrameworks) > 0 {
+		cmd.Println("\nDetected Frameworks:")
+		for _, fw := range ctx.DetectedFrameworks {
+			version := ""
+			if v, exists := ctx.FrameworkVersions[fw]; exists && v != "" {
+				version = fmt.Sprintf(" (v%s)", v)
+			}
+			cmd.Printf("  - %s%s\n", fw, version)
+		}
+	}
+
+	// Display framework commands
+	if len(ctx.FrameworkCommands) > 0 {
+		cmd.Println("\nAvailable Framework Commands:")
+		// Group commands by category if metadata available
+		for name := range ctx.FrameworkCommands {
+			cmd.Printf("  - %s\n", name)
+		}
+	}
+
 	if ctx.Error != nil {
 		cmd.Printf("\nContext Error: %v\n", ctx.Error)
 	}
