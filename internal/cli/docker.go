@@ -40,14 +40,14 @@ resolving the correct compose files based on your location and development mode.
 All arguments are passed directly to docker-compose without modification.
 
 Examples:
-  glid docker up -d                  # Start containers in background
-  glid docker down                    # Stop containers
-  glid docker ps                      # List containers
-  glid docker exec php bash           # Enter PHP container
-  glid docker exec -it php bash       # Interactive shell
-  glid docker logs -f nginx           # Follow nginx logs
-  glid docker restart php             # Restart PHP container
-  glid docker build --no-cache        # Rebuild containers
+  glidedocker up -d                  # Start containers in background
+  glidedocker down                    # Stop containers
+  glidedocker ps                      # List containers
+  glidedocker exec php bash           # Enter PHP container
+  glidedocker exec -it php bash       # Interactive shell
+  glidedocker logs -f nginx           # Follow nginx logs
+  glidedocker restart php             # Restart PHP container
+  glidedocker build --no-cache        # Rebuild containers
 
 Compose File Resolution:
   The command automatically determines the correct compose files:
@@ -79,7 +79,7 @@ func (c *DockerCommand) Execute(cmd *cobra.Command, args []string) error {
 		return glideErrors.NewConfigError("not in a project directory",
 			glideErrors.WithSuggestions(
 				"Navigate to a project directory",
-				"Run: glid setup to initialize a new project",
+				"Run: glidesetup to initialize a new project",
 				"Check if you're in the correct directory",
 			),
 		)
@@ -225,7 +225,7 @@ func (c *DockerCommand) executeDockerCommand(dockerArgs []string, isInteractive 
 					glideErrors.WithSuggestions(
 						"Check the docker-compose output above for errors",
 						"Verify Docker is running: docker ps",
-						"Check Docker logs: glid docker logs",
+						"Check Docker logs: glidedocker logs",
 					),
 				)
 			}
@@ -306,7 +306,7 @@ func (c *DockerCommand) handleDockerError(err error, args []string) error {
 		return glideErrors.NewNetworkError("port conflict - address already in use",
 			glideErrors.WithError(err),
 			glideErrors.WithSuggestions(
-				"Stop conflicting containers: glid docker down",
+				"Stop conflicting containers: glidedocker down",
 				"Or from root: make down-all",
 				"Check what's using the port: lsof -i :PORT",
 				"Change port in docker-compose.yml",

@@ -34,7 +34,7 @@ This script will:
 # Example for macOS/Linux
 tar -xzf glide_*.tar.gz
 chmod +x glid
-sudo mv glid /usr/local/bin/
+sudo mv glide/usr/local/bin/
 ```
 
 ### Homebrew (Coming Soon)
@@ -49,7 +49,7 @@ brew install ivannovak/tap/glide
 After installation, verify Glide is working:
 
 ```bash
-glid version
+glideversion
 ```
 
 You should see output like:
@@ -63,15 +63,15 @@ Enable tab completion for your shell:
 
 ```bash
 # Bash
-glid completion bash > ~/.glide-completion.bash
+glide completion bash > ~/.glide-completion.bash
 echo "source ~/.glide-completion.bash" >> ~/.bashrc
 
 # Zsh
-glid completion zsh > ~/.glide-completion.zsh
+glide completion zsh > ~/.glide-completion.zsh
 echo "source ~/.glide-completion.zsh" >> ~/.zshrc
 
 # Fish
-glid completion fish > ~/.config/fish/completions/glid.fish
+glide completion fish > ~/.config/fish/completions/glide.fish
 ```
 
 ## Updating Glide
@@ -79,7 +79,7 @@ glid completion fish > ~/.config/fish/completions/glid.fish
 Glide can update itself:
 
 ```bash
-glid self-update
+glideself-update
 ```
 
 ## Troubleshooting
@@ -93,7 +93,7 @@ If you get a permission error during installation:
 chmod +x glid
 
 # Use sudo for system-wide installation
-sudo mv glid /usr/local/bin/
+sudo mv glide/usr/local/bin/
 ```
 
 ### Command Not Found

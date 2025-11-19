@@ -99,7 +99,7 @@ func (u *Updater) downloadBinary(ctx context.Context, url string) (string, error
 	}
 
 	// Create temporary file
-	tempFile, err := os.CreateTemp("", "glid-update-*")
+	tempFile, err := os.CreateTemp("", "glide-update-*")
 	if err != nil {
 		return "", err
 	}

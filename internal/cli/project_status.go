@@ -97,12 +97,12 @@ func (c *ProjectStatusCommand) Execute(cmd *cobra.Command, args []string) error 
 	if hasRunningContainers {
 		output.Success("✅ Docker containers are running")
 		output.Println("\nTo stop all containers, run:")
-		output.Info("  glid p down")
+		output.Info("  glidep down")
 	} else {
 		output.Warning("⚠️  No Docker containers are currently running")
 		output.Println("\nTo start containers in a worktree:")
 		output.Println("  1. cd to the worktree directory")
-		output.Println("  2. Run: glid up")
+		output.Println("  2. Run: glideup")
 	}
 
 	return nil

@@ -56,7 +56,7 @@ func main() {
 			Name:        "hello",
 			Description: "Say hello to someone",
 			Category:    sdk.CategoryDeveloper,
-			Aliases:     []string{"h"}, // Users can type 'glid h' or 'glid hello'
+			Aliases:     []string{"h"}, // Users can type 'glideh' or 'glidehello'
 		},
 		func(ctx context.Context, req *sdk.ExecuteRequest) (*sdk.ExecuteResponse, error) {
 			name := "World"

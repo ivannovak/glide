@@ -111,7 +111,7 @@ func TestDockerContainerLifecycle(t *testing.T) {
 
 	t.Run("simple_container_lifecycle", func(t *testing.T) {
 		// Create a simple test container
-		containerName := "glid-test-" + time.Now().Format("20060102150405")
+		containerName := "glide-test-" + time.Now().Format("20060102150405")
 
 		// Start container
 		startCmd := exec.Command("docker", "run", "-d", "--name", containerName,
@@ -154,7 +154,7 @@ func TestDockerNetworking(t *testing.T) {
 	}
 
 	t.Run("network_creation_and_cleanup", func(t *testing.T) {
-		networkName := "glid-test-net-" + time.Now().Format("20060102150405")
+		networkName := "glide-test-net-" + time.Now().Format("20060102150405")
 
 		// Create network
 		createCmd := exec.Command("docker", "network", "create", networkName)
@@ -194,7 +194,7 @@ func TestDockerVolumeOperations(t *testing.T) {
 	}
 
 	t.Run("volume_creation_and_cleanup", func(t *testing.T) {
-		volumeName := "glid-test-vol-" + time.Now().Format("20060102150405")
+		volumeName := "glide-test-vol-" + time.Now().Format("20060102150405")
 
 		// Create volume
 		createCmd := exec.Command("docker", "volume", "create", volumeName)
@@ -385,7 +385,7 @@ func TestDockerErrorHandling(t *testing.T) {
 
 	t.Run("handle_port_conflict", func(t *testing.T) {
 		// Start a container on a specific port
-		containerName := "glid-port-test-" + time.Now().Format("20060102150405")
+		containerName := "glide-port-test-" + time.Now().Format("20060102150405")
 		port := "38765"
 
 		// Start first container

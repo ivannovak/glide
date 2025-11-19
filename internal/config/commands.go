@@ -104,7 +104,7 @@ func ValidateCommand(cmd *Command) error {
 	}
 
 	// Check for circular references (basic check)
-	if strings.Contains(cmd.Cmd, "glid "+cmd.Alias) || strings.Contains(cmd.Cmd, "glide "+cmd.Alias) {
+	if strings.Contains(cmd.Cmd, "glide"+cmd.Alias) || strings.Contains(cmd.Cmd, "glide "+cmd.Alias) {
 		return fmt.Errorf("command may contain circular reference")
 	}
 

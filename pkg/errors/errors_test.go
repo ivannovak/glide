@@ -114,15 +114,15 @@ func TestNewDatabaseError(t *testing.T) {
 }
 
 func TestNewModeError(t *testing.T) {
-	err := NewModeError("standard", "multi-worktree", "glid commit")
+	err := NewModeError("standard", "multi-worktree", "glidecommit")
 
 	assert.Equal(t, TypeMode, err.Type)
-	assert.Contains(t, err.Message, "glid commit")
+	assert.Contains(t, err.Message, "glidecommit")
 	assert.Contains(t, err.Message, "standard mode")
 	assert.Equal(t, 65, err.Code) // EX_DATAERR from sysexits.h
 	assert.Equal(t, "standard", err.Context["current_mode"])
 	assert.Equal(t, "multi-worktree", err.Context["required_mode"])
-	assert.Equal(t, "glid commit", err.Context["command"])
+	assert.Equal(t, "glidecommit", err.Context["command"])
 	assert.True(t, len(err.Suggestions) > 0)
 }
 

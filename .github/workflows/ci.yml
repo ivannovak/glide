@@ -112,7 +112,7 @@ jobs:
           cache: true
       - run: |
           CGO_ENABLED=0 GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} \
-          go build -o test-binary ./cmd/glid
+          go build -o test-binary ./cmd/glide
 
   security:
     needs: validate

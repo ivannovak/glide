@@ -26,7 +26,7 @@ func TestSetupCommand(t *testing.T) {
 		require.NoError(t, err)
 
 		// Create setup command with nil context (not in project)
-		rootCmd := &cobra.Command{Use: "glid"}
+		rootCmd := &cobra.Command{Use: "glide"}
 		cfg := config.GetDefaults()
 		setupCmd := cli.NewSetupCommand(nil, &cfg)
 		rootCmd.AddCommand(setupCmd)

@@ -56,9 +56,9 @@ func GetBuildInfo() BuildInfo {
 // GetVersionString returns a formatted version string
 func GetVersionString() string {
 	if Version == "dev" {
-		return fmt.Sprintf("glid version %s (development build)", Version)
+		return fmt.Sprintf("glide version %s (development build)", Version)
 	}
-	return fmt.Sprintf("glid version %s", Version)
+	return fmt.Sprintf("glide version %s", Version)
 }
 
 // GetSystemInfo returns formatted system information

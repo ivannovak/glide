@@ -7,20 +7,20 @@ Glide is a context-aware development CLI that adapts its behavior based on your 
 ## Command Structure
 
 ```
-glid [command] [subcommand] [flags] [arguments]
+glide [command] [subcommand] [flags] [arguments]
 ```
 
 ## Core Commands
 
 These commands are always available, regardless of context or configuration.
 
-### `glid help`
+### `glide help`
 
 Display context-aware help based on your current location and development mode.
 
 ```bash
-glid help                     # Show available commands
-glid help [command]           # Get help for a specific command
+glide help                     # Show available commands
+glide help [command]           # Get help for a specific command
 ```
 
 **Context Awareness:**
@@ -28,38 +28,38 @@ glid help [command]           # Get help for a specific command
 - Hides irrelevant commands (e.g., project commands in single-repo mode)
 - Displays YAML-defined commands from your `.glide.yml`
 
-### `glid version`
+### `glide version`
 
 Display version information for Glide.
 
 ```bash
-glid version                  # Show version, build date, and commit
-glid version --json           # Output as JSON
+glide version                  # Show version, build date, and commit
+glide version --json           # Output as JSON
 ```
 
 **Aliases:** `v`
 
-### `glid self-update`
+### `glide self-update`
 
 Update Glide to the latest version.
 
 ```bash
-glid self-update              # Download and install latest version
-glid self-update --check      # Check for updates without installing
-glid self-update --force      # Force reinstall even if up-to-date
+glide self-update              # Download and install latest version
+glide self-update --check      # Check for updates without installing
+glide self-update --force      # Force reinstall even if up-to-date
 ```
 
 **Aliases:** `update`, `upgrade`
 
-### `glid plugins`
+### `glide plugins`
 
 Manage runtime plugins that extend Glide's functionality.
 
 ```bash
-glid plugins list             # List installed plugins
-glid plugins install <path>   # Install a plugin from binary
-glid plugins info <name>      # Get detailed plugin information
-glid plugins uninstall <name> # Remove an installed plugin
+glide plugins list             # List installed plugins
+glide plugins install <path>   # Install a plugin from binary
+glide plugins info <name>      # Get detailed plugin information
+glide plugins uninstall <name> # Remove an installed plugin
 ```
 
 **Subcommands:**
@@ -72,14 +72,14 @@ glid plugins uninstall <name> # Remove an installed plugin
 
 ## Setup & Configuration Commands
 
-### `glid setup`
+### `glide setup`
 
 Configure Glide for your project, including development mode selection.
 
 ```bash
-glid setup                    # Interactive setup wizard
-glid setup --mode single      # Configure single-repo mode
-glid setup --mode multi       # Configure multi-worktree mode
+glide setup                    # Interactive setup wizard
+glide setup --mode single      # Configure single-repo mode
+glide setup --mode multi       # Configure multi-worktree mode
 ```
 
 **Options:**
@@ -90,40 +90,40 @@ glid setup --mode multi       # Configure multi-worktree mode
 - In single-repo mode: Creates `.glide.yml` configuration
 - In multi-worktree mode: Restructures project with `vcs/` and `worktrees/` directories
 
-### `glid completion`
+### `glide completion`
 
 Generate shell completion scripts for your shell.
 
 ```bash
-glid completion bash          # Generate bash completion
-glid completion zsh           # Generate zsh completion
-glid completion fish          # Generate fish completion
-glid completion powershell    # Generate PowerShell completion
+glide completion bash          # Generate bash completion
+glide completion zsh           # Generate zsh completion
+glide completion fish          # Generate fish completion
+glide completion powershell    # Generate PowerShell completion
 ```
 
 **Note:** This command is automatically hidden once completions are installed.
 
-### `glid config`
+### `glide config`
 
 View current configuration (debug command).
 
 ```bash
-glid config                   # Display all configuration
-glid config --json            # Output as JSON
+glide config                   # Display all configuration
+glide config --json            # Output as JSON
 ```
 
 ## Multi-Worktree Commands
 
 These commands are only available when in multi-worktree mode.
 
-### `glid project`
+### `glide project`
 
 Manage multiple worktrees and project-wide operations.
 
 ```bash
-glid project status           # Status of all worktrees
-glid project list             # List all worktrees
-glid project worktree <name>  # Create new worktree
+glide project status           # Status of all worktrees
+glide project list             # List all worktrees
+glide project worktree <name>  # Create new worktree
 ```
 
 **Aliases:** `p`
@@ -135,7 +135,7 @@ glid project worktree <name>  # Create new worktree
 
 **Example:**
 ```bash
-glid project worktree feature/new-feature
+glide project worktree feature/new-feature
 cd worktrees/feature-new-feature
 # Work in isolated environment
 ```
@@ -144,13 +144,13 @@ cd worktrees/feature-new-feature
 
 These commands are available for debugging and troubleshooting.
 
-### `glid context`
+### `glide context`
 
 Display detailed information about the detected project context.
 
 ```bash
-glid context                  # Show context information
-glid context --json           # Output as JSON
+glide context                  # Show context information
+glide context --json           # Output as JSON
 ```
 
 **Shows:**
@@ -189,7 +189,7 @@ commands:
     description: Deploy to environment
     help: |
       Deploy the application.
-      Usage: glid deploy [staging|production]
+      Usage: glide deploy [staging|production]
     category: deployment
 ```
 
@@ -222,7 +222,7 @@ Glide adapts its behavior based on three development modes:
 - All commands operate on current branch
 
 ### Multi-Worktree Mode
-- Enabled via `glid setup`
+- Enabled via `glide setup`
 - Work on multiple features simultaneously
 - Each worktree has isolated environment
 - Adds `project` commands for worktree management
@@ -240,7 +240,7 @@ Glide respects the following environment variables:
 - `GLIDE_CONFIG` - Alternative config file location
 - `GLIDE_HOME` - Override `~/.glide` directory
 - `NO_COLOR` - Disable colored output
-- `EDITOR` - Editor for `glid config edit`
+- `EDITOR` - Editor for `glide config edit`
 
 ## Exit Codes
 
@@ -254,13 +254,13 @@ Glide respects the following environment variables:
 ### Getting Started
 ```bash
 # Check what commands are available
-glid help
+glide help
 
 # Set up a project for multi-worktree development
-glid setup --mode multi
+glide setup --mode multi
 
 # Create a worktree for a new feature
-glid project worktree feature/awesome
+glide project worktree feature/awesome
 ```
 
 ### Defining Custom Commands
@@ -284,13 +284,13 @@ commands:
 ### Using Plugins
 ```bash
 # Install a plugin (requires binary)
-glid plugins install ~/Downloads/docker-plugin
+glide plugins install ~/Downloads/docker-plugin
 
 # List plugin commands
-glid plugins list
+glide plugins list
 
 # Use plugin commands
-glid docker:status  # If docker plugin provides this
+glide docker:status  # If docker plugin provides this
 ```
 
 ## See Also

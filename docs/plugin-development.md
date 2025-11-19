@@ -174,9 +174,9 @@ func (p *MyPlugin) Metadata() plugin.PluginMetadata {
 ```
 
 With plugin aliases, users can use:
-- `glid database status` (full name)
-- `glid db status` (using alias)
-- `glid d status` (using shorter alias)
+- `glide database status` (full name)
+- `glide db status` (using alias)
+- `glide d status` (using shorter alias)
 
 ### Command-Level Aliases
 
@@ -258,9 +258,9 @@ func (p *MyPlugin) Register(root *cobra.Command) error {
 ```
 
 With this setup, users can use any of these commands:
-- `glid myplugin database migrate`
-- `glid mp db m` (using all aliases)
-- `glid mp database migrate` (mixing full names and aliases)
+- `glide myplugin database migrate`
+- `glide mp db m` (using all aliases)
+- `glide mp database migrate` (mixing full names and aliases)
 
 ### Combining Plugin and Command Aliases
 
@@ -271,12 +271,12 @@ When both plugin and command aliases are defined, they can be combined for maxim
 // and command "migrate" (alias: "m")
 
 // All these are equivalent:
-glid database migrate --fresh
-glid db migrate --fresh      // Plugin alias
-glid d migrate --fresh       // Shorter plugin alias
-glid database m --fresh      // Command alias
-glid db m --fresh           // Both aliases
-glid d m --fresh           // Shortest form
+glide database migrate --fresh
+glide db migrate --fresh      // Plugin alias
+glide d migrate --fresh       // Shorter plugin alias
+glide database m --fresh      // Command alias
+glide db m --fresh           // Both aliases
+glide d m --fresh           // Shortest form
 ```
 
 ## Best Practices
@@ -532,7 +532,7 @@ func init() {
 
 Build with tags:
 ```bash
-go build -tags custom -o glid cmd/glid/main.go
+go build -tags custom -o glide cmd/glide/main.go
 ```
 
 ### Runtime Plugin (Future)
@@ -543,7 +543,7 @@ Place your compiled plugin in `~/.glide/plugins/` and it will be loaded automati
 
 ### Common Issues
 
-1. **Alias conflicts**: Check existing commands with `glid --help`
+1. **Alias conflicts**: Check existing commands with `glide --help`
 2. **Registration errors**: Ensure unique command names
 3. **Configuration issues**: Validate required config keys
 4. **Missing dependencies**: Check your go.mod file
@@ -552,7 +552,7 @@ Place your compiled plugin in `~/.glide/plugins/` and it will be loaded automati
 
 Enable debug mode to see plugin loading:
 ```bash
-GLIDE_DEBUG=true glid your-command
+GLIDE_DEBUG=true glide your-command
 ```
 
 ## Further Reading

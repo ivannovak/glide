@@ -142,7 +142,7 @@ func TestVerifyChecksum_Success(t *testing.T) {
 
 	// Create mock server that returns checksum
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(expectedChecksum + "  glid-darwin-arm64\n"))
+		w.Write([]byte(expectedChecksum + "  glide-darwin-arm64\n"))
 	}))
 	defer server.Close()
 
@@ -166,7 +166,7 @@ func TestVerifyChecksum_Mismatch(t *testing.T) {
 
 	// Create mock server that returns wrong checksum
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("wrongchecksum1234567890abcdef  glid-darwin-arm64\n"))
+		w.Write([]byte("wrongchecksum1234567890abcdef  glide-darwin-arm64\n"))
 	}))
 	defer server.Close()
 
@@ -194,18 +194,18 @@ func TestVerifyChecksum_FileNotFound(t *testing.T) {
 
 func TestReplaceBinary(t *testing.T) {
 	// Create temporary directory for testing
-	tempDir, err := os.MkdirTemp("", "glid-test-*")
+	tempDir, err := os.MkdirTemp("", "glide-test-*")
 	require.NoError(t, err)
 	defer os.RemoveAll(tempDir)
 
 	// Create current binary
-	currentPath := filepath.Join(tempDir, "glid")
+	currentPath := filepath.Join(tempDir, "glide")
 	currentContent := []byte("current version")
 	err = os.WriteFile(currentPath, currentContent, 0755)
 	require.NoError(t, err)
 
 	// Create new binary
-	newPath := filepath.Join(tempDir, "glid-new")
+	newPath := filepath.Join(tempDir, "glide-new")
 	newContent := []byte("new version")
 	err = os.WriteFile(newPath, newContent, 0755)
 	require.NoError(t, err)
@@ -231,12 +231,12 @@ func TestReplaceBinary(t *testing.T) {
 
 func TestReplaceBinary_RollbackOnFailure(t *testing.T) {
 	// Create temporary directory for testing
-	tempDir, err := os.MkdirTemp("", "glid-test-*")
+	tempDir, err := os.MkdirTemp("", "glide-test-*")
 	require.NoError(t, err)
 	defer os.RemoveAll(tempDir)
 
 	// Create current binary
-	currentPath := filepath.Join(tempDir, "glid")
+	currentPath := filepath.Join(tempDir, "glide")
 	originalContent := []byte("original version")
 	err = os.WriteFile(currentPath, originalContent, 0755)
 	require.NoError(t, err)
@@ -246,7 +246,7 @@ func TestReplaceBinary_RollbackOnFailure(t *testing.T) {
 	err = os.Mkdir(readOnlyDir, 0755)
 	require.NoError(t, err)
 
-	newPath := filepath.Join(readOnlyDir, "glid-new")
+	newPath := filepath.Join(readOnlyDir, "glide-new")
 	err = os.WriteFile(newPath, []byte("new"), 0755)
 	require.NoError(t, err)
 
@@ -267,7 +267,7 @@ func TestReplaceBinary_RollbackOnFailure(t *testing.T) {
 
 func TestCopyFile(t *testing.T) {
 	// Create temporary directory
-	tempDir, err := os.MkdirTemp("", "glid-test-*")
+	tempDir, err := os.MkdirTemp("", "glide-test-*")
 	require.NoError(t, err)
 	defer os.RemoveAll(tempDir)
 
@@ -302,12 +302,12 @@ func TestSelfUpdate_Integration(t *testing.T) {
 	}
 
 	// Create temporary directory for testing
-	tempDir, err := os.MkdirTemp("", "glid-test-*")
+	tempDir, err := os.MkdirTemp("", "glide-test-*")
 	require.NoError(t, err)
 	defer os.RemoveAll(tempDir)
 
 	// Create mock binary content
-	binaryContent := []byte("new glid binary v2.0.0")
+	binaryContent := []byte("new glide binary v2.0.0")
 
 	// Calculate checksum
 	hasher := sha256.New()
@@ -318,14 +318,14 @@ func TestSelfUpdate_Integration(t *testing.T) {
 	var downloadURL string
 	downloadServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if strings.HasSuffix(r.URL.Path, ".sha256") {
-			w.Write([]byte(checksum + "  glid-" + runtime.GOOS + "-" + runtime.GOARCH + "\n"))
+			w.Write([]byte(checksum + "  glide-" + runtime.GOOS + "-" + runtime.GOARCH + "\n"))
 		} else {
 			w.Header().Set("Content-Type", "application/octet-stream")
 			w.Write(binaryContent)
 		}
 	}))
 	defer downloadServer.Close()
-	downloadURL = downloadServer.URL + "/glid-" + runtime.GOOS + "-" + runtime.GOARCH
+	downloadURL = downloadServer.URL + "/glide-" + runtime.GOOS + "-" + runtime.GOARCH
 
 	// Create release info server
 	release := Release{
@@ -335,7 +335,7 @@ func TestSelfUpdate_Integration(t *testing.T) {
 		HTMLURL:     "https://github.com/ivannovak/glide/releases/tag/v2.0.0",
 		Assets: []Asset{
 			{
-				Name:               "glid-" + runtime.GOOS + "-" + runtime.GOARCH,
+				Name:               "glide-" + runtime.GOOS + "-" + runtime.GOARCH,
 				BrowserDownloadURL: downloadURL,
 				Size:               int64(len(binaryContent)),
 			},
@@ -354,7 +354,7 @@ func TestSelfUpdate_Integration(t *testing.T) {
 	defer func() { githubAPIURL = oldURL }()
 
 	// Create a mock current executable
-	execPath := filepath.Join(tempDir, "glid")
+	execPath := filepath.Join(tempDir, "glide")
 	err = os.WriteFile(execPath, []byte("old version"), 0755)
 	require.NoError(t, err)
 

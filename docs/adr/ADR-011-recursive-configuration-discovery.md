@@ -51,7 +51,7 @@ When multiple configuration files are found:
 
 ### Mitigation Strategies
 - Cache discovered configurations during a session
-- Provide a `glid config --show-sources` command to display all loaded configs
+- Provide a `glideconfig --show-sources` command to display all loaded configs
 - Document the precedence order clearly
 - Stop at project boundaries (`.git`) to prevent external configs from affecting projects
 
@@ -112,7 +112,7 @@ The configuration filename is determined by the branding package:
 ```
 
 ### Command Resolution
-When running `glid build` from `~/projects/myapp/backend/services/`:
+When running `glidebuild` from `~/projects/myapp/backend/services/`:
 1. Check `./services/.glide.yml` - highest priority
 2. Check `./backend/.glide.yml`
 3. Check `./.glide.yml` (project root) - stops here due to `.git`

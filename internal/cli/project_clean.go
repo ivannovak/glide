@@ -195,7 +195,7 @@ func (c *ProjectCleanCommand) cleanOrphanedContainers(dryRun bool, stats *Cleanu
 		if len(parts) >= 2 {
 			name := parts[1]
 			// Check if it's a project container
-			if strings.Contains(name, "myproject") || strings.Contains(name, "glid") {
+			if strings.Contains(name, "myproject") || strings.Contains(name, "glide") {
 				orphaned = append(orphaned, parts[0])
 			}
 		}

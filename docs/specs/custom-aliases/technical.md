@@ -218,8 +218,8 @@ func executeYAMLCommand(cmdStr string, args []string) error {
 
 // executeSingleCommand runs a single command line
 func executeSingleCommand(cmdStr string) error {
-    // Check if it's a glid command (recursive call)
-    if strings.HasPrefix(cmdStr, "glid ") || strings.HasPrefix(cmdStr, "glide ") {
+    // Check if it's a glide command (recursive call)
+    if strings.HasPrefix(cmdStr, "glide") || strings.HasPrefix(cmdStr, "glide ") {
         // Extract command and args
         parts := strings.Fields(cmdStr)
         if len(parts) > 1 {

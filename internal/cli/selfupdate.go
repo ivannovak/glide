@@ -43,8 +43,8 @@ This command will:
 The update process is atomic and will rollback on failure.
 
 Examples:
-  glid self-update              # Check and install updates
-  glid self-update --force      # Force update even if already on latest`,
+  glideself-update              # Check and install updates
+  glideself-update --force      # Force update even if already on latest`,
 		Aliases:       []string{"update", "upgrade"},
 		SilenceUsage:  true,
 		SilenceErrors: true,
@@ -123,7 +123,7 @@ func (suc *SelfUpdateCommand) execute(cmd *cobra.Command, args []string, force b
 	}
 
 	output.Success(fmt.Sprintf("Successfully updated to version %s", updateInfo.LatestVersion))
-	output.Info("Please run 'glid version' to verify the update")
+	output.Info("Please run 'glideversion' to verify the update")
 
 	return nil
 }

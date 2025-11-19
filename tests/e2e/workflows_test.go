@@ -371,7 +371,7 @@ func TestComplexWorkflows(t *testing.T) {
 		err := os.Chdir(projectRoot)
 		require.NoError(t, err)
 
-		// Simulate glid setup (create structure manually)
+		// Simulate glide setup (create structure manually)
 		vcsDir := filepath.Join(projectRoot, "vcs")
 		worktreesDir := filepath.Join(projectRoot, "worktrees")
 		require.NoError(t, os.MkdirAll(vcsDir, 0755))

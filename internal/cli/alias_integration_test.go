@@ -18,7 +18,7 @@ func TestCLI_AliasIntegration(t *testing.T) {
 
 	// Build root command
 	rootCmd := &cobra.Command{
-		Use:   "glid",
+		Use:   "glide",
 		Short: "Test CLI",
 	}
 
@@ -190,7 +190,7 @@ func findCommand(root *cobra.Command, name string) *cobra.Command {
 func TestCLI_RealWorldAliasUsage(t *testing.T) {
 	// Create a mock root command that simulates the real CLI
 	rootCmd := &cobra.Command{
-		Use:           "glid",
+		Use:           "glide",
 		Short:         "Glide CLI",
 		SilenceErrors: true,
 		SilenceUsage:  true,

@@ -139,11 +139,11 @@ func (eh *ErrorHandler) Handle(err error) string {
 	case errors.Is(err, ErrComposeNotFound):
 		return "No docker-compose.yml file found. This project may not use Docker."
 	case errors.Is(err, ErrServiceNotFound):
-		return "The requested service was not found. Run 'glid docker ps' to see available services."
+		return "The requested service was not found. Run 'glide docker ps' to see available services."
 	case errors.Is(err, ErrContainerNotFound):
 		return "Container not found. The service may not be running."
 	case errors.Is(err, ErrHealthCheckFailed):
-		return "Container health check failed. Check logs with 'glid logs' for details."
+		return "Container health check failed. Check logs with 'glide logs' for details."
 	case errors.Is(err, ErrTimeout):
 		return "Operation timed out. This may indicate a problem with Docker or the service."
 	default:
@@ -197,19 +197,19 @@ func (eh *ErrorHandler) SuggestFix(err error) []string {
 		suggestions = append(suggestions,
 			"Ensure you're in the correct directory",
 			"Check if docker-compose.yml exists",
-			"Run 'glid setup' if this is a new project",
+			"Run 'glide setup' if this is a new project",
 		)
 	case errors.Is(err, ErrServiceNotFound):
 		suggestions = append(suggestions,
-			"List available services: glid docker ps",
+			"List available services: glide docker ps",
 			"Check your docker-compose.yml file",
 			"Ensure the service name is spelled correctly",
 		)
 	case errors.Is(err, ErrHealthCheckFailed):
 		suggestions = append(suggestions,
-			"Check service logs: glid logs [service]",
-			"Restart the service: glid docker restart [service]",
-			"Rebuild if needed: glid docker build",
+			"Check service logs: glide logs [service]",
+			"Restart the service: glide docker restart [service]",
+			"Rebuild if needed: glide docker build",
 		)
 	}
 
@@ -225,12 +225,12 @@ func (eh *ErrorHandler) SuggestFix(err error) []string {
 		case "up", "start":
 			suggestions = append(suggestions,
 				"Check if ports are already in use",
-				"Remove old containers: glid docker down",
+				"Remove old containers: glide docker down",
 			)
 		case "exec":
 			suggestions = append(suggestions,
-				"Ensure the container is running: glid docker ps",
-				"Start containers: glid up",
+				"Ensure the container is running: glide docker ps",
+				"Start containers: glide up",
 			)
 		}
 	}

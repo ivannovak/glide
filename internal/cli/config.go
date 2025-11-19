@@ -53,9 +53,9 @@ func (cc *ConfigCommand) newGetCommand() *cobra.Command {
 		Long: `Get a configuration value by key.
 
 Examples:
-  glid config get default_project
-  glid config get defaults.docker.auto_start
-  glid config get projects.myproject.mode`,
+  glideconfig get default_project
+  glideconfig get defaults.docker.auto_start
+  glideconfig get projects.myproject.mode`,
 		Args:          cobra.ExactArgs(1),
 		RunE:          cc.runGet,
 		SilenceUsage:  true,
@@ -71,10 +71,10 @@ func (cc *ConfigCommand) newSetCommand() *cobra.Command {
 		Long: `Set a configuration value by key.
 
 Examples:
-  glid config set default_project myproject
-  glid config set defaults.docker.auto_start true
-  glid config set defaults.test.processes 10
-  glid config set projects.myproject.path /path/to/project`,
+  glideconfig set default_project myproject
+  glideconfig set defaults.docker.auto_start true
+  glideconfig set defaults.test.processes 10
+  glideconfig set projects.myproject.path /path/to/project`,
 		Args:          cobra.ExactArgs(2),
 		RunE:          cc.runSet,
 		SilenceUsage:  true,
@@ -103,7 +103,7 @@ func (cc *ConfigCommand) newUseCommand() *cobra.Command {
 		Long: `Set the default project to use when running Glide commands.
 
 Example:
-  glid config use myproject`,
+  glideconfig use myproject`,
 		Args:          cobra.ExactArgs(1),
 		RunE:          cc.runUse,
 		SilenceUsage:  true,
@@ -116,7 +116,7 @@ func (cc *ConfigCommand) runGet(cmd *cobra.Command, args []string) error {
 	if cc.cfg == nil {
 		return glideErrors.NewConfigError(fmt.Sprintf("no configuration file found at %s", cc.cfgPath),
 			glideErrors.WithSuggestions(
-				"Run 'glid setup' to create a configuration file",
+				"Run 'glidesetup' to create a configuration file",
 				"Check if the config file exists at the expected path",
 			))
 	}
@@ -185,7 +185,7 @@ func (cc *ConfigCommand) runSet(cmd *cobra.Command, args []string) error {
 func (cc *ConfigCommand) runList(cmd *cobra.Command, args []string) error {
 	if cc.cfg == nil {
 		output.Info("No configuration file found at %s", cc.cfgPath)
-		output.Info("Run 'glid setup' to create one.")
+		output.Info("Run 'glidesetup' to create one.")
 		return nil
 	}
 
@@ -244,7 +244,7 @@ func (cc *ConfigCommand) runUse(cmd *cobra.Command, args []string) error {
 	if cc.cfg == nil {
 		return glideErrors.NewConfigError(fmt.Sprintf("no configuration file found at %s", cc.cfgPath),
 			glideErrors.WithSuggestions(
-				"Run 'glid setup' to create a configuration file",
+				"Run 'glidesetup' to create a configuration file",
 				"Check if the config file exists at the expected path",
 			))
 	}
@@ -262,14 +262,14 @@ func (cc *ConfigCommand) runUse(cmd *cobra.Command, args []string) error {
 				projectName, strings.Join(available, ", ")),
 				glideErrors.WithSuggestions(
 					"Use one of the listed available projects",
-					fmt.Sprintf("Add the project using 'glid config set projects.%s.path /path/to/project'", projectName),
-					"Run 'glid config list' to see all configured projects",
+					fmt.Sprintf("Add the project using 'glideconfig set projects.%s.path /path/to/project'", projectName),
+					"Run 'glideconfig list' to see all configured projects",
 				))
 		}
-		return glideErrors.NewConfigError(fmt.Sprintf("project '%s' not found\nNo projects configured. Run 'glid setup' first", projectName),
+		return glideErrors.NewConfigError(fmt.Sprintf("project '%s' not found\nNo projects configured. Run 'glidesetup' first", projectName),
 			glideErrors.WithSuggestions(
-				"Run 'glid setup' to initialize your first project",
-				fmt.Sprintf("Add a project manually using 'glid config set projects.%s.path /path/to/project'", projectName),
+				"Run 'glidesetup' to initialize your first project",
+				fmt.Sprintf("Add a project manually using 'glideconfig set projects.%s.path /path/to/project'", projectName),
 			))
 	}
 
@@ -313,8 +313,8 @@ func (cc *ConfigCommand) getValue(key string) (string, error) {
 		if !exists {
 			return "", glideErrors.NewConfigError(fmt.Sprintf("project '%s' not found", projectName),
 				glideErrors.WithSuggestions(
-					"Run 'glid config list' to see available projects",
-					fmt.Sprintf("Add the project using 'glid config set projects.%s.path /path/to/project'", projectName),
+					"Run 'glideconfig list' to see available projects",
+					fmt.Sprintf("Add the project using 'glideconfig set projects.%s.path /path/to/project'", projectName),
 				))
 		}
 
@@ -331,7 +331,7 @@ func (cc *ConfigCommand) getValue(key string) (string, error) {
 			return "", glideErrors.NewConfigError(fmt.Sprintf("unknown project field: %s", parts[2]),
 				glideErrors.WithSuggestions(
 					"Valid project fields are: 'path', 'mode'",
-					fmt.Sprintf("Use 'glid config get projects.%s' to see all fields", parts[1]),
+					fmt.Sprintf("Use 'glideconfig get projects.%s' to see all fields", parts[1]),
 				))
 		}
 	}
@@ -343,7 +343,7 @@ func (cc *ConfigCommand) getValue(key string) (string, error) {
 
 	return "", glideErrors.NewConfigError(fmt.Sprintf("unknown configuration key: %s", key),
 		glideErrors.WithSuggestions(
-			"Run 'glid config list' to see all available configuration keys",
+			"Run 'glideconfig list' to see all available configuration keys",
 			"Valid key formats: 'default_project', 'projects.NAME.FIELD', 'defaults.SECTION.FIELD'",
 			"Use dot notation to access nested values",
 		))
@@ -355,7 +355,7 @@ func (cc *ConfigCommand) getDefaultValue(path []string) (string, error) {
 		return "", glideErrors.NewConfigError("incomplete path",
 			glideErrors.WithSuggestions(
 				"Provide a complete path like 'defaults.test.parallel'",
-				"Run 'glid config list' to see available configuration paths",
+				"Run 'glideconfig list' to see available configuration paths",
 			))
 	}
 
@@ -381,7 +381,7 @@ func (cc *ConfigCommand) getDefaultValue(path []string) (string, error) {
 			return "", glideErrors.NewConfigError(fmt.Sprintf("unknown test field: %s", path[1]),
 				glideErrors.WithSuggestions(
 					"Valid test fields: 'parallel', 'processes', 'coverage', 'verbose'",
-					"Use 'glid config get defaults.test' to see all test settings",
+					"Use 'glideconfig get defaults.test' to see all test settings",
 				))
 		}
 
@@ -403,7 +403,7 @@ func (cc *ConfigCommand) getDefaultValue(path []string) (string, error) {
 			return "", glideErrors.NewConfigError(fmt.Sprintf("unknown docker field: %s", path[1]),
 				glideErrors.WithSuggestions(
 					"Valid docker fields: 'compose_timeout', 'auto_start', 'remove_orphans'",
-					"Use 'glid config get defaults.docker' to see all docker settings",
+					"Use 'glideconfig get defaults.docker' to see all docker settings",
 				))
 		}
 
@@ -417,7 +417,7 @@ func (cc *ConfigCommand) getDefaultValue(path []string) (string, error) {
 		return "", glideErrors.NewConfigError(fmt.Sprintf("unknown colors field: %s", path[1]),
 			glideErrors.WithSuggestions(
 				"Valid colors field: 'enabled'",
-				"Use 'glid config get defaults.colors.enabled' to see the current setting",
+				"Use 'glideconfig get defaults.colors.enabled' to see the current setting",
 			))
 
 	case "worktree":
@@ -438,7 +438,7 @@ func (cc *ConfigCommand) getDefaultValue(path []string) (string, error) {
 			return "", glideErrors.NewConfigError(fmt.Sprintf("unknown worktree field: %s", path[1]),
 				glideErrors.WithSuggestions(
 					"Valid worktree fields: 'auto_setup', 'copy_env', 'run_migrations'",
-					"Use 'glid config get defaults.worktree' to see all worktree settings",
+					"Use 'glideconfig get defaults.worktree' to see all worktree settings",
 				))
 		}
 
@@ -446,7 +446,7 @@ func (cc *ConfigCommand) getDefaultValue(path []string) (string, error) {
 		return "", glideErrors.NewConfigError(fmt.Sprintf("unknown defaults section: %s", path[0]),
 			glideErrors.WithSuggestions(
 				"Valid defaults sections: 'test', 'docker', 'colors', 'worktree'",
-				"Use 'glid config list' to see all available sections",
+				"Use 'glideconfig list' to see all available sections",
 			))
 	}
 }
@@ -461,9 +461,9 @@ func (cc *ConfigCommand) setValue(key, value string) error {
 		if _, exists := cc.cfg.Projects[value]; !exists && value != "" {
 			return glideErrors.NewConfigError(fmt.Sprintf("project '%s' does not exist", value),
 				glideErrors.WithSuggestions(
-					fmt.Sprintf("Create the project first using 'glid config set projects.%s.path /path/to/project'", value),
-					"Run 'glid config list' to see existing projects",
-					"Use empty string to clear default project: 'glid config set default_project '",
+					fmt.Sprintf("Create the project first using 'glideconfig set projects.%s.path /path/to/project'", value),
+					"Run 'glideconfig list' to see existing projects",
+					"Use empty string to clear default project: 'glideconfig set default_project '",
 				))
 		}
 		cc.cfg.DefaultProject = value
@@ -496,8 +496,8 @@ func (cc *ConfigCommand) setValue(key, value string) error {
 			return glideErrors.NewConfigError(fmt.Sprintf("unknown project field: %s", parts[2]),
 				glideErrors.WithSuggestions(
 					"Valid project fields: 'path', 'mode'",
-					fmt.Sprintf("Example: 'glid config set projects.%s.path /path/to/project'", parts[1]),
-					fmt.Sprintf("Example: 'glid config set projects.%s.mode multi-worktree'", parts[1]),
+					fmt.Sprintf("Example: 'glideconfig set projects.%s.path /path/to/project'", parts[1]),
+					fmt.Sprintf("Example: 'glideconfig set projects.%s.mode multi-worktree'", parts[1]),
 				))
 		}
 
@@ -513,7 +513,7 @@ func (cc *ConfigCommand) setValue(key, value string) error {
 	return glideErrors.NewConfigError(fmt.Sprintf("unknown configuration key: %s", key),
 		glideErrors.WithSuggestions(
 			"Valid key formats: 'default_project', 'projects.NAME.FIELD', 'defaults.SECTION.FIELD'",
-			"Run 'glid config list' to see all available configuration keys",
+			"Run 'glideconfig list' to see all available configuration keys",
 			"Use dot notation to access nested values",
 		))
 }
@@ -547,7 +547,7 @@ func (cc *ConfigCommand) setDefaultValue(path []string, value string) error {
 				return glideErrors.NewConfigError(fmt.Sprintf("invalid integer value: %s", value),
 					glideErrors.WithSuggestions(
 						"Provide a valid integer number",
-						"Example: 'glid config set defaults.test.processes 8'",
+						"Example: 'glideconfig set defaults.test.processes 8'",
 					))
 			}
 			if n < 1 {
@@ -582,7 +582,7 @@ func (cc *ConfigCommand) setDefaultValue(path []string, value string) error {
 			return glideErrors.NewConfigError(fmt.Sprintf("unknown test field: %s", path[1]),
 				glideErrors.WithSuggestions(
 					"Valid test fields: 'parallel', 'processes', 'coverage', 'verbose'",
-					"Example: 'glid config set defaults.test.parallel true'",
+					"Example: 'glideconfig set defaults.test.parallel true'",
 				))
 		}
 
@@ -594,7 +594,7 @@ func (cc *ConfigCommand) setDefaultValue(path []string, value string) error {
 				return glideErrors.NewConfigError(fmt.Sprintf("invalid integer value: %s", value),
 					glideErrors.WithSuggestions(
 						"Provide a valid integer number for timeout in seconds",
-						"Example: 'glid config set defaults.docker.compose_timeout 60'",
+						"Example: 'glideconfig set defaults.docker.compose_timeout 60'",
 					))
 			}
 			if n < 1 {
@@ -629,7 +629,7 @@ func (cc *ConfigCommand) setDefaultValue(path []string, value string) error {
 			return glideErrors.NewConfigError(fmt.Sprintf("unknown docker field: %s", path[1]),
 				glideErrors.WithSuggestions(
 					"Valid docker fields: 'compose_timeout', 'auto_start', 'remove_orphans'",
-					"Example: 'glid config set defaults.docker.auto_start false'",
+					"Example: 'glideconfig set defaults.docker.auto_start false'",
 				))
 		}
 
@@ -638,7 +638,7 @@ func (cc *ConfigCommand) setDefaultValue(path []string, value string) error {
 			return glideErrors.NewConfigError(fmt.Sprintf("unknown colors field: %s", path[1]),
 				glideErrors.WithSuggestions(
 					"Valid colors field: 'enabled'",
-					"Example: 'glid config set defaults.colors.enabled never'",
+					"Example: 'glideconfig set defaults.colors.enabled never'",
 				))
 		}
 		if value != "auto" && value != "always" && value != "never" {
@@ -687,7 +687,7 @@ func (cc *ConfigCommand) setDefaultValue(path []string, value string) error {
 			return glideErrors.NewConfigError(fmt.Sprintf("unknown worktree field: %s", path[1]),
 				glideErrors.WithSuggestions(
 					"Valid worktree fields: 'auto_setup', 'copy_env', 'run_migrations'",
-					"Example: 'glid config set defaults.worktree.auto_setup true'",
+					"Example: 'glideconfig set defaults.worktree.auto_setup true'",
 				))
 		}
 
@@ -695,7 +695,7 @@ func (cc *ConfigCommand) setDefaultValue(path []string, value string) error {
 		return glideErrors.NewConfigError(fmt.Sprintf("unknown defaults section: %s", path[0]),
 			glideErrors.WithSuggestions(
 				"Valid defaults sections: 'test', 'docker', 'colors', 'worktree'",
-				"Example: 'glid config set defaults.test.parallel true'",
+				"Example: 'glideconfig set defaults.test.parallel true'",
 			))
 	}
 

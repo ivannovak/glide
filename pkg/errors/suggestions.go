@@ -57,20 +57,20 @@ func (se *SuggestionEngine) getContextSuggestions(context map[string]string) []s
 		switch container {
 		case "php":
 			suggestions = append(suggestions,
-				"Ensure PHP container is running: glid status",
-				"Start PHP container: glid up",
+				"Ensure PHP container is running: glidestatus",
+				"Start PHP container: glideup",
 			)
 		case "mysql":
 			suggestions = append(suggestions,
-				"Check MySQL container: glid docker ps",
-				"Start MySQL: glid docker up -d mysql",
-				"Check MySQL logs: glid logs mysql",
+				"Check MySQL container: glidedocker ps",
+				"Start MySQL: glidedocker up -d mysql",
+				"Check MySQL logs: glidelogs mysql",
 			)
 		case "nginx":
 			suggestions = append(suggestions,
-				"Check nginx container: glid docker ps",
-				"Start nginx: glid docker up -d nginx",
-				"Check nginx config: glid docker exec nginx nginx -t",
+				"Check nginx container: glidedocker ps",
+				"Start nginx: glidedocker up -d nginx",
+				"Check nginx config: glidedocker exec nginx nginx -t",
 			)
 		}
 	}
@@ -80,7 +80,7 @@ func (se *SuggestionEngine) getContextSuggestions(context map[string]string) []s
 		if mode == "single-repo" {
 			suggestions = append(suggestions,
 				"Some commands require multi-worktree mode",
-				"Run: glid setup to change mode",
+				"Run: glidesetup to change mode",
 			)
 		}
 	}
@@ -96,7 +96,7 @@ func (se *SuggestionEngine) getContextSuggestions(context map[string]string) []s
 		}
 		if strings.Contains(path, "vendor") {
 			suggestions = append(suggestions,
-				"Run: glid composer install",
+				"Run: glidecomposer install",
 				"Check if composer.json exists",
 			)
 		}
@@ -134,9 +134,9 @@ func defaultPatterns() []ErrorPattern {
 			Contains: []string{"service", "is not running", "container", "not found"},
 			Type:     TypeContainer,
 			Suggestions: []string{
-				"Start all containers: glid up",
-				"Check container status: glid status",
-				"Start specific container: glid docker up -d [container]",
+				"Start all containers: glideup",
+				"Check container status: glidestatus",
+				"Start specific container: glidedocker up -d [container]",
 			},
 		},
 		// Permission denied
@@ -155,11 +155,11 @@ func defaultPatterns() []ErrorPattern {
 			Contains: []string{"sqlstate", "connection refused", "access denied for user", "unknown database"},
 			Type:     TypeDatabase,
 			Suggestions: []string{
-				"Check MySQL container: glid status",
+				"Check MySQL container: glidestatus",
 				"Verify .env database settings",
 				"Ensure DB_HOST=mysql for Docker",
-				"Start MySQL: glid docker up -d mysql",
-				"Check credentials: glid mysql",
+				"Start MySQL: glidedocker up -d mysql",
+				"Check credentials: glidemysql",
 			},
 		},
 		// Composer/dependency errors
@@ -167,9 +167,9 @@ func defaultPatterns() []ErrorPattern {
 			Contains: []string{"vendor/autoload.php", "class", "not found", "composer"},
 			Type:     TypeDependency,
 			Suggestions: []string{
-				"Install dependencies: glid composer install",
-				"Update autoloader: glid composer dump-autoload",
-				"Clear cache: glid artisan cache:clear",
+				"Install dependencies: glidecomposer install",
+				"Update autoloader: glidecomposer dump-autoload",
+				"Clear cache: glideartisan cache:clear",
 				"Check composer.json exists",
 			},
 		},
@@ -181,7 +181,7 @@ func defaultPatterns() []ErrorPattern {
 				"Check if file exists: ls -la",
 				"Verify you're in the correct directory",
 				"For .env: copy from .env.example",
-				"For vendor: run glid composer install",
+				"For vendor: run glidecomposer install",
 			},
 		},
 		// Network/connection errors
@@ -191,7 +191,7 @@ func defaultPatterns() []ErrorPattern {
 			Suggestions: []string{
 				"Check internet connection",
 				"Check Docker network: docker network ls",
-				"Restart Docker: glid down && glid up",
+				"Restart Docker: glidedown && glideup",
 				"Check firewall settings",
 			},
 		},
@@ -200,7 +200,7 @@ func defaultPatterns() []ErrorPattern {
 			Contains: []string{"address already in use", "port is already allocated", "bind: address"},
 			Type:     TypeNetwork,
 			Suggestions: []string{
-				"Stop conflicting containers: glid down-all",
+				"Stop conflicting containers: glidedown-all",
 				"Check what's using the port: lsof -i :PORT",
 				"Kill process using port: kill -9 PID",
 				"Change port in docker-compose.yml",
@@ -213,7 +213,7 @@ func defaultPatterns() []ErrorPattern {
 			Suggestions: []string{
 				"Initialize git: git init",
 				"Check you're in the project root",
-				"For worktrees: use glid g worktree",
+				"For worktrees: use glideg worktree",
 			},
 		},
 		// AWS/ECR errors
@@ -221,7 +221,7 @@ func defaultPatterns() []ErrorPattern {
 			Contains: []string{"ecr", "aws", "401 unauthorized", "no basic auth credentials"},
 			Type:     TypeNetwork,
 			Suggestions: []string{
-				"Authenticate with ECR: glid ecr-login",
+				"Authenticate with ECR: glideecr-login",
 				"Check AWS credentials: aws configure list",
 				"Verify AWS_PROFILE is set correctly",
 			},
@@ -232,7 +232,7 @@ func defaultPatterns() []ErrorPattern {
 			Type:     TypeTimeout,
 			Suggestions: []string{
 				"Try running the command again",
-				"Check if containers are healthy: glid status",
+				"Check if containers are healthy: glidestatus",
 				"Increase timeout if configurable",
 				"Check system resources: docker stats",
 			},
@@ -242,10 +242,10 @@ func defaultPatterns() []ErrorPattern {
 			Contains: []string{"migration", "migrate", "nothing to migrate"},
 			Type:     TypeDatabase,
 			Suggestions: []string{
-				"Run migrations: glid artisan migrate",
-				"Fresh migration: glid artisan migrate:fresh",
-				"Check migration status: glid artisan migrate:status",
-				"For tests: glid artisan migrate --env=testing",
+				"Run migrations: glideartisan migrate",
+				"Fresh migration: glideartisan migrate:fresh",
+				"Check migration status: glideartisan migrate:status",
+				"For tests: glideartisan migrate --env=testing",
 			},
 		},
 	}

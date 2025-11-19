@@ -235,18 +235,18 @@ func TestSelfUpdateCommand_Integration(t *testing.T) {
 		HTMLURL:     "https://github.com/ivannovak/glide/releases/tag/v2.0.0",
 		Assets: []update.Asset{
 			{
-				Name:               "glid-darwin-arm64",
-				BrowserDownloadURL: "https://github.com/ivannovak/glide/releases/download/v2.0.0/glid-darwin-arm64",
+				Name:               "glide-darwin-arm64",
+				BrowserDownloadURL: "https://github.com/ivannovak/glide/releases/download/v2.0.0/glide-darwin-arm64",
 				Size:               10485760,
 			},
 			{
-				Name:               "glid-linux-amd64",
-				BrowserDownloadURL: "https://github.com/ivannovak/glide/releases/download/v2.0.0/glid-linux-amd64",
+				Name:               "glide-linux-amd64",
+				BrowserDownloadURL: "https://github.com/ivannovak/glide/releases/download/v2.0.0/glide-linux-amd64",
 				Size:               10485760,
 			},
 			{
-				Name:               "glid-windows-amd64.exe",
-				BrowserDownloadURL: "https://github.com/ivannovak/glide/releases/download/v2.0.0/glid-windows-amd64.exe",
+				Name:               "glide-windows-amd64.exe",
+				BrowserDownloadURL: "https://github.com/ivannovak/glide/releases/download/v2.0.0/glide-windows-amd64.exe",
 				Size:               10485760,
 			},
 		},

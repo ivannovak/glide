@@ -77,7 +77,7 @@ func (s *SetupCommand) run(cmd *cobra.Command, args []string) error {
 		return glideErrors.Wrap(err, "failed to get project location",
 			glideErrors.WithSuggestions(
 				"Ensure you have proper permissions",
-				"Try specifying the path explicitly: glid setup --path /path/to/project",
+				"Try specifying the path explicitly: glidesetup --path /path/to/project",
 			),
 		)
 	}
@@ -87,7 +87,7 @@ func (s *SetupCommand) run(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return glideErrors.Wrap(err, "failed to select development mode",
 			glideErrors.WithSuggestions(
-				"Use --mode flag to specify: glid setup --mode multi-worktree",
+				"Use --mode flag to specify: glidesetup --mode multi-worktree",
 				"Valid modes: multi-worktree, single-repo",
 			),
 		)
@@ -99,7 +99,7 @@ func (s *SetupCommand) run(cmd *cobra.Command, args []string) error {
 			glideErrors.WithSuggestions(
 				"Check directory permissions",
 				"Ensure the path exists and is writable",
-				"Try running with elevated permissions: sudo glid setup",
+				"Try running with elevated permissions: sudo glidesetup",
 			),
 		)
 	}
@@ -231,7 +231,7 @@ func (s *SetupCommand) handleExistingInstallation(project *config.ProjectConfig,
 			glideErrors.WithSuggestions(
 				"Use --force flag to override existing setup",
 				"Run interactively to choose conversion options",
-				"Use 'glid config' to modify existing configuration",
+				"Use 'glideconfig' to modify existing configuration",
 			),
 		)
 	}
@@ -304,7 +304,7 @@ func (s *SetupCommand) convertMode(project *config.ProjectConfig, currentMode co
 		output.Info("Next steps:")
 		output.Info("1. Move your existing repository to vcs/")
 		output.Info("2. Update your git remote URLs")
-		output.Info("3. Create worktrees with: glid worktree <branch>")
+		output.Info("3. Create worktrees with: glideworktree <branch>")
 	}
 
 	return nil
@@ -397,7 +397,7 @@ func (s *SetupCommand) selectDevelopmentMode() (context.DevelopmentMode, error) 
 		return context.ModeUnknown, glideErrors.Wrap(err, "failed to select development mode",
 			glideErrors.WithSuggestions(
 				"Try running setup in interactive mode",
-				"Use --mode flag to specify: glid setup --mode multi-worktree",
+				"Use --mode flag to specify: glidesetup --mode multi-worktree",
 			),
 		)
 	}
@@ -494,20 +494,20 @@ This is a multi-worktree development environment managed by Glide.
 
 2. Create a new worktree:
    `+"```bash"+`
-   glid worktree feature/my-feature
+   glideworktree feature/my-feature
    `+"```"+`
 
 3. Start Docker:
    `+"```bash"+`
    cd worktrees/feature-my-feature
-   glid up
+   glideup
    `+"```"+`
 
 ## Commands
 
-- `+"`glid worktree <branch>`"+`: Create a new worktree
-- `+"`glid status`"+`: Show Docker status across all worktrees
-- `+"`glid down-all`"+`: Stop all Docker containers
+- `+"`glideworktree <branch>`"+`: Create a new worktree
+- `+"`glidestatus`"+`: Show Docker status across all worktrees
+- `+"`glidedown-all`"+`: Stop all Docker containers
 `, filepath.Base(projectPath))
 
 			if err := os.WriteFile(readmePath, []byte(readmeContent), 0644); err != nil {
@@ -634,7 +634,7 @@ func (s *SetupCommand) printSuccessMessage(projectPath string, mode context.Deve
 	completionManager := NewCompletionManager(s.ctx, s.cfg)
 	if err := completionManager.InstallCompletion(); err != nil {
 		output.Warning("Could not install shell completions: %v", err)
-		output.Info("You can install manually with: glid completion [bash|zsh|fish]")
+		output.Info("You can install manually with: glidecompletion [bash|zsh|fish]")
 	}
 
 	output.Println()
@@ -652,24 +652,24 @@ func (s *SetupCommand) printSuccessMessage(projectPath string, mode context.Deve
 		output.Info("   git clone <your-repo-url> vcs")
 		output.Println()
 		output.Info("2. Create your first worktree:")
-		output.Info("   glid worktree feature/my-feature")
+		output.Info("   glideworktree feature/my-feature")
 		output.Println()
 		output.Info("3. Start developing!")
 		output.Info("   cd worktrees/feature-my-feature")
-		output.Info("   glid up")
+		output.Info("   glideup")
 	} else {
 		output.Info("Next steps:")
 		output.Info("1. Navigate to your project:")
 		output.Printf("   cd %s\n", projectPath)
 		output.Println()
 		output.Info("2. Start Docker:")
-		output.Info("   glid up")
+		output.Info("   glideup")
 		output.Println()
 		output.Info("3. Run tests:")
-		output.Info("   glid test")
+		output.Info("   glidetest")
 	}
 
 	output.Println()
 	output.Info("💡 Pro tip: Tab completion is now available! Restart your shell to enable it.")
-	output.Info("Run 'glid --help' to see available commands")
+	output.Info("Run 'glide--help' to see available commands")
 }

@@ -75,9 +75,9 @@ This document outlines the complete implementation plan for the Glide CLI, trans
 
 ### 3.2 Configuration Commands ✅
 **Files**: `internal/cli/config.go`
-- [x] `glid config set` implementation
-- [x] `glid config get` implementation
-- [x] `glid config list` implementation
+- [x] `glideconfig set` implementation
+- [x] `glideconfig get` implementation
+- [x] `glideconfig list` implementation
 - [x] Project switching support
 
 ## Phase 4: Command Implementation - Pass-through Commands
@@ -115,53 +115,53 @@ This document outlines the complete implementation plan for the Glide CLI, trans
 
 ### 5.1 Container Lifecycle Commands ✅
 **Files**: `internal/cli/up.go`, `internal/cli/down.go`
-- [x] `glid up` - Start containers with compose
-- [x] `glid down` - Stop containers
+- [x] `glideup` - Start containers with compose
+- [x] `glidedown` - Stop containers
 - [x] Health check after startup
 - [x] Graceful shutdown handling
 
 ### 5.2 Interactive Commands ✅
 **Files**: `internal/cli/shell.go`, `internal/cli/mysql.go`, `internal/cli/logs.go`
-- [x] `glid shell` - Attach to PHP container
-- [x] `glid mysql` - MySQL CLI access
-- [x] `glid logs` - Container log viewing
+- [x] `glideshell` - Attach to PHP container
+- [x] `glidemysql` - MySQL CLI access
+- [x] `glidelogs` - Container log viewing
 - [x] Handle TTY allocation
 - [x] Support log following (-f)
 
 ### 5.3 Utility Commands ✅
 **Files**: `internal/cli/status.go`, `internal/cli/lint.go`, `internal/cli/ecr_login.go`, `internal/cli/db_tunnel.go`, `internal/cli/ssl_certs.go`
-- [x] `glid status` - Show container status
-- [x] `glid lint` - Run PHP CS Fixer
-- [x] `glid ecr-login` - AWS ECR authentication
-- [x] `glid db-tunnel` - SSH tunnel setup
-- [x] `glid ssl-certs` - Certificate generation
+- [x] `glidestatus` - Show container status
+- [x] `glidelint` - Run PHP CS Fixer
+- [x] `glideecr-login` - AWS ECR authentication
+- [x] `glidedb-tunnel` - SSH tunnel setup
+- [x] `glidessl-certs` - Certificate generation
 
 ## Phase 6: Multi-Worktree Features
 
 ### 6.1 Global Command Structure ✅
 **Files**: `internal/cli/global.go`, `internal/cli/mode_helpers.go`
-- [x] Implement `glid global` command group
+- [x] Implement `glideglobal` command group
 - [x] Add `g` alias support
 - [x] Command availability based on mode
 - [x] Error messages for wrong mode
 
 ### 6.2 Worktree Management ✅
 **Files**: `internal/cli/worktree.go`, `internal/cli/mysql_fix.go`
-- [x] `glid g worktree` - Create new worktree
+- [x] `glideg worktree` - Create new worktree
 - [x] Branch handling (new/existing/remote)
 - [x] .env file copying from vcs/
 - [x] Error handling for missing .env
 - [x] Conflict detection and messaging
 - [x] Auto-setup flag support
 - [x] Migration options
-- [x] `glid mysql-fix-permissions` - Fix MySQL permission issues
+- [x] `glidemysql-fix-permissions` - Fix MySQL permission issues
 
 ### 6.3 Global Operations ✅
 **Files**: `internal/cli/global_status.go`, `internal/cli/global_down.go`, `internal/cli/global_list.go`, `internal/cli/global_clean.go`
-- [x] `glid g status` - Show all worktree statuses
-- [x] `glid g down` - Stop all containers across all worktrees
-- [x] `glid g list` - List active worktrees
-- [x] `glid g clean` - Global cleanup
+- [x] `glideg status` - Show all worktree statuses
+- [x] `glideg down` - Stop all containers across all worktrees
+- [x] `glideg list` - List active worktrees
+- [x] `glideg clean` - Global cleanup
 - [x] Orphaned container handling (--orphaned flag)
 
 ## Phase 7: User Experience Enhancements
@@ -278,7 +278,7 @@ if !c.ctx.DockerRunning {
     return errors.NewDockerError("Docker daemon not running",
         errors.WithSuggestions(
             "Start Docker Desktop application",
-            "Run: glid up",
+            "Run: glideup",
             "Check: docker ps",
         ),
         errors.WithContext("container", "php"),
@@ -288,7 +288,7 @@ if !c.ctx.DockerRunning {
 
 **Common Error Patterns to Standardize**:
 - Docker not running → Start Docker suggestions
-- Container not found → Run `glid up` first
+- Container not found → Run `glideup` first
 - Permission denied → Fix file permissions guide
 - Database connection → Check credentials, container status
 - Missing dependencies → Installation commands
@@ -484,7 +484,7 @@ out.Display(StatusData{Container: name, State: "running"})
 
 **Medium-Priority (Enhanced UX)** ✅:
 - [x] Branch name completion for worktree creation
-- [x] Configuration key completion for `glid config set/get`
+- [x] Configuration key completion for `glideconfig set/get`
 - [x] Format option completion (table, json, yaml, plain)
 - [x] Migration option completion (fresh-seed, fresh, pending, skip)
 
@@ -499,20 +499,20 @@ out.Display(StatusData{Container: name, State: "running"})
 *Before Shell Completion*:
 ```bash
 # Manual memorization required
-glid global worktree feature/api-endpoint --auto-setup --migrate=fresh-seed
+glideglobal worktree feature/api-endpoint --auto-setup --migrate=fresh-seed
 
 # Trial and error for discovery
-glid --help | grep format
-glid logs php  # Error: container not found
+glide--help | grep format
+glidelogs php  # Error: container not found
 ```
 
 *After Shell Completion*:
 ```bash
 # Natural discovery workflow
-glid g<TAB>           # → global
-glid global <TAB>     # → clean, down, list, status, worktree
-glid logs <TAB>       # → php, mysql, nginx (actual containers)
-glid --<TAB>          # → --format, --quiet, --no-color (with descriptions)
+glideg<TAB>           # → global
+glideglobal <TAB>     # → clean, down, list, status, worktree
+glidelogs <TAB>       # → php, mysql, nginx (actual containers)
+glide--<TAB>          # → --format, --quiet, --no-color (with descriptions)
 ```
 
 **Technical Implementation Strategy**:
@@ -535,7 +535,7 @@ glid --<TAB>          # → --format, --quiet, --no-color (with descriptions)
 - Clear installation documentation and error handling provided
 
 **Installation Integration** ✅ **IMPLEMENTED**:
-- [x] Automatic completion script installation during `glid setup`
+- [x] Automatic completion script installation during `glidesetup`
 - [x] Manual installation instructions for advanced users
 - [x] Shell detection and appropriate script generation
 - [x] System-wide vs user-specific installation options
@@ -543,8 +543,8 @@ glid --<TAB>          # → --format, --quiet, --no-color (with descriptions)
 **Implementation Achievements**:
 - **Complete Infrastructure**: Full completion system in `internal/cli/completion.go` (520+ lines)
 - **All Shell Support**: Bash, Zsh, and Fish completion generation working
-- **Automatic Setup**: Integrated into `glid setup` command with user feedback
-- **Manual Override**: `glid completion [shell]` command for advanced installation
+- **Automatic Setup**: Integrated into `glidesetup` command with user feedback
+- **Manual Override**: `glide completion [shell]` command for advanced installation
 - **Smart Completions**: Dynamic container, branch, config key, and format completions
 - **Error Handling**: Graceful fallbacks with helpful error messages and suggestions
 - **Professional Polish**: Proper installation paths, shell detection, and user guidance
@@ -558,7 +558,7 @@ glid --<TAB>          # → --format, --quiet, --no-color (with descriptions)
 #### 8.2a - Basic Version Command ✅ **COMPLETED**
 **Files**: `pkg/version/version.go`, `internal/cli/version.go`
 **Implementation completed after Phase 8.1**
-- [x] Basic version command implementation (`glid version`)
+- [x] Basic version command implementation (`glideversion`)
 - [x] Display current version from existing infrastructure
 - [x] Show system information (OS, architecture)
 - [x] Display basic build information
@@ -651,7 +651,7 @@ glid --<TAB>          # → --format, --quiet, --no-color (with descriptions)
 #### **Medium-Priority Enhancement** (Nice-to-have):
 - [ ] Interactive help mode with guided workflows
 - [ ] Advanced troubleshooting guides with diagnostic commands
-- [ ] Integration with `glid setup` for onboarding improvements
+- [ ] Integration with `glidesetup` for onboarding improvements
 
 #### **Success Metrics**:
 - **Discoverability**: Users find right command within 2 tries (vs current 5+ tries)
@@ -662,33 +662,33 @@ glid --<TAB>          # → --format, --quiet, --no-color (with descriptions)
 
 **Before (Current State)**:
 ```bash
-$ glid global
+$ glideglobal
 ✗ Error: unknown command "global" for "glid"
 # User stuck - no guidance provided
 ```
 
 **After (Phase 8.3 Target)**:
 ```bash
-$ glid global  
+$ glideglobal  
 ✗ Error: Global commands are only available in multi-worktree mode
 
 💡 Quick fixes:
-  • Run 'glid setup' to configure a project
+  • Run 'glidesetup' to configure a project
   • Navigate to an existing multi-worktree project  
-  • Use 'glid help getting-started' for setup guidance
+  • Use 'glidehelp getting-started' for setup guidance
 
-$ glid help
+$ glidehelp
 🏠 You're in a multi-worktree project root
 
 Quick Start:
-  glid global status     # Check all worktree statuses
-  glid global list       # List active worktrees
-  glid global worktree   # Create new feature branch
+  glideglobal status     # Check all worktree statuses
+  glideglobal list       # List active worktrees
+  glideglobal worktree   # Create new feature branch
 
 Common Workflows:
-  • Starting work: glid global worktree feature/name
-  • Daily status: glid global status  
-  • Cleanup: glid global down && glid global clean
+  • Starting work: glideglobal worktree feature/name
+  • Daily status: glideglobal status  
+  • Cleanup: glideglobal down && glideglobal clean
 ```
 
 **Implementation Strategy**: Build context-aware help infrastructure first, then layer on workflow guidance and error intelligence.
@@ -706,10 +706,10 @@ Common Workflows:
 - **Mode-Specific Help** - Different help content for single-repo vs multi-worktree modes
 
 **User Guidance Systems**:
-- **Getting Started Guide** (`glid help getting-started`) - Complete onboarding workflow
-- **Workflow Examples** (`glid help workflows`) - Task-oriented command patterns
-- **Mode Explanations** (`glid help modes`) - Clear explanation of development mode differences
-- **Troubleshooting Guide** (`glid help troubleshooting`) - Solutions for common issues
+- **Getting Started Guide** (`glidehelp getting-started`) - Complete onboarding workflow
+- **Workflow Examples** (`glidehelp workflows`) - Task-oriented command patterns
+- **Mode Explanations** (`glidehelp modes`) - Clear explanation of development mode differences
+- **Troubleshooting Guide** (`glidehelp troubleshooting`) - Solutions for common issues
 
 **Smart Error Handling**:
 - **Typo Suggestions** - Cobra built-in fuzzy matching for command corrections
@@ -733,27 +733,27 @@ Common Workflows:
 **Context-Aware Help**:
 ```bash
 # Multi-worktree project root
-$ glid help
+$ glidehelp
 ✓ 🏠 You're in a multi-worktree project
 📍 Current location: Project root (management directory)
 Quick Start - Global Operations:
-  glid global status       # Check all worktree statuses
+  glideglobal status       # Check all worktree statuses
 
 # No project context  
-$ glid help
+$ glidehelp
 ⚠️ You're not in a Glide project directory
 🚀 Getting Started:
-  glid setup               # Interactive project setup
+  glidesetup               # Interactive project setup
 ```
 
 **Smart Command Discovery**:
 ```bash
-$ glid help workflows
+$ glidehelp workflows
 ✓ 🔄 Common Development Workflows
 🌟 Starting a New Feature:
-  glid global worktree feature/user-dashboard
+  glideglobal worktree feature/user-dashboard
   cd worktrees/feature-user-dashboard
-  glid up && glid test
+  glideup && glidetest
 ```
 
 ## Phase 9: Testing & Quality

@@ -35,7 +35,7 @@ commands:
 
 Then use the same command across all projects:
 ```bash
-glid test  # Runs the appropriate test command
+glidetest  # Runs the appropriate test command
 ```
 
 ## Extensibility
@@ -85,10 +85,10 @@ User → Glide → Plugin Discovery → Command Routing → Plugin Execution
 **Installing Plugins**:
 ```bash
 # Install from a binary file
-glid plugins install /path/to/plugin-binary
+glideplugins install /path/to/plugin-binary
 
 # List installed plugins
-glid plugins list
+glideplugins list
 ```
 
 **Note**: Currently, you need to build or obtain plugin binaries yourself. There's no plugin marketplace or automatic discovery mechanism.
@@ -104,7 +104,7 @@ The default mode for standard Git repository workflows:
 ```bash
 # All commands operate on your current branch
 git checkout feature-branch
-glid help  # Shows "Single-repo mode"
+glidehelp  # Shows "Single-repo mode"
 ```
 
 **Characteristics:**
@@ -119,12 +119,12 @@ Advanced mode for parallel development across multiple features:
 
 ```bash
 # Enable multi-worktree mode
-glid setup
+glidesetup
 
 # Now you have access to project commands
-glid project worktree feature-a
-glid project worktree feature-b
-glid project status  # See all worktrees
+glideproject worktree feature-a
+glideproject worktree feature-b
+glideproject status  # See all worktrees
 ```
 
 **Characteristics:**
@@ -140,8 +140,8 @@ For directories without Git repositories:
 ```bash
 # Create a .glide.yml in any directory
 echo 'commands: { hello: "echo Hello!" }' > .glide.yml
-glid help  # Shows "📄 Standalone mode"
-glid hello # Your commands work immediately
+glidehelp  # Shows "📄 Standalone mode"
+glidehello # Your commands work immediately
 ```
 
 **Characteristics:**
@@ -153,7 +153,7 @@ glid hello # Your commands work immediately
 
 ### Switching Between Modes
 
-Use `glid setup` to configure your development mode:
+Use `glidesetup` to configure your development mode:
 - Converts project structure when switching
 - Preserves your work and configuration
 - Can switch back at any time
@@ -184,7 +184,7 @@ cd ../worktrees/feature-b  # Different environment running
 
 ### How Worktrees Work
 
-When you run `glid setup` and choose multi-worktree mode, Glide automatically creates this structure:
+When you run `glidesetup` and choose multi-worktree mode, Glide automatically creates this structure:
 
 ```
 project-root/
@@ -202,7 +202,7 @@ project-root/
         └── ...          # All project files
 ```
 
-**Note**: You don't create this structure manually. The `glid setup` command handles the conversion from a standard Git repository to this multi-worktree layout automatically.
+**Note**: You don't create this structure manually. The `glidesetup` command handles the conversion from a standard Git repository to this multi-worktree layout automatically.
 
 Key architecture points:
 - **vcs/**: Contains the main Git repository, kept on the default branch (main/master) as a clean reference for creating new worktrees
@@ -221,13 +221,13 @@ Each worktree:
 
 ```bash
 # Create a new worktree
-glid worktree feature/new-thing
+glideworktree feature/new-thing
 
 # List worktrees
-glid worktree list
+glideworktree list
 
 # Remove a worktree
-glid worktree remove feature/old-thing
+glideworktree remove feature/old-thing
 ```
 
 ## YAML-Defined Commands
@@ -252,7 +252,7 @@ commands:
     help: |
       Deploy the application to specified environment.
 
-      Usage: glid deploy [staging|production]
+      Usage: glidedeploy [staging|production]
     category: deployment
 ```
 
@@ -260,8 +260,8 @@ commands:
 
 **Parameter Expansion**: Pass arguments to commands
 ```bash
-glid deploy staging  # $1 = staging
-glid test unit integration  # $1 = unit, $2 = integration
+glidedeploy staging  # $1 = staging
+glidetest unit integration  # $1 = unit, $2 = integration
 ```
 
 **Shell Script Support**: Full shell capabilities
@@ -310,7 +310,7 @@ commands:
 
 **Grouped in help output**:
 ```bash
-glid help
+glidehelp
 # Commands appear grouped by category
 ```
 

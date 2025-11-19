@@ -28,7 +28,7 @@ The ACME plugin example that was here has been moved to demonstrate proper plugi
 - The build process imports it via build tags
 
 ```go
-// cmd/glid/plugins_acme.go
+// cmd/glide/plugins_acme.go
 //go:build acme
 // +build acme
 

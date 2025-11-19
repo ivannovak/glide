@@ -4,7 +4,7 @@ set -e
 
 REPO="ivannovak/glide"
 INSTALL_DIR="/usr/local/bin"
-BINARY_NAME="glid"
+BINARY_NAME="glide"
 
 # Colors for output
 RED='\033[0;31m'
@@ -115,7 +115,7 @@ main() {
     verify_installation
     
     echo ""
-    echo -e "${GREEN}Get started with: glid help${NC}"
+    echo -e "${GREEN}Get started with: glide help${NC}"
 }
 
 # Run main function

@@ -53,13 +53,13 @@ func TestCheckForUpdate_NewVersionAvailable(t *testing.T) {
 		HTMLURL:     "https://github.com/ivannovak/glide/releases/tag/v2.0.0",
 		Assets: []Asset{
 			{
-				Name:               "glid-darwin-arm64",
-				BrowserDownloadURL: "https://github.com/ivannovak/glide/releases/download/v2.0.0/glid-darwin-arm64",
+				Name:               "glide-darwin-arm64",
+				BrowserDownloadURL: "https://github.com/ivannovak/glide/releases/download/v2.0.0/glide-darwin-arm64",
 				Size:               10485760,
 			},
 			{
-				Name:               "glid-linux-amd64",
-				BrowserDownloadURL: "https://github.com/ivannovak/glide/releases/download/v2.0.0/glid-linux-amd64",
+				Name:               "glide-linux-amd64",
+				BrowserDownloadURL: "https://github.com/ivannovak/glide/releases/download/v2.0.0/glide-linux-amd64",
 				Size:               10485760,
 			},
 		},
@@ -222,19 +222,19 @@ func TestGetDownloadURL(t *testing.T) {
 			name:     "darwin arm64",
 			goos:     "darwin",
 			goarch:   "arm64",
-			expected: "glid-darwin-arm64",
+			expected: "glide-darwin-arm64",
 		},
 		{
 			name:     "linux amd64",
 			goos:     "linux",
 			goarch:   "amd64",
-			expected: "glid-linux-amd64",
+			expected: "glide-linux-amd64",
 		},
 		{
 			name:     "windows amd64",
 			goos:     "windows",
 			goarch:   "amd64",
-			expected: "glid-windows-amd64.exe",
+			expected: "glide-windows-amd64.exe",
 		},
 	}
 
@@ -244,16 +244,16 @@ func TestGetDownloadURL(t *testing.T) {
 				HTMLURL: "https://github.com/ivannovak/glide/releases/tag/v1.0.0",
 				Assets: []Asset{
 					{
-						Name:               "glid-darwin-arm64",
-						BrowserDownloadURL: "https://download/glid-darwin-arm64",
+						Name:               "glide-darwin-arm64",
+						BrowserDownloadURL: "https://download/glide-darwin-arm64",
 					},
 					{
-						Name:               "glid-linux-amd64",
-						BrowserDownloadURL: "https://download/glid-linux-amd64",
+						Name:               "glide-linux-amd64",
+						BrowserDownloadURL: "https://download/glide-linux-amd64",
 					},
 					{
-						Name:               "glid-windows-amd64.exe",
-						BrowserDownloadURL: "https://download/glid-windows-amd64.exe",
+						Name:               "glide-windows-amd64.exe",
+						BrowserDownloadURL: "https://download/glide-windows-amd64.exe",
 					},
 				},
 			}
@@ -309,7 +309,7 @@ func TestFormatUpdateMessage(t *testing.T) {
 				LatestVersion:  "v2.0.0",
 				ReleaseURL:     "https://github.com/ivannovak/glide/releases/tag/v2.0.0",
 				PublishedAt:    time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC),
-				DownloadURL:    "https://github.com/ivannovak/glide/releases/download/v2.0.0/glid-darwin-arm64",
+				DownloadURL:    "https://github.com/ivannovak/glide/releases/download/v2.0.0/glide-darwin-arm64",
 			},
 			expected: []string{
 				"A new version of Glide is available: v1.0.0 → v2.0.0",

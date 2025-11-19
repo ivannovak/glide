@@ -45,7 +45,7 @@ func (te *TestExecutor) Run(args []string) error {
 				return fmt.Errorf("failed to start containers: %w", err)
 			}
 		} else {
-			return fmt.Errorf("docker containers are not running. Run 'glid up' first")
+			return fmt.Errorf("docker containers are not running. Run 'glideup' first")
 		}
 	}
 

@@ -90,14 +90,14 @@ jobs:
         -X github.com/ivannovak/glide/pkg/version.Version=${{ steps.version.outputs.version }} \
         -X github.com/ivannovak/glide/pkg/version.BuildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ) \
         -X github.com/ivannovak/glide/pkg/version.GitCommit=$(git rev-parse --short HEAD)" \
-        -o glid-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.ext }} ./cmd/glid
+        -o glide-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.ext }} ./cmd/glide
 
     - name: Generate checksum
       run: |
         if [[ "${{ matrix.os }}" == "windows" ]]; then
-          sha256sum glid-${{ matrix.os }}-${{ matrix.arch }}.exe > glid-${{ matrix.os }}-${{ matrix.arch }}.exe.sha256
+          sha256sum glide-${{ matrix.os }}-${{ matrix.arch }}.exe > glide-${{ matrix.os }}-${{ matrix.arch }}.exe.sha256
         else
-          sha256sum glid-${{ matrix.os }}-${{ matrix.arch }} > glid-${{ matrix.os }}-${{ matrix.arch }}.sha256
+          sha256sum glide-${{ matrix.os }}-${{ matrix.arch }} > glide-${{ matrix.os }}-${{ matrix.arch }}.sha256
         fi
 
     - name: Upload build artifacts
@@ -105,7 +105,7 @@ jobs:
       with:
         name: binary-${{ matrix.os }}-${{ matrix.arch }}
         path: |
-          glid-*
+          glide-*
           *.sha256
 
   release:

@@ -40,16 +40,16 @@ curl -sSL https://raw.githubusercontent.com/ivannovak/glide/main/install.sh | ba
 
 ```bash
 # See what Glide detected about your project
-glid context
+glide context
 
 # List all available commands
-glid help
+glide help
 
 # Manage plugins
-glid plugins list
+glide plugins list
 
 # Update Glide itself
-glid self-update
+glide self-update
 ```
 
 ## Core Concepts
@@ -64,14 +64,14 @@ Glide adapts to your project structure automatically:
 
 ```bash
 # Check your current mode
-glid help  # Shows mode in the header
+glide help  # Shows mode in the header
 
 # Switch between modes
-glid setup
+glide setup
 
 # In multi-worktree mode, additional commands become available
-glid project status     # Check all worktrees
-glid project worktree   # Create new worktrees
+glide project status     # Check all worktrees
+glide project worktree   # Create new worktrees
 ```
 
 ### 📝 YAML-Defined Commands
@@ -106,11 +106,11 @@ commands:
 
 These commands become available immediately:
 ```bash
-glid build              # Run your custom build command
-glid test               # Run your test suite
-glid deploy staging     # Pass arguments with $1, $2, etc.
-glid d production       # Use aliases for frequently used commands
-glid reset              # Run multi-line shell scripts
+glide build              # Run your custom build command
+glide test               # Run your test suite
+glide deploy staging     # Pass arguments with $1, $2, etc.
+glide d production       # Use aliases for frequently used commands
+glide reset              # Run multi-line shell scripts
 ```
 
 #### 📄 Standalone Mode
@@ -127,8 +127,8 @@ commands:
 EOF
 
 # Commands are immediately available
-glid hello              # Works without any Git repository!
-glid help               # Shows "📄 Standalone mode" at the top
+glide hello              # Works without any Git repository!
+glide help               # Shows "📄 Standalone mode" at the top
 ```
 
 This is perfect for:
@@ -143,16 +143,16 @@ Extend Glide with custom commands specific to your team or project:
 
 ```bash
 # List installed plugins
-glid plugins list
+glide plugins list
 
 # Install a plugin from a local file
-glid plugins install /path/to/docker-plugin
+glide plugins install /path/to/docker-plugin
 
 # Get info about an installed plugin
-glid plugins info docker-plugin
+glide plugins info docker-plugin
 
 # Remove an installed plugin
-glid plugins remove docker-plugin
+glide plugins remove docker-plugin
 ```
 
 ### 🌳 Multi-Worktree Development
@@ -161,17 +161,17 @@ Glide supports advanced multi-worktree development for working on multiple featu
 
 ```bash
 # Set up multi-worktree mode
-glid setup
+glide setup
 
 # After setup, use project commands to manage worktrees
-glid project worktree feature/new-feature  # Create a new worktree
-glid p worktree feature/new-feature       # Short alias
+glide project worktree feature/new-feature  # Create a new worktree
+glide p worktree feature/new-feature       # Short alias
 
 # List all worktrees
-glid project list
+glide project list
 
 # Check status across all worktrees
-glid project status
+glide project status
 ```
 
 ## Documentation

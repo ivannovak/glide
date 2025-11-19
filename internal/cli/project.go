@@ -36,15 +36,15 @@ Available Commands:
   clean          Clean up orphaned containers and resources
 
 Examples:
-  glid p status                    # Show status of all worktrees
-  glid p down                      # Stop all containers
-  glid p worktree feature/new      # Create new worktree
-  glid p list                      # List all worktrees
-  glid p clean --orphaned          # Clean orphaned containers
+  glide p status                    # Show status of all worktrees
+  glide p down                      # Stop all containers
+  glide p worktree feature/new      # Create new worktree
+  glide p list                      # List all worktrees
+  glide p clean --orphaned          # Clean orphaned containers
 
 Note:
   These commands are only available in multi-worktree mode.
-  Use 'glid setup' to configure your development mode.`,
+  Use 'glide setup' to configure your development mode.`,
 		PersistentPreRunE: pc.validateMode,
 	}
 
@@ -83,8 +83,8 @@ Status includes:
 Note: vcs/ should typically stay on the main branch as a reference.
 
 Examples:
-  glid p status                # Show all worktree statuses
-  glid p status --verbose      # Include detailed container info`,
+  glide p status                # Show all worktree statuses
+  glide p status --verbose      # Include detailed container info`,
 		RunE: pc.executeStatus,
 	}
 
@@ -110,9 +110,9 @@ Options:
   --volumes         Remove volumes (WARNING: deletes data)
 
 Examples:
-  glid p down                    # Stop all containers
-  glid p down --remove-orphans   # Also remove orphaned containers
-  glid p down --volumes          # Also remove volumes (data loss!)`,
+  glide p down                    # Stop all containers
+  glide p down --remove-orphans   # Also remove orphaned containers
+  glide p down --volumes          # Also remove volumes (data loss!)`,
 		RunE: pc.executeDown,
 	}
 
@@ -144,9 +144,9 @@ Shows information about each worktree:
   - Last commit
 
 Examples:
-  glid p list                      # List all worktrees
-  glid p ls                        # Short alias
-  glid p list --format json        # JSON output`,
+  glide p list                      # List all worktrees
+  glide p ls                        # Short alias
+  glide p list --format json        # JSON output`,
 		RunE: pc.executeList,
 	}
 
@@ -177,10 +177,10 @@ Options:
   --dry-run      Show what would be cleaned without doing it
 
 Examples:
-  glid p clean                    # Interactive cleanup
-  glid p clean --orphaned         # Remove orphaned containers
-  glid p clean --all              # Full cleanup
-  glid p clean --dry-run          # Preview cleanup`,
+  glide p clean                    # Interactive cleanup
+  glide p clean --orphaned         # Remove orphaned containers
+  glide p clean --all              # Full cleanup
+  glide p clean --dry-run          # Preview cleanup`,
 		RunE: pc.executeClean,
 	}
 

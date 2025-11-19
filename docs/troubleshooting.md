@@ -5,9 +5,9 @@
 Check your Glide installation and context:
 
 ```bash
-glid version          # Verify Glide is installed
-glid context          # Show detected project context
-glid help            # See available commands
+glideversion          # Verify Glide is installed
+glidecontext          # Show detected project context
+glidehelp            # See available commands
 ```
 
 ## Common Issues and Solutions
@@ -36,7 +36,7 @@ glid help            # See available commands
    # Download latest release
    curl -L https://github.com/ivannovak/glide/releases/latest/download/glid-$(uname -s)-$(uname -m) -o glid
    chmod +x glid
-   sudo mv glid /usr/local/bin/
+   sudo mv glide/usr/local/bin/
    ```
 
 #### "Permission denied" when running glid
@@ -82,17 +82,17 @@ chmod +x /usr/local/bin/glid
 
 #### "Command only available in multi-worktree mode"
 
-**Problem:** Trying to use `glid project` commands in single-repo mode.
+**Problem:** Trying to use `glideproject` commands in single-repo mode.
 
 **Solutions:**
 1. Check current mode:
    ```bash
-   glid context
+   glidecontext
    ```
 
 2. Convert to multi-worktree mode:
    ```bash
-   glid setup --mode multi
+   glidesetup --mode multi
    ```
 
 3. Or stay in single-repo mode and avoid `project` commands.
@@ -123,7 +123,7 @@ chmod +x /usr/local/bin/glid
 3. **Check for typos:**
    ```bash
    # List available commands
-   glid help
+   glidehelp
    # Your YAML commands should appear in the list
    ```
 
@@ -139,7 +139,7 @@ chmod +x /usr/local/bin/glid
    docker build .
 
    # But this doesn't:
-   glid build  # where build: docker build .
+   glidebuild  # where build: docker build .
 
    # Check for shell issues
    ```
@@ -173,7 +173,7 @@ chmod +x /usr/local/bin/glid
 
 1. **Verify installation:**
    ```bash
-   glid plugins list
+   glideplugins list
    ls -la ~/.glide/plugins/
    ```
 
@@ -186,12 +186,12 @@ chmod +x /usr/local/bin/glid
 3. **Ensure plugin is valid:**
    ```bash
    # Get plugin info
-   glid plugins info plugin-name
+   glideplugins info plugin-name
    ```
 
 #### Cannot install plugin
 
-**Problem:** `glid plugins install` fails.
+**Problem:** `glideplugins install` fails.
 
 **Solutions:**
 
@@ -209,22 +209,22 @@ chmod +x /usr/local/bin/glid
 
 3. **Install with full path:**
    ```bash
-   glid plugins install /absolute/path/to/plugin
+   glideplugins install /absolute/path/to/plugin
    ```
 
 ### Multi-Worktree Issues
 
 #### "Cannot create worktree"
 
-**Problem:** `glid project worktree` fails.
+**Problem:** `glideproject worktree` fails.
 
 **Solutions:**
 
 1. **Ensure you're in multi-worktree mode:**
    ```bash
-   glid context  # Should show "multi-worktree"
+   glidecontext  # Should show "multi-worktree"
    # If not:
-   glid setup --mode multi
+   glidesetup --mode multi
    ```
 
 2. **Check if worktree already exists:**
@@ -242,8 +242,8 @@ chmod +x /usr/local/bin/glid
 4. **Ensure branch name is valid:**
    ```bash
    # Use valid Git branch names
-   glid project worktree feature/my-feature  # Good
-   glid project worktree "my feature"        # Bad (spaces)
+   glideproject worktree feature/my-feature  # Good
+   glideproject worktree "my feature"        # Bad (spaces)
    ```
 
 #### Wrong directory structure after setup
@@ -285,15 +285,15 @@ project/
 1. **Generate completion for your shell:**
    ```bash
    # Bash
-   glid completion bash > /tmp/glid.bash
-   source /tmp/glid.bash
+   glide completion bash > /tmp/glide.bash
+   source /tmp/glide.bash
 
    # Zsh
-   glid completion zsh > ~/.zsh/completions/_glid
+   glide completion zsh > ~/.zsh/completions/_glide
    source ~/.zshrc
 
    # Fish
-   glid completion fish > ~/.config/fish/completions/glid.fish
+   glide completion fish > ~/.config/fish/completions/glide.fish
    ```
 
 2. **Verify completion is loaded:**
@@ -338,7 +338,7 @@ project/
 
 #### Self-update fails
 
-**Problem:** `glid self-update` doesn't work.
+**Problem:** `glideself-update` doesn't work.
 
 **Solutions:**
 
@@ -353,12 +353,12 @@ project/
    VERSION=v1.0.0  # Replace with desired version
    curl -L "https://github.com/ivannovak/glide/releases/download/$VERSION/glid-$(uname -s)-$(uname -m)" -o glid
    chmod +x glid
-   sudo mv glid /usr/local/bin/
+   sudo mv glide/usr/local/bin/
    ```
 
 3. **Check current version:**
    ```bash
-   glid version
+   glideversion
    ```
 
 ## Debug Mode
@@ -367,10 +367,10 @@ Get more information about issues:
 
 ```bash
 # Show detailed context information
-glid context --json
+glidecontext --json
 
 # Check what commands are available
-glid help
+glidehelp
 
 # See if YAML commands are loaded
 grep -A 10 "^commands:" .glide.yml
@@ -382,8 +382,8 @@ If issues persist:
 
 1. **Gather debug information:**
    ```bash
-   glid version > debug.txt
-   glid context >> debug.txt
+   glideversion > debug.txt
+   glidecontext >> debug.txt
    cat .glide.yml >> debug.txt
    ```
 
@@ -392,7 +392,7 @@ If issues persist:
 
 3. **Report new issue with:**
    - OS and version (`uname -a`)
-   - Glide version (`glid version`)
+   - Glide version (`glideversion`)
    - Project structure (`ls -la`)
    - Debug output from above
 
@@ -408,7 +408,7 @@ mv ~/.glide ~/.glide.backup
 mv .glide.yml .glide.yml.backup
 
 # Start fresh
-glid setup
+glidesetup
 ```
 
 ### Manual Fallback
@@ -417,7 +417,7 @@ If Glide won't run, execute your commands directly:
 
 ```bash
 # Instead of YAML command
-# glid build
+# glidebuild
 # Run the actual command:
 docker build .
 
@@ -445,13 +445,13 @@ Keep Glide running smoothly:
 
 ```bash
 # Check for updates
-glid self-update --check
+glideself-update --check
 
 # Clean old plugins
 ls -la ~/.glide/plugins/
 # Remove unused plugins manually
 
 # Verify setup
-glid context
-glid help
+glidecontext
+glidehelp
 ```

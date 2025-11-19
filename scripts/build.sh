@@ -6,7 +6,7 @@ set -e
 VERSION=${1:-$(git describe --tags --always --dirty 2>/dev/null || echo "dev")}
 
 # Branding variables (can be overridden via environment)
-COMMAND_NAME=${COMMAND_NAME:-glid}
+COMMAND_NAME=${COMMAND_NAME:-glide}
 CONFIG_FILE=${CONFIG_FILE:-.glide.yml}
 PROJECT_NAME=${PROJECT_NAME:-Glide}
 DESCRIPTION=${DESCRIPTION:-context-aware development CLI}
@@ -20,7 +20,7 @@ NC='\033[0m' # No Color
 
 echo -e "${GREEN}Building ${PROJECT_NAME} CLI (${COMMAND_NAME}) v${VERSION}${NC}"
 echo "================================"
-if [ "$COMMAND_NAME" != "glid" ]; then
+if [ "$COMMAND_NAME" != "glide" ]; then
     echo -e "${BLUE}Custom branding:${NC}"
     echo "  Command: $COMMAND_NAME"
     echo "  Config:  $CONFIG_FILE"
@@ -60,7 +60,7 @@ build_platform() {
     CGO_ENABLED=0 GOOS=${GOOS} GOARCH=${GOARCH} \
         go build -a -ldflags "${LDFLAGS}" \
         -o "dist/${OUTPUT}" \
-        ./cmd/glid
+        ./cmd/glide
     
     echo -e "${GREEN}✓ Built dist/${OUTPUT}${NC}"
 }

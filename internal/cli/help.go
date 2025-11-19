@@ -45,11 +45,11 @@ Available help topics:
   troubleshooting    Solutions for common issues
 
 Examples:
-  glid help                    # Smart help for current context
-  glid help getting-started    # New user onboarding guide
-  glid help workflows          # Common workflow examples
-  glid help test               # Detailed help for test command
-  glid help modes              # Mode differences explained`,
+  glide help                    # Smart help for current context
+  glide help getting-started    # New user onboarding guide
+  glide help workflows          # Common workflow examples
+  glide help test               # Detailed help for test command
+  glide help modes              # Mode differences explained`,
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -85,7 +85,7 @@ func (hc *HelpCommand) showGettingStarted() error {
 
 	output.Info("Step 1: Project Setup")
 	output.Raw("Run this command in your project directory:\n")
-	output.Raw("  glid setup\n")
+	output.Raw("  glide setup\n")
 	output.Raw("\n")
 	output.Raw("Choose your development mode:\n")
 	output.Raw("  • Single-repo: Simple, one-branch-at-a-time development\n")
@@ -94,32 +94,32 @@ func (hc *HelpCommand) showGettingStarted() error {
 	output.Raw("\n")
 	output.Info("Step 2: Start Development")
 	output.Raw("Basic workflow commands:\n")
-	output.Raw("  glid up                  # Start your development environment\n")
-	output.Raw("  glid test                # Run your test suite\n")
-	output.Raw("  glid shell               # Access your application container\n")
+	output.Raw("  glide up                  # Start your development environment\n")
+	output.Raw("  glide test                # Run your test suite\n")
+	output.Raw("  glide shell               # Access your application container\n")
 
 	output.Raw("\n")
 	output.Info("Step 3: Learn Your Mode")
 
 	if hc.ProjectContext.DevelopmentMode == context.ModeMultiWorktree {
 		output.Raw("You're in multi-worktree mode! Try:\n")
-		output.Raw("  glid global status       # See all your worktrees\n")
-		output.Raw("  glid global worktree feature/awesome-feature\n")
+		output.Raw("  glide global status       # See all your worktrees\n")
+		output.Raw("  glide global worktree feature/awesome-feature\n")
 	} else {
 		output.Raw("Single-repo mode commands:\n")
-		output.Raw("  glid docker ps           # See running containers\n")
-		output.Raw("  glid composer install    # Install dependencies\n")
-		output.Raw("  glid artisan migrate     # Run migrations\n")
+		output.Raw("  glide docker ps           # See running containers\n")
+		output.Raw("  glide composer install    # Install dependencies\n")
+		output.Raw("  glide artisan migrate     # Run migrations\n")
 	}
 
 	output.Raw("\n")
 	output.Info("Step 4: Get Help When Needed")
-	output.Raw("  glid help workflows      # Common development patterns\n")
-	output.Raw("  glid help troubleshooting # Fix common issues\n")
-	output.Raw("  glid [command] --help    # Detailed command help\n")
+	output.Raw("  glide help workflows      # Common development patterns\n")
+	output.Raw("  glide help troubleshooting # Fix common issues\n")
+	output.Raw("  glide [command] --help    # Detailed command help\n")
 
 	output.Raw("\n")
-	output.Success("You're ready to go! Run 'glid help workflows' for common patterns.")
+	output.Success("You're ready to go! Run 'glide help workflows' for common patterns.")
 
 	return nil
 }
@@ -134,37 +134,37 @@ func (hc *HelpCommand) showWorkflows() error {
 		output.Raw("\n")
 
 		output.Raw("🌟 Starting a New Feature:\n")
-		output.Raw("  glid global worktree feature/user-dashboard\n")
+		output.Raw("  glide global worktree feature/user-dashboard\n")
 		output.Raw("  cd worktrees/feature-user-dashboard\n")
-		output.Raw("  glid up\n")
-		output.Raw("  glid test\n")
+		output.Raw("  glide up\n")
+		output.Raw("  glide test\n")
 
 		output.Raw("\n")
 		output.Raw("📊 Daily Status Check:\n")
-		output.Raw("  glid global status       # All worktree statuses\n")
-		output.Raw("  glid global list         # Active worktrees\n")
+		output.Raw("  glide global status       # All worktree statuses\n")
+		output.Raw("  glide global list         # Active worktrees\n")
 
 		output.Raw("\n")
 		output.Raw("🧹 End of Day Cleanup:\n")
-		output.Raw("  glid global down         # Stop all containers\n")
-		output.Raw("  glid global clean        # Clean orphaned resources\n")
+		output.Raw("  glide global down         # Stop all containers\n")
+		output.Raw("  glide global clean        # Clean orphaned resources\n")
 
 	} else {
 		output.Info("Single-Repository Workflows")
 		output.Raw("\n")
 
 		output.Raw("🌟 Daily Development:\n")
-		output.Raw("  glid up                  # Start environment\n")
-		output.Raw("  glid test                # Verify everything works\n")
+		output.Raw("  glide up                  # Start environment\n")
+		output.Raw("  glide test                # Verify everything works\n")
 		output.Raw("  # ... make your changes ...\n")
-		output.Raw("  glid test -- --filter MyTest  # Test your changes\n")
-		output.Raw("  glid down                # Clean shutdown\n")
+		output.Raw("  glide test -- --filter MyTest  # Test your changes\n")
+		output.Raw("  glide down                # Clean shutdown\n")
 
 		output.Raw("\n")
 		output.Raw("🐛 Debugging Issues:\n")
-		output.Raw("  glid logs                # Check container logs\n")
-		output.Raw("  glid shell               # Interactive debugging\n")
-		output.Raw("  glid mysql               # Database inspection\n")
+		output.Raw("  glide logs                # Check container logs\n")
+		output.Raw("  glide shell               # Interactive debugging\n")
+		output.Raw("  glide mysql               # Database inspection\n")
 	}
 
 	output.Raw("\n")
@@ -172,16 +172,16 @@ func (hc *HelpCommand) showWorkflows() error {
 	output.Raw("\n")
 
 	output.Raw("🧪 Testing Workflows:\n")
-	output.Raw("  glid test                       # All tests\n")
-	output.Raw("  glid test -- --parallel         # Parallel execution\n")
-	output.Raw("  glid test -- --filter UserTest  # Specific tests\n")
-	output.Raw("  glid test -- --coverage         # With coverage\n")
+	output.Raw("  glide test                       # All tests\n")
+	output.Raw("  glide test -- --parallel         # Parallel execution\n")
+	output.Raw("  glide test -- --filter UserTest  # Specific tests\n")
+	output.Raw("  glide test -- --coverage         # With coverage\n")
 
 	output.Raw("\n")
 	output.Raw("🔧 Development Tools:\n")
-	output.Raw("  glid lint                # Fix code style\n")
-	output.Raw("  glid composer install    # Install dependencies\n")
-	output.Raw("  glid artisan migrate     # Database migrations\n")
+	output.Raw("  glide lint                # Fix code style\n")
+	output.Raw("  glide composer install    # Install dependencies\n")
+	output.Raw("  glide artisan migrate     # Database migrations\n")
 
 	return nil
 }
@@ -221,12 +221,12 @@ func (hc *HelpCommand) showModes() error {
 
 	if hc.ProjectContext.DevelopmentMode == context.ModeMultiWorktree {
 		output.Raw("You're using the advanced multi-worktree setup!\n")
-		output.Raw("Try: glid global list\n")
+		output.Raw("Try: glide global list\n")
 	} else if hc.ProjectContext.DevelopmentMode == context.ModeSingleRepo {
 		output.Raw("You're using single-repository mode.\n")
-		output.Raw("To upgrade: glid setup\n")
+		output.Raw("To upgrade: glide setup\n")
 	} else {
-		output.Raw("No mode detected. Run: glid setup\n")
+		output.Raw("No mode detected. Run: glide setup\n")
 	}
 
 	return nil
@@ -242,7 +242,7 @@ func (hc *HelpCommand) showTroubleshooting() error {
 
 	output.Raw("❌ \"unknown command 'global'\"\n")
 	output.Raw("  Problem: Trying to use global commands outside multi-worktree mode\n")
-	output.Raw("  Solution: glid setup → Choose multi-worktree mode\n")
+	output.Raw("  Solution: glide setup → Choose multi-worktree mode\n")
 
 	output.Raw("\n")
 	output.Raw("❌ \"Docker not running\"\n")
@@ -252,27 +252,27 @@ func (hc *HelpCommand) showTroubleshooting() error {
 	output.Raw("\n")
 	output.Raw("❌ \"Container not found\"\n")
 	output.Raw("  Problem: Containers haven't been started\n")
-	output.Raw("  Solution: glid up\n")
+	output.Raw("  Solution: glide up\n")
 
 	output.Raw("\n")
 	output.Raw("❌ \"Permission denied\"\n")
 	output.Raw("  Problem: File permission issues\n")
-	output.Raw("  Solution: glid mysql-fix-permissions\n")
+	output.Raw("  Solution: glide mysql-fix-permissions\n")
 
 	output.Raw("\n")
 	output.Raw("❌ \"Tests failing\"\n")
 	output.Raw("  Problem: Environment or database issues\n")
-	output.Raw("  Solution: glid down && glid up && glid test\n")
+	output.Raw("  Solution: glide down && glide up && glide test\n")
 
 	output.Raw("\n")
 	output.Info("Diagnostic Commands")
-	output.Raw("  glid context             # Show detected project context\n")
-	output.Raw("  glid config              # Show current configuration\n")
-	output.Raw("  glid status              # Check container health\n")
-	output.Raw("  glid logs                # View container logs\n")
+	output.Raw("  glide context             # Show detected project context\n")
+	output.Raw("  glide config              # Show current configuration\n")
+	output.Raw("  glide status              # Check container health\n")
+	output.Raw("  glide logs                # View container logs\n")
 
 	output.Raw("\n")
-	output.Success("Still stuck? Check individual command help: glid [command] --help")
+	output.Success("Still stuck? Check individual command help: glide [command] --help")
 
 	return nil
 }
@@ -282,11 +282,11 @@ func (hc *HelpCommand) showCommandHelp(commandName string) error {
 	// This would ideally integrate with cobra's help system
 	// For now, suggest the standard help approach
 	output.Warning("For detailed help on '%s', use:", commandName)
-	output.Info("  glid %s --help", commandName)
+	output.Info("  glide %s --help", commandName)
 	output.Raw("\n")
 	output.Raw("Or try these help topics:\n")
-	output.Raw("  glid help workflows      # Common workflow examples\n")
-	output.Raw("  glid help getting-started # Complete setup guide\n")
+	output.Raw("  glide help workflows      # Common workflow examples\n")
+	output.Raw("  glide help getting-started # Complete setup guide\n")
 
 	return nil
 }
@@ -582,10 +582,10 @@ func (hc *HelpCommand) ShowHelp(rootCmd *cobra.Command) error {
 	// Footer with help topics
 	fmt.Println()
 	color.New(color.FgWhite, color.Bold).Println("Getting Help:")
-	fmt.Println("  glid help [command]         Show detailed help for a command")
-	fmt.Println("  glid [command] --help       Same as above")
-	fmt.Println("  glid help getting-started   New user guide")
-	fmt.Println("  glid help workflows         Common development patterns")
+	fmt.Println("  glide help [command]         Show detailed help for a command")
+	fmt.Println("  glide [command] --help       Same as above")
+	fmt.Println("  glide help getting-started   New user guide")
+	fmt.Println("  glide help workflows         Common development patterns")
 
 	// Context-aware tips
 	if hc.ProjectContext != nil {
@@ -596,7 +596,7 @@ func (hc *HelpCommand) ShowHelp(rootCmd *cobra.Command) error {
 	// Version and more info
 	fmt.Println()
 	faintColor := color.New(color.Faint)
-	faintColor.Printf("Use \"glid [command] --help\" for more information about a command.\n")
+	faintColor.Printf("Use \"glide [command] --help\" for more information about a command.\n")
 
 	return nil
 }
@@ -902,9 +902,9 @@ func (hc *HelpCommand) showContextTips() {
 	case context.ModeMultiWorktree:
 		switch hc.ProjectContext.Location {
 		case context.LocationRoot:
-			tipColor.Println("💡 Tip: You're in the project root. Use 'glid project' commands to manage worktrees.")
+			tipColor.Println("💡 Tip: You're in the project root. Use 'glide project' commands to manage worktrees.")
 		case context.LocationMainRepo:
-			tipColor.Println("💡 Tip: You're in vcs/ (main branch). Create worktrees with 'glid project worktree <branch>'.")
+			tipColor.Println("💡 Tip: You're in vcs/ (main branch). Create worktrees with 'glide project worktree <branch>'.")
 		case context.LocationWorktree:
 			tipColor.Println("💡 Tip: You're in a worktree. All commands operate on this feature branch.")
 		}
@@ -913,6 +913,6 @@ func (hc *HelpCommand) showContextTips() {
 	case context.ModeStandalone:
 		tipColor.Println("💡 Tip: Standalone mode active. Commands from .glide.yml are available.")
 	default:
-		tipColor.Println("💡 Tip: Run 'glid setup' to configure your project.")
+		tipColor.Println("💡 Tip: Run 'glide setup' to configure your project.")
 	}
 }

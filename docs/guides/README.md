@@ -7,13 +7,13 @@ Real-world patterns and recipes for using Glide effectively.
 ## Core vs Extension Commands
 
 ### Core Glide Commands (Always Available)
-- `glid help` - Context-aware help
-- `glid setup` - Configure Glide for your project
-- `glid plugins` - Manage runtime plugins
-- `glid self-update` - Update Glide
-- `glid version` - Show version info
-- `glid completion` - Shell completions
-- `glid project` - Multi-worktree commands (when enabled)
+- `glidehelp` - Context-aware help
+- `glidesetup` - Configure Glide for your project
+- `glideplugins` - Manage runtime plugins
+- `glideself-update` - Update Glide
+- `glideversion` - Show version info
+- `glide completion` - Shell completions
+- `glideproject` - Multi-worktree commands (when enabled)
 
 ### Extension Commands
 You can extend Glide with:
@@ -46,10 +46,10 @@ commands:
 2. **Runtime Plugins** - Install compiled plugin binaries:
 ```bash
 # Install a plugin (you need the binary)
-glid plugins install /path/to/plugin
+glideplugins install /path/to/plugin
 
 # List installed plugins
-glid plugins list
+glideplugins list
 ```
 
 Note: There's no plugin marketplace yet. You need to build or obtain plugin binaries yourself.
@@ -62,18 +62,18 @@ Start your day efficiently:
 
 ```bash
 # Update Glide itself
-glid self-update
+glideself-update
 
 # Check your project context
-glid help
+glidehelp
 
 # Pull latest changes
 git pull origin main
 
 # If you have Docker commands defined in .glide.yml:
-# glid up       # Start services
-# glid status   # Check everything is running
-# glid logs     # See recent logs
+# glideup       # Start services
+# glidestatus   # Check everything is running
+# glidelogs     # See recent logs
 ```
 
 ### Feature Development
@@ -82,10 +82,10 @@ Working on a new feature with isolation (requires multi-worktree mode):
 
 ```bash
 # First, ensure you're in multi-worktree mode
-glid setup
+glidesetup
 
 # Create a feature worktree
-glid project worktree feature/user-authentication
+glideproject worktree feature/user-authentication
 
 # Navigate to the worktree
 cd worktrees/feature-user-authentication
@@ -95,9 +95,9 @@ cp ../../.env.example .env
 
 # Your custom commands work in the worktree
 # For example, with Docker commands in .glide.yml:
-# glid up         # Start isolated services
-# glid test       # Run tests
-# glid down       # Stop services
+# glideup         # Start isolated services
+# glidetest       # Run tests
+# glidedown       # Stop services
 ```
 
 ### Debugging Sessions
@@ -108,23 +108,23 @@ When things go wrong:
 # Assuming these commands are defined in your .glide.yml:
 
 # Check service status
-glid status
+glidestatus
 
 # View recent logs
-glid logs --tail 100
+glidelogs --tail 100
 
 # Filter logs by service
-glid logs web --follow
+glidelogs web --follow
 
 # Jump into a container
-glid shell web
+glideshell web
 
 # Inside container: check processes
 ps aux
 netstat -tlnp
 
 # Run diagnostic commands
-glid healthcheck
+glidehealthcheck
 ```
 
 ## Team Collaboration
@@ -165,7 +165,7 @@ commands:
     help: |
       Create a new release with the specified version.
       This will run tests, create a git tag, and push it.
-      Usage: glid release 1.2.3
+      Usage: gliderelease 1.2.3
     category: deployment
 
 # Environment variables for commands
@@ -177,11 +177,11 @@ With YAML commands defined, your team gets consistent workflows:
 
 ```bash
 # Everyone uses the same commands
-glid lint       # Run linter with team settings
-glid fmt        # Format code consistently
-glid setup      # New developers get started quickly
-glid test -v    # Parameters are passed through
-glid release 1.2.3  # Complex workflows simplified
+glidelint       # Run linter with team settings
+glidefmt        # Format code consistently
+glidesetup      # New developers get started quickly
+glidetest -v    # Parameters are passed through
+gliderelease 1.2.3  # Complex workflows simplified
 ```
 
 ### Onboarding New Developers
@@ -200,16 +200,16 @@ git clone https://github.com/team/project.git
 cd project
 
 # Install plugins if you have any plugin binaries
-# glid plugins install /path/to/plugin
+# glideplugins install /path/to/plugin
 
 # Setup environment
 cp .env.example .env
 echo "Please edit .env with your values"
 
 # Start services
-glid up
+glideup
 
-echo "Setup complete! Run 'glid help' to see available commands"
+echo "Setup complete! Run 'glidehelp' to see available commands"
 ```
 
 ## Testing Workflows
@@ -231,15 +231,15 @@ commands:
 Then run tests:
 ```bash
 # Watch mode for unit tests
-glid test:watch
+glidetest:watch
 
 # Run specific test suites
-glid test:unit
-glid test:integration
-glid test:e2e
+glidetest:unit
+glidetest:integration
+glidetest:e2e
 
 # Test with coverage
-glid test:coverage
+glidetest:coverage
 ```
 
 ### Pre-commit Testing
@@ -251,7 +251,7 @@ Add to `.git/hooks/pre-commit`:
 # Run tests before committing
 
 echo "Running tests..."
-glid test
+glidetest
 
 if [ $? -ne 0 ]; then
   echo "Tests failed! Commit aborted."
@@ -259,7 +259,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Running linter..."
-glid lint
+glidelint
 
 if [ $? -ne 0 ]; then
   echo "Linting failed! Please fix issues."
@@ -276,17 +276,17 @@ Leverage worktrees for parallel development:
 ```bash
 # Terminal 1: Feature A
 cd worktrees/feature-a
-glid up
-glid logs --follow
+glideup
+glidelogs --follow
 
 # Terminal 2: Feature B
 cd worktrees/feature-b
-glid up
-glid test --watch
+glideup
+glidetest --watch
 
 # Terminal 3: Main branch for comparison
 cd ../..
-glid up
+glideup
 ```
 
 ### Switching Context
@@ -300,7 +300,7 @@ git commit -m "WIP: current progress"
 
 # Switch to urgent bugfix
 cd ~/project/worktrees/bugfix-critical
-glid up
+glideup
 # Fix the bug...
 git commit -m "Fix: critical issue"
 git push
@@ -338,16 +338,16 @@ commands:
 Then use them:
 ```bash
 # Access database console
-glid db:console
+glidedb:console
 
 # Run migrations
-glid db:migrate
+glidedb:migrate
 
 # Backup database
-glid db:backup > backup.sql
+glidedb:backup > backup.sql
 
 # Check connection
-glid db:ping
+glidedb:ping
 ```
 
 ## Deployment Workflows
@@ -386,10 +386,10 @@ commands:
 Then deploy:
 ```bash
 # Deploy to staging
-glid deploy:staging
+glidedeploy:staging
 
 # Deploy to production
-glid deploy:production
+glidedeploy:production
 ```
 
 ## Troubleshooting Patterns
@@ -417,20 +417,20 @@ commands:
 Then use them:
 ```bash
 # Rebuild containers
-glid rebuild
+gliderebuild
 
 # Clean rebuild
-glid clean
+glideclean
 
 # Check resource usage
-glid stats
+glidestats
 ```
 
 ### Network Issues
 
 ```bash
 # Check network connectivity
-glid shell web
+glideshell web
 > ping database
 > nc -zv database 5432
 
@@ -443,7 +443,7 @@ docker network inspect project_default
 
 ```bash
 # Fix file permissions
-glid shell web
+glideshell web
 > chown -R www-data:www-data /app
 > chmod -R 755 /app/storage
 ```
@@ -472,13 +472,13 @@ commands:
 Use them for speed:
 ```bash
 # Fast cached build
-glid build:cache
+glidebuild:cache
 
 # Start only essential services
-glid up:fast
+glideup:fast
 
 # Clean up resources
-glid cleanup
+glidecleanup
 ```
 
 ## Standalone Mode Workflows
@@ -516,9 +516,9 @@ commands:
 EOF
 
 # Use your commands
-glid backup
-glid sync-notes
-glid cleanup
+glidebackup
+glidesync-notes
+glidecleanup
 ```
 
 ### Build Environment Scripts
@@ -575,9 +575,9 @@ commands:
 EOF
 
 # Work with your experiment
-glid init
-glid run
-glid clean
+glideinit
+gliderun
+glideclean
 ```
 
 ## Tips and Tricks
@@ -589,11 +589,11 @@ Add to your shell profile:
 ```bash
 # ~/.bashrc or ~/.zshrc
 alias g='glid'
-alias gu='glid up'
-alias gd='glid down'
-alias gs='glid status'
-alias gl='glid logs'
-alias gt='glid test'
+alias gu='glideup'
+alias gd='glidedown'
+alias gs='glidestatus'
+alias gl='glidelogs'
+alias gt='glidetest'
 ```
 
 ### Project Templates
@@ -607,7 +607,7 @@ cp .glide.yml ~/templates/my-stack.yml
 # Use in a new project
 cp ~/templates/my-stack.yml new-project/.glide.yml
 cd new-project
-glid help  # Your commands are ready!
+glidehelp  # Your commands are ready!
 ```
 
 

@@ -50,9 +50,9 @@ Options:
   --no-env      Don't copy .env file from vcs/
 
 Examples:
-  glid g worktree feature/api                    # Create from main
-  glid g worktree fix/bug-123 --from develop     # Create from develop
-  glid g worktree feature/ui --no-env            # Create without copying .env
+  glide g worktree feature/api                    # Create from main
+  glide g worktree fix/bug-123 --from develop     # Create from develop
+  glide g worktree feature/ui --no-env            # Create without copying .env
 
 Workflow:
   1. Creates worktree in worktrees/[branch-name]
@@ -319,8 +319,8 @@ func (c *WorktreeCommand) showSummary(worktreePath, branchName, remoteBranch str
 
 	output.Info("📝 Next steps:")
 	output.Printf("  cd %s\n", worktreePath)
-	output.Println("  glid up                    # Start Docker containers")
-	output.Println("  glid artisan migrate       # Run migrations")
+	output.Println("  glide up                    # Start Docker containers")
+	output.Println("  glide artisan migrate       # Run migrations")
 	output.Println()
 	output.Info("Happy coding! 🚀")
 }

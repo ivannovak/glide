@@ -97,12 +97,12 @@ func TestGetVersionString(t *testing.T) {
 		{
 			name:     "development version",
 			version:  "dev",
-			expected: "glid version dev (development build)",
+			expected: "glide version dev (development build)",
 		},
 		{
 			name:     "release version",
 			version:  "v1.2.3",
-			expected: "glid version v1.2.3",
+			expected: "glide version v1.2.3",
 		},
 	}
 

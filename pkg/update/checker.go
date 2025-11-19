@@ -163,7 +163,7 @@ func (c *Checker) fetchLatestRelease(ctx context.Context) (*Release, error) {
 // getDownloadURL returns the appropriate download URL for the current platform
 func (c *Checker) getDownloadURL(release *Release) string {
 	// Determine platform binary name
-	platform := fmt.Sprintf("glid-%s-%s", runtime.GOOS, runtime.GOARCH)
+	platform := fmt.Sprintf("glide-%s-%s", runtime.GOOS, runtime.GOARCH)
 	if runtime.GOOS == "windows" {
 		platform += ".exe"
 	}

@@ -41,14 +41,14 @@ Define commands using the shorthand syntax:
 commands:
   build: docker build --no-cache
   clean: docker system prune -af
-  fresh: git pull && glid up
+  fresh: git pull && glideup
 ```
 
 Usage:
 ```bash
-glid build
-glid clean
-glid fresh
+glidebuild
+glideclean
+glidefresh
 ```
 
 ### 2. Structured Command Format
@@ -63,14 +63,14 @@ commands:
       Rebuilds all Docker containers from scratch without using cache.
       This ensures a completely fresh build but takes longer.
 
-      Usage: glid build [options]
+      Usage: glidebuild [options]
 
       Options:
         --platform  Target platform (linux/amd64, linux/arm64)
     category: development
 
   fresh:
-    cmd: git pull && glid up
+    cmd: git pull && glideup
     alias: f
     description: "Update code and restart services"
     category: development
@@ -78,8 +78,8 @@ commands:
 
 Usage:
 ```bash
-glid build  # or: glid b
-glid fresh  # or: glid f
+glidebuild  # or: glideb
+glidefresh  # or: glidef
 ```
 
 ### 3. Multi-line Commands (Pipe Syntax)
@@ -87,15 +87,15 @@ Support complex command sequences:
 ```yaml
 commands:
   reset: |
-    glid down
+    glidedown
     docker system prune -f
-    glid up --build
+    glideup --build
 
   deploy-all:
     cmd: |
       echo "Deploying to all environments..."
-      glid deploy staging
-      glid deploy production
+      glidedeploy staging
+      glidedeploy production
       echo "Deployment complete!"
     alias: da
 ```
@@ -104,7 +104,7 @@ commands:
 Pass arguments to commands:
 ```yaml
 commands:
-  deploy: glid deploy $1 --confirm
+  deploy: glidedeploy $1 --confirm
   backup:
     cmd: pg_dump $DB_NAME > backup-$1.sql
     alias: bk
@@ -112,8 +112,8 @@ commands:
 
 Usage:
 ```bash
-glid deploy staging
-glid backup 2024-01-15  # or: glid bk 2024-01-15
+glidedeploy staging
+glidebackup 2024-01-15  # or: glidebk 2024-01-15
 ```
 
 ### 5. Environment Variable Support
@@ -264,10 +264,10 @@ commands:
   # Database workflow
   db-reset:
     cmd: |
-      glid db drop
-      glid db create
-      glid db migrate
-      glid db seed
+      glidedb drop
+      glidedb create
+      glidedb migrate
+      glidedb seed
     alias: dbr
     description: "Reset database to fresh state"
 
@@ -275,9 +275,9 @@ commands:
   ship:
     cmd: |
       git pull origin main
-      glid test all
-      glid build --production
-      glid deploy production --confirm
+      glidetest all
+      glidebuild --production
+      glidedeploy production --confirm
     alias: s
     description: "Full deployment pipeline"
 ```
@@ -301,9 +301,9 @@ commands:
   morning:
     cmd: |
       git pull
-      glid up
-      glid db migrate
-      glid status
+      glideup
+      glidedb migrate
+      glidestatus
     alias: m
     description: "Start the day"
 ```

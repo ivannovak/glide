@@ -107,18 +107,18 @@ framework_detection:
 
 ```bash
 # Install a framework plugin
-glid plugins install golang-plugin
+glideplugins install golang-plugin
 
 # Plugin automatically activates on Go projects
 cd my-go-project
-glid help
+glidehelp
 # Shows Go-specific commands
 ```
 
 ### Framework Detection Display
 
 ```bash
-glid context
+glidecontext
 # Output:
 Project: my-app
 Mode: single-repo

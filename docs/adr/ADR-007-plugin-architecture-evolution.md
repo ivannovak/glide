@@ -61,8 +61,8 @@ type PluginMetadata struct {
 ```
 
 Examples:
-- **Namespaced**: `glid acme mysql` (safe, no conflicts)
-- **Global**: `glid mysql` (convenient, requires conflict resolution)
+- **Namespaced**: `glideacme mysql` (safe, no conflicts)
+- **Global**: `glidemysql` (convenient, requires conflict resolution)
 
 ### 5. Categories as First-Class Objects
 Categories become richer objects:

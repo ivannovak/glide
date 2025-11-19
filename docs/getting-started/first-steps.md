@@ -8,7 +8,7 @@ Glide adapts to your project structure automatically:
 
 ```bash
 cd your-project
-glid help
+glidehelp
 ```
 
 The header shows your current mode:
@@ -23,13 +23,13 @@ The header shows your current mode:
 See all available commands:
 
 ```bash
-glid help
+glidehelp
 ```
 
 Get help for a specific command:
 
 ```bash
-glid help worktree
+glidehelp worktree
 ```
 
 ### Extending with Custom Commands
@@ -50,9 +50,9 @@ commands:
 
 These become available immediately:
 ```bash
-glid build
-glid test
-glid deploy staging
+glidebuild
+glidetest
+glidedeploy staging
 ```
 
 #### Runtime Plugins (Advanced)
@@ -60,13 +60,13 @@ For complex integrations, you can install runtime plugins:
 
 ```bash
 # List installed plugins
-glid plugins list
+glideplugins list
 
 # Install a plugin binary
-glid plugins install /path/to/plugin
+glideplugins install /path/to/plugin
 
 # Get plugin information
-glid plugins info [plugin-name]
+glideplugins info [plugin-name]
 ```
 
 **Getting Plugins**: 
@@ -93,15 +93,15 @@ Advanced mode for parallel development:
 
 ```bash
 # Check your current mode
-glid help  # Shows mode in the header
+glidehelp  # Shows mode in the header
 
 # Switch to multi-worktree mode
-glid setup
+glidesetup
 
 # Once in multi-worktree mode
-glid project worktree feature/new    # Create a worktree
-glid project list                     # List all worktrees
-glid project status                   # Status across all worktrees
+glideproject worktree feature/new    # Create a worktree
+glideproject list                     # List all worktrees
+glideproject status                   # Status across all worktrees
 ```
 
 ### Standalone Mode
@@ -115,7 +115,7 @@ For directories without Git repositories:
 echo 'commands: { hello: "echo Hello!" }' > .glide.yml
 
 # Commands work immediately
-glid hello
+glidehello
 ```
 
 
@@ -125,18 +125,18 @@ For advanced workflows, Glide supports multi-worktree development:
 
 ```bash
 # First, set up multi-worktree mode
-glid setup
+glidesetup
 
 # Once enabled, use project commands:
-glid project worktree feature/awesome-feature
+glideproject worktree feature/awesome-feature
 # Or use the short alias:
-glid p worktree feature/awesome-feature
+glidep worktree feature/awesome-feature
 
 # List all worktrees
-glid p list
+glidep list
 
 # Check status across all worktrees
-glid p status
+glidep status
 ```
 
 This mode allows you to work on multiple features simultaneously with isolated environments.
@@ -166,7 +166,7 @@ commands:
     description: Deploy to environment
     help: |
       Deploy the application to the specified environment.
-      Usage: glid deploy [staging|production]
+      Usage: glidedeploy [staging|production]
     category: deployment
 
   # Multi-line commands
@@ -189,28 +189,28 @@ Once defined, YAML commands work just like built-in commands:
 
 ```bash
 # Run a simple command
-glid build
+glidebuild
 
 # Pass arguments to commands
-glid deploy staging
+glidedeploy staging
 
 # Use command aliases
-glid d production
+glided production
 
 # Commands appear in help
-glid help
+glidehelp
 ```
 
 
 ## Tips for Success
 
 ### 1. Let Context Guide You
-Don't memorize commands. Use `glid help` in different projects to see what's available.
+Don't memorize commands. Use `glidehelp` in different projects to see what's available.
 
 ### 2. Use Tab Completion
 If you set up shell completion, double-tab shows available options:
 ```bash
-glid <TAB><TAB>
+glide<TAB><TAB>
 ```
 
 ### 3. Explore Gradually
@@ -231,23 +231,23 @@ commands:
 ### Morning Routine
 ```bash
 # Update Glide
-glid self-update
+glideself-update
 
 # Pull latest code and run your custom setup
 # (assuming you've defined these in .glide.yml)
-glid fresh  # Runs: git pull && make build
+glidefresh  # Runs: git pull && make build
 ```
 
 ### Working with Multiple Features (Multi-Worktree Mode)
 ```bash
 # Create a new worktree for a feature
-glid project worktree feature/new-thing
+glideproject worktree feature/new-thing
 
 # Switch to it
 cd ~/project/worktrees/feature-new-thing
 
 # List all worktrees
-glid project list
+glideproject list
 ```
 
 ### Creating Your Own Workflows
@@ -270,7 +270,7 @@ commands:
   ship:
     cmd: ./deploy.sh $1
     description: Deploy to environment
-    help: "Usage: glid ship [staging|production]"
+    help: "Usage: glideship [staging|production]"
 ```
 
 ## Next Steps
@@ -281,6 +281,6 @@ commands:
 
 ## Getting Help
 
-- Run `glid help` for command reference
+- Run `glidehelp` for command reference
 - Check the [guides](../guides/) for specific scenarios
 - Visit [GitHub Issues](https://github.com/ivannovak/glide/issues) for support

@@ -11,8 +11,8 @@ GOFMT=gofmt
 GOVET=$(GOCMD) vet
 
 # Binary name
-BINARY_NAME=glid
-BINARY_PATH=./cmd/glid
+BINARY_NAME=glide
+BINARY_PATH=./cmd/glide
 
 # Versions (match CI)
 GOLANGCI_VERSION=v1.61.0

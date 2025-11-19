@@ -6,7 +6,7 @@ commands:
   # Docker shortcuts
   build: docker build --no-cache .
   clean: docker system prune -af
-  rebuild: glid down && glid build && glid up
+  rebuild: glide down && glide build && glide up
 
   # Git shortcuts
   pull: git pull origin main
@@ -30,7 +30,7 @@ commands:
     cmd: |
       echo "Deploying to production..."
       go test ./...
-      go build -o app ./cmd/glid
+      go build -o app ./cmd/glide
       echo "Deployment complete!"
     alias: d
     description: "Deploy the application"
@@ -42,7 +42,7 @@ commands:
       2. Build the application binary
       3. Deploy to production
 
-      Usage: glid deploy [environment]
+      Usage: glide deploy [environment]
     category: developer
 
   status:
@@ -71,44 +71,44 @@ commands:
   greet:
     cmd: echo "Hello, $1! Welcome to $2"
     description: "Greet someone"
-    # Usage: glid greet John "the project"
+    # Usage: glide greet John "the project"
     # Output: Hello, John! Welcome to the project
 
   backup:
     cmd: tar -czf backup-$1.tar.gz .
     alias: bk
     description: "Create a backup with timestamp"
-    # Usage: glid backup 2024-01-15
+    # Usage: glide backup 2024-01-15
     # Creates: backup-2024-01-15.tar.gz
 
   run-in:
     cmd: cd $1 && $2
     description: "Run command in directory"
-    # Usage: glid run-in ./subdir "npm test"
+    # Usage: glide run-in ./subdir "npm test"
     # Runs: npm test in ./subdir
 
   # Recursive Glide command examples
   test-and-deploy:
     cmd: |
       echo "Running full test suite..."
-      glid test
+      glide test
       echo "Tests passed! Deploying..."
-      glid deploy $1
+      glide deploy $1
     description: "Run tests then deploy"
     help: |
       Runs the test command, and if successful, runs the deploy command.
       This demonstrates calling other Glide commands from YAML.
       
-      Usage: glid test-and-deploy staging
-    # Usage: glid test-and-deploy staging
-    # This will run 'glid test' then 'glid deploy staging'
+      Usage: glide test-and-deploy staging
+    # Usage: glide test-and-deploy staging
+    # This will run 'glide test' then 'glide deploy staging'
 
   full-refresh:
     cmd: |
-      glid down
-      glid clean
-      glid build
-      glid up
+      glide down
+      glide clean
+      glide build
+      glide up
     description: "Complete environment refresh"
     help: "Stops, cleans, rebuilds, and restarts the entire environment"
     # Chains multiple Glide commands together

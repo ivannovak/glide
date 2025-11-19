@@ -184,7 +184,7 @@ func TestModeSpecificCommands(t *testing.T) {
 		assert.True(t, ctx.IsRoot, "Should be at root for project-wide commands")
 
 		// Global commands should work from root
-		// Examples: glid status (shows all worktrees), glid down (stops all containers)
+		// Examples: glide status (shows all worktrees), glide down (stops all containers)
 		assert.Equal(t, context.ModeMultiWorktree, ctx.DevelopmentMode)
 	})
 

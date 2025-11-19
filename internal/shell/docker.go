@@ -180,7 +180,7 @@ func (de *DockerExecutor) Shell(service string) error {
 
 // PassthroughToCompose passes all arguments directly to docker-compose
 func (de *DockerExecutor) PassthroughToCompose(args []string) error {
-	// This is for the 'glid docker' command - complete passthrough
+	// This is for the 'glidedocker' command - complete passthrough
 	composeArgs := []string{"compose"}
 
 	// Add compose files

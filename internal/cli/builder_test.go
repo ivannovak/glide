@@ -23,7 +23,7 @@ func TestBuilder_Build(t *testing.T) {
 	rootCmd := builder.Build()
 
 	assert.NotNil(t, rootCmd)
-	assert.Equal(t, "glid", rootCmd.Use)
+	assert.Equal(t, "glide", rootCmd.Use)
 	assert.Contains(t, rootCmd.Short, "CLI")
 }
 

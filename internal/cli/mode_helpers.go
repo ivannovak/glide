@@ -19,7 +19,7 @@ func ShowModeError(currentMode context.DevelopmentMode, requiredMode context.Dev
 	switch requiredMode {
 	case context.ModeMultiWorktree:
 		output.Println("To enable multi-worktree mode, run:")
-		output.Info("  glid setup")
+		output.Info("  glidesetup")
 		output.Println()
 		output.Println("Or manually set mode in ~/.glide.yml:")
 		output.Println("  projects:")
@@ -28,13 +28,13 @@ func ShowModeError(currentMode context.DevelopmentMode, requiredMode context.Dev
 		output.Println()
 		output.Println("Multi-worktree mode enables:")
 		output.Println("  - Parallel development on multiple branches")
-		output.Println("  - Global commands (glid g status, glid g down-all)")
+		output.Println("  - Global commands (glideg status, glideg down-all)")
 		output.Println("  - Worktree management")
 		output.Println("  - Cross-worktree operations")
 
 	case context.ModeSingleRepo:
 		output.Println("To use single-repo mode, run:")
-		output.Info("  glid setup")
+		output.Info("  glidesetup")
 		output.Println()
 		output.Println("Or manually set mode in ~/.glide.yml:")
 		output.Println("  projects:")
@@ -49,7 +49,7 @@ func ShowModeError(currentMode context.DevelopmentMode, requiredMode context.Dev
 
 	return glideErrors.NewModeError(string(currentMode), string(requiredMode), commandName,
 		glideErrors.WithSuggestions(
-			"Run 'glid setup' to change development mode",
+			"Run 'glidesetup' to change development mode",
 			"Check the available commands for your current mode",
 		),
 	)
@@ -78,7 +78,7 @@ func ShowAvailableCommands(mode context.DevelopmentMode) {
 
 	switch mode {
 	case context.ModeMultiWorktree:
-		output.Println("\n🌐 Global Commands (glid g/global):")
+		output.Println("\n🌐 Global Commands (glideg/global):")
 		output.Println("  status         Show Docker status for all worktrees")
 		output.Println("  down-all       Stop all containers across worktrees")
 		output.Println("  worktree       Create and manage worktrees")
@@ -117,16 +117,16 @@ func ShowCommandSuggestion(attemptedCommand string, suggestions []string, ctx *c
 
 	if len(suggestions) == 1 {
 		output.Info("💡 Did you mean: %s", suggestions[0])
-		output.Printf("  glid %s\n", suggestions[0])
+		output.Printf("  glide%s\n", suggestions[0])
 	} else {
 		output.Info("💡 Did you mean one of these?")
 		for _, suggestion := range suggestions {
-			output.Printf("  glid %s\n", suggestion)
+			output.Printf("  glide%s\n", suggestion)
 		}
 	}
 
 	output.Raw("\n")
-	output.Raw("For all available commands: glid help\n")
+	output.Raw("For all available commands: glidehelp\n")
 
 	return glideErrors.NewConfigError("unknown command",
 		glideErrors.WithSuggestions(append(suggestions, "help")...),
@@ -143,39 +143,39 @@ func ShowUnknownCommandError(command string, ctx *context.ProjectContext, cfg *c
 	case context.ModeMultiWorktree:
 		output.Info("💡 Available commands in multi-worktree mode:")
 		if ctx.Location == context.LocationRoot {
-			output.Raw("  glid global status       # Check all worktrees\n")
-			output.Raw("  glid global list         # List worktrees\n")
-			output.Raw("  glid global worktree     # Create new worktree\n")
+			output.Raw("  glideglobal status       # Check all worktrees\n")
+			output.Raw("  glideglobal list         # List worktrees\n")
+			output.Raw("  glideglobal worktree     # Create new worktree\n")
 		} else {
-			output.Raw("  glid up                  # Start containers\n")
-			output.Raw("  glid test                # Run tests\n")
-			output.Raw("  glid shell               # Access container\n")
+			output.Raw("  glideup                  # Start containers\n")
+			output.Raw("  glidetest                # Run tests\n")
+			output.Raw("  glideshell               # Access container\n")
 		}
 
 	case context.ModeSingleRepo:
 		output.Info("💡 Available commands in single-repo mode:")
-		output.Raw("  glid up                  # Start containers\n")
-		output.Raw("  glid test                # Run tests\n")
-		output.Raw("  glid docker              # Docker commands\n")
-		output.Raw("  glid composer            # Package management\n")
+		output.Raw("  glideup                  # Start containers\n")
+		output.Raw("  glidetest                # Run tests\n")
+		output.Raw("  glidedocker              # Docker commands\n")
+		output.Raw("  glidecomposer            # Package management\n")
 
 	default:
 		output.Info("💡 To get started:")
-		output.Raw("  glid setup               # Configure project\n")
-		output.Raw("  glid help getting-started # Complete guide\n")
+		output.Raw("  glidesetup               # Configure project\n")
+		output.Raw("  glidehelp getting-started # Complete guide\n")
 	}
 
 	output.Raw("\n")
 	output.Raw("📚 Get help:\n")
-	output.Raw("  glid help                # Context-aware help\n")
-	output.Raw("  glid help workflows      # Common patterns\n")
+	output.Raw("  glidehelp                # Context-aware help\n")
+	output.Raw("  glidehelp workflows      # Common patterns\n")
 
 	// Check for common typos
 	commonCommands := []string{"up", "down", "test", "shell", "mysql", "status", "logs"}
 	for _, cmd := range commonCommands {
 		if strings.Contains(cmd, command) || strings.Contains(command, cmd) {
 			output.Raw("\n")
-			output.Info("💡 Did you mean: glid %s", cmd)
+			output.Info("💡 Did you mean: glide%s", cmd)
 			break
 		}
 	}

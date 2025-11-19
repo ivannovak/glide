@@ -9,8 +9,8 @@ import (
 // These variables can be overridden at build time using ldflags
 // Example: go build -ldflags "-X github.com/ivannovak/glide/pkg/branding.CommandName=mycli"
 var (
-	// CommandName is the name of the CLI command (e.g., "glid", "mycli")
-	CommandName = "glid"
+	// CommandName is the name of the CLI command (e.g., "glide", "mycli")
+	CommandName = "glide"
 
 	// ConfigFileName is the name of the configuration file (e.g., ".glide.yml")
 	ConfigFileName = ".glide.yml"
@@ -27,7 +27,7 @@ It provides intelligent project detection, transparent argument passing, and sup
 both single-repository and multi-worktree development modes.`
 
 	// CompletionDir is the directory name for shell completions
-	CompletionDir = "glid"
+	CompletionDir = "glide"
 
 	// RepositoryURL is the URL of the source repository (for updates, documentation, etc.)
 	RepositoryURL = "https://github.com/ivannovak/glide"

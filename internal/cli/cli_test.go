@@ -335,7 +335,7 @@ func TestCLIIntegration(t *testing.T) {
 
 		// Create root command and add commands
 		rootCmd := &cobra.Command{
-			Use:   "glid",
+			Use:   "glide",
 			Short: "Test CLI",
 		}
 		rootCmd.SetOut(buf)

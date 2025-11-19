@@ -154,25 +154,25 @@ commands:
   fresh:
     cmd: |
       git pull
-      glid up
-      glid db migrate
+      glideup
+      glidedb migrate
     alias: f
     description: "Update and restart everything"
 
   # Testing workflow
   test-all:
     cmd: |
-      glid test unit
-      glid test integration
-      glid test e2e
+      glidetest unit
+      glidetest integration
+      glidetest e2e
     description: "Run complete test suite"
 
   # Deployment
   ship:
     cmd: |
-      glid test-all
-      glid build --production
-      glid deploy $1 --confirm
+      glidetest-all
+      glidebuild --production
+      glidedeploy $1 --confirm
     description: "Test, build, and deploy"
 ```
 
@@ -180,10 +180,10 @@ commands:
 ```yaml
 commands:
   # Database operations
-  db-reset: glid db drop && glid db create && glid db migrate && glid db seed
+  db-reset: glidedb drop && glidedb create && glidedb migrate && glidedb seed
 
   # Docker shortcuts
-  rebuild: glid down && docker build --no-cache . && glid up
+  rebuild: glidedown && docker build --no-cache . && glideup
 
   # Git workflows
   sync: git pull --rebase && git push

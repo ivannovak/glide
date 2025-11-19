@@ -174,12 +174,12 @@ func TestValidateCommand(t *testing.T) {
 		},
 		{
 			name:    "circular reference with alias",
-			cmd:     &Command{Cmd: "glid test", Alias: "test"},
+			cmd:     &Command{Cmd: "glidetest", Alias: "test"},
 			wantErr: true,
 		},
 		{
 			name:    "no circular reference",
-			cmd:     &Command{Cmd: "glid other", Alias: "test"},
+			cmd:     &Command{Cmd: "glideother", Alias: "test"},
 			wantErr: false,
 		},
 	}

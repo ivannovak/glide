@@ -136,11 +136,11 @@ func (p *MyPlugin) GetMetadata(ctx context.Context, _ *sdk.Empty) (*sdk.PluginMe
 ```
 
 - **Global** (`Namespaced: false`): Commands are registered at root level
-  - Command: `glid mycommand`
+  - Command: `glidemycommand`
   - Use for: Core functionality, common operations
 
 - **Namespaced** (`Namespaced: true`): Commands are prefixed with plugin name
-  - Command: `glid myplugin:mycommand`
+  - Command: `glidemyplugin:mycommand`
   - Use for: Plugin-specific utilities, specialized tools
 
 ## Command Implementation
@@ -268,13 +268,13 @@ go build -o ~/.glide/plugins/glide-plugin-myname
 
 2. Verify it's loaded:
 ```bash
-glid plugins list
+glideplugins list
 ```
 
 3. Test your commands:
 ```bash
-glid mycommand
-glid help  # Should show your command in the appropriate category
+glidemycommand
+glidehelp  # Should show your command in the appropriate category
 ```
 
 ## SDK Reference

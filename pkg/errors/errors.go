@@ -84,8 +84,8 @@ func NewConfigError(message string, opts ...ErrorOption) *GlideError {
 		WithExitCode(78), // EX_CONFIG from sysexits.h
 		WithSuggestions(
 			"Check ~/.glide.yml configuration",
-			"Run: glid config list",
-			"Run: glid setup to reconfigure",
+			"Run: glideconfig list",
+			"Run: glidesetup to reconfigure",
 		),
 	}
 	opts = append(defaultOpts, opts...)
@@ -106,10 +106,10 @@ func NewDatabaseError(message string, opts ...ErrorOption) *GlideError {
 	defaultOpts := []ErrorOption{
 		WithExitCode(69),
 		WithSuggestions(
-			"Check if MySQL container is running: glid status",
+			"Check if MySQL container is running: glidestatus",
 			"Verify database credentials in .env file",
 			"Ensure DB_HOST is set to 'mysql' for Docker",
-			"Run: glid docker up -d mysql",
+			"Run: glidedocker up -d mysql",
 		),
 	}
 	opts = append(defaultOpts, opts...)
@@ -125,7 +125,7 @@ func NewModeError(currentMode, requiredMode, command string, opts ...ErrorOption
 		WithExitCode(65), // EX_DATAERR from sysexits.h
 		WithSuggestions(
 			fmt.Sprintf("This command requires %s mode", requiredMode),
-			"Run: glid setup to change development mode",
+			"Run: glidesetup to change development mode",
 			fmt.Sprintf("Current mode: %s", currentMode),
 		),
 	}

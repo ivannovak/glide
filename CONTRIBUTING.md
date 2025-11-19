@@ -43,8 +43,8 @@ This will:
 | Command | Description |
 |---------|-------------|
 | `make help` | Show all available commands |
-| `make build` | Build the glid binary |
-| `make install` | Install glid to $GOPATH/bin |
+| `make build` | Build the glidebinary |
+| `make install` | Install glideto $GOPATH/bin |
 | `make test` | Run all tests with coverage |
 | `make lint` | Run all linters (matches CI exactly) |
 | `make lint-fix` | Automatically fix formatting issues |

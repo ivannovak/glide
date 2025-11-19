@@ -27,7 +27,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build \
     -X github.com/ivannovak/glide/pkg/version.Version=${VERSION} \
     -X github.com/ivannovak/glide/pkg/version.BuildDate=${BUILD_DATE} \
     -X github.com/ivannovak/glide/pkg/version.GitCommit=${GIT_COMMIT}" \
-    -o glid ./cmd/glid
+    -o glide ./cmd/glide
 
 # Runtime stage
 FROM alpine:latest
@@ -43,14 +43,14 @@ RUN addgroup -g 1001 -S glide && \
 WORKDIR /workspace
 
 # Copy binary from builder
-COPY --from=builder /app/glid /usr/local/bin/glid
+COPY --from=builder /app/glide /usr/local/bin/glide
 
 # Make binary executable
-RUN chmod +x /usr/local/bin/glid
+RUN chmod +x /usr/local/bin/glide
 
 # Switch to non-root user
 USER glide
 
 # Set entrypoint
-ENTRYPOINT ["glid"]
+ENTRYPOINT ["glide"]
 CMD ["--help"]
