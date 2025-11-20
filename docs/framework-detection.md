@@ -46,6 +46,19 @@ Detectors can look for:
 - **Commands**: install, test, build, dev, start, etc.
 - **Frameworks**: React, Vue, Angular, Express, NestJS, TypeScript
 
+### PHP Detector
+- **Detects**: PHP projects
+- **Required**: `composer.json`
+- **Commands**: install, update, test, lint, analyze, format, etc.
+- **Frameworks**: Laravel, Symfony, WordPress, Drupal, CodeIgniter, Slim, Yii, CakePHP
+- **Testing Tools**: PHPUnit, Pest, Codeception, Behat, PHPSpec
+- **Quality Tools**: PHPStan, Psalm, PHP CS Fixer, PHP CodeSniffer, PHPMD, Rector
+- **Framework Commands**:
+  - Laravel: artisan commands (serve, migrate, tinker, etc.)
+  - Symfony: console commands, doctrine migrations
+  - WordPress: WP-CLI commands
+  - Drupal: Drush commands
+
 ## Creating a Framework Detector
 
 ### 1. Implement the FrameworkDetector Interface
