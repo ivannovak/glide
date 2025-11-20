@@ -1,3 +1,10 @@
+## [1.1.0](https://github.com/ivannovak/glide/compare/v1.0.0...v1.1.0) (2025-11-20)
+
+
+### Features
+
+* Framework Detection Plugin System with Go, Node.js, and PHP support ([#9](https://github.com/ivannovak/glide/issues/9)) ([0ed3615](https://github.com/ivannovak/glide/commit/0ed361591357483c6eaab3d11de006392b23dd04))
+
 ## [1.0.0](https://github.com/ivannovak/glide/compare/v0.10.1...v1.0.0) (2025-11-19)
 
 
