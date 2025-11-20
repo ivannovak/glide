@@ -367,7 +367,7 @@ type CommandEntry struct {
 	Aliases     []string
 	Category    string
 	IsPlugin    bool
-	IsYAML      bool   // User-defined YAML command
+	IsYAML      bool // User-defined YAML command
 	PluginName  string
 }
 
