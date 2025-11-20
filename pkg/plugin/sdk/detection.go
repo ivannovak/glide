@@ -37,16 +37,16 @@ type DetectionPatterns struct {
 type ContentPattern struct {
 	Filepath string   `json:"filepath"`
 	Contains []string `json:"contains"` // Any of these
-	Regex    string   `json:"regex"`     // Or match this regex
+	Regex    string   `json:"regex"`    // Or match this regex
 }
 
 // DetectionResult contains the result of framework detection
 type DetectionResult struct {
-	Detected   bool                     `json:"detected"`
-	Confidence int                      `json:"confidence"` // 0-100
-	Framework  FrameworkInfo            `json:"framework"`
-	Commands   map[string]string        `json:"commands"`
-	Metadata   map[string]string        `json:"metadata"`
+	Detected   bool              `json:"detected"`
+	Confidence int               `json:"confidence"` // 0-100
+	Framework  FrameworkInfo     `json:"framework"`
+	Commands   map[string]string `json:"commands"`
+	Metadata   map[string]string `json:"metadata"`
 }
 
 // FrameworkInfo describes a detected framework

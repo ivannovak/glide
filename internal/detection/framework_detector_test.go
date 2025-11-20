@@ -11,11 +11,11 @@ import (
 
 // MockFrameworkDetector is a mock implementation for testing
 type MockFrameworkDetector struct {
-	patterns       sdk.DetectionPatterns
-	result         *sdk.DetectionResult
-	err            error
-	delay          time.Duration
-	detectFunc     func(string) (*sdk.DetectionResult, error)
+	patterns        sdk.DetectionPatterns
+	result          *sdk.DetectionResult
+	err             error
+	delay           time.Duration
+	detectFunc      func(string) (*sdk.DetectionResult, error)
 	detectCallCount int
 }
 

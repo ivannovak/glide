@@ -74,9 +74,9 @@ type ProjectContext struct {
 	ContainersStatus map[string]ContainerStatus // Status of all containers
 
 	// Framework detection
-	DetectedFrameworks []string            // List of detected framework names
-	FrameworkVersions  map[string]string   // Framework name -> version mapping
-	FrameworkCommands  map[string]string   // Commands provided by frameworks
+	DetectedFrameworks []string                     // List of detected framework names
+	FrameworkVersions  map[string]string            // Framework name -> version mapping
+	FrameworkCommands  map[string]string            // Commands provided by frameworks
 	FrameworkMetadata  map[string]map[string]string // Framework -> metadata mapping
 
 	// Command context

@@ -16,16 +16,16 @@ type NodeDetector struct {
 
 // PackageJSON represents package.json structure
 type PackageJSON struct {
-	Name            string                 `json:"name"`
-	Version         string                 `json:"version"`
-	Scripts         map[string]string      `json:"scripts"`
-	Dependencies    map[string]string      `json:"dependencies"`
-	DevDependencies map[string]string      `json:"devDependencies"`
-	Engines         map[string]string      `json:"engines"`
-	Type            string                 `json:"type"`
-	Main            string                 `json:"main"`
-	Private         bool                   `json:"private"`
-	Workspaces      interface{}            `json:"workspaces"`
+	Name            string            `json:"name"`
+	Version         string            `json:"version"`
+	Scripts         map[string]string `json:"scripts"`
+	Dependencies    map[string]string `json:"dependencies"`
+	DevDependencies map[string]string `json:"devDependencies"`
+	Engines         map[string]string `json:"engines"`
+	Type            string            `json:"type"`
+	Main            string            `json:"main"`
+	Private         bool              `json:"private"`
+	Workspaces      interface{}       `json:"workspaces"`
 }
 
 // NewNodeDetector creates a new Node.js detector
@@ -312,3 +312,4 @@ func min(a, b int) int {
 	}
 	return b
 }
+
