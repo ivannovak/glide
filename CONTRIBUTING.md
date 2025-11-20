@@ -21,6 +21,27 @@ make test
 
 # Build the binary
 make build
+
+# Install Git hooks (recommended)
+./scripts/install-hooks.sh
+```
+
+### Git Hooks (Recommended)
+
+Install the pre-commit hook to automatically format code before each commit:
+
+```bash
+./scripts/install-hooks.sh
+```
+
+This will:
+- Automatically format Go files with `gofmt -s`
+- Ensure `go.mod` and `go.sum` are tidy
+- Prevent formatting-related CI failures
+
+To bypass the hook temporarily (not recommended):
+```bash
+git commit --no-verify
 ```
 
 ## Development Workflow

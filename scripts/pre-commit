@@ -1,0 +1,40 @@
+#!/bin/bash
+# Pre-commit hook for Glide project
+# Automatically formats Go code and ensures go.mod is tidy
+
+set -e
+
+# Get list of staged Go files
+STAGED_GO_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep '\.go$' || true)
+
+if [ -n "$STAGED_GO_FILES" ]; then
+    echo "🔍 Formatting Go files..."
+
+    # Format each staged Go file
+    for file in $STAGED_GO_FILES; do
+        if [ -f "$file" ]; then
+            echo "  ✓ Formatting $file"
+            gofmt -s -w "$file"
+            git add "$file"
+        fi
+    done
+
+    echo "✅ All Go files formatted"
+fi
+
+# Ensure go.mod and go.sum are tidy
+if git diff --cached --name-only | grep -q "go.mod\|go.sum\|.*\.go$"; then
+    echo "🔍 Running go mod tidy..."
+    go mod tidy
+
+    # Check if go.mod or go.sum changed
+    if ! git diff --exit-code go.mod go.sum > /dev/null 2>&1; then
+        echo "  ✓ go.mod/go.sum updated"
+        git add go.mod go.sum
+    fi
+
+    echo "✅ Go modules are tidy"
+fi
+
+echo "✅ Pre-commit checks passed"
+exit 0
