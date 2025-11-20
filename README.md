@@ -229,3 +229,7 @@ MIT License
 <p align="center">
   <sub>Built with ❤️ by developers who were tired of typing the same commands over and over.</sub>
 </p>
+
+<p align="center">
+  <img src="docs/assets/glide-symbol.png" alt="Glide" width="200">
+</p>
