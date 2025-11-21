@@ -6,7 +6,6 @@ import (
 
 	"github.com/ivannovak/glide/internal/config"
 	"github.com/ivannovak/glide/internal/context"
-	"github.com/ivannovak/glide/internal/docker"
 	"github.com/ivannovak/glide/internal/shell"
 	"github.com/ivannovak/glide/pkg/output"
 )
@@ -19,10 +18,10 @@ type Application struct {
 	Config         *config.Config
 
 	// Service dependencies
-	DockerResolver   *docker.Resolver
-	ContainerManager *docker.ContainerManager
-	ShellExecutor    *shell.Executor
-	ConfigLoader     *config.Loader
+	// REMOVED: DockerResolver   *docker.Resolver      // Moved to plugin
+	// REMOVED: ContainerManager *docker.ContainerManager // Moved to plugin
+	ShellExecutor *shell.Executor
+	ConfigLoader  *config.Loader
 
 	// Configuration options
 	Writer io.Writer
@@ -88,20 +87,6 @@ func WithConfig(cfg *config.Config) Option {
 	}
 }
 
-// WithDockerResolver sets a custom Docker resolver
-func WithDockerResolver(resolver *docker.Resolver) Option {
-	return func(app *Application) {
-		app.DockerResolver = resolver
-	}
-}
-
-// WithContainerManager sets a custom container manager
-func WithContainerManager(manager *docker.ContainerManager) Option {
-	return func(app *Application) {
-		app.ContainerManager = manager
-	}
-}
-
 // WithShellExecutor sets a custom shell executor
 func WithShellExecutor(executor *shell.Executor) Option {
 	return func(app *Application) {
@@ -125,22 +110,6 @@ func WithWriter(writer io.Writer) Option {
 			app.OutputManager.SetWriter(writer)
 		}
 	}
-}
-
-// GetDockerResolver returns a Docker resolver, creating one if needed
-func (app *Application) GetDockerResolver() *docker.Resolver {
-	if app.DockerResolver == nil && app.ProjectContext != nil {
-		app.DockerResolver = docker.NewResolver(app.ProjectContext)
-	}
-	return app.DockerResolver
-}
-
-// GetContainerManager returns a container manager, creating one if needed
-func (app *Application) GetContainerManager() *docker.ContainerManager {
-	if app.ContainerManager == nil && app.ProjectContext != nil {
-		app.ContainerManager = docker.NewContainerManager(app.ProjectContext)
-	}
-	return app.ContainerManager
 }
 
 // GetShellExecutor returns the shell executor

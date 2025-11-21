@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/ivannovak/glide/internal/context"
-	"github.com/ivannovak/glide/internal/docker"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
