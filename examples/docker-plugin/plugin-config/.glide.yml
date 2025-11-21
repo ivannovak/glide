@@ -1,0 +1,176 @@
+# Advanced Docker Plugin Configuration for Glide
+#
+# This example demonstrates advanced plugin configuration options
+# and how to customize the Docker plugin behavior.
+
+# Custom plugin configuration
+plugins:
+  docker:
+    # Specify custom compose files
+    # The plugin will use these files in order
+    compose_files:
+      - docker-compose.yml
+      - docker-compose.local.yml
+      - docker-compose.override.yml
+
+    # Custom project name
+    # If not set, uses the directory name
+    project_name: mycompany-myapp
+
+    # Environment file
+    # Docker Compose will load variables from this file
+    env_file: .env.local
+
+    # Note: These settings are optional. The plugin auto-detects
+    # most configuration from your project structure.
+
+commands:
+  # Leverage custom project name in commands
+  status:
+    cmd: docker ps --filter "label=com.docker.compose.project=mycompany-myapp"
+    description: Show containers for this project
+    category: docker
+
+  # Use all configured compose files
+  up:full:
+    cmd: glide compose:up -d
+    description: Start all services with all compose files
+    help: |
+      Starts services using all configured compose files:
+      - docker-compose.yml (base configuration)
+      - docker-compose.local.yml (local overrides)
+      - docker-compose.override.yml (developer-specific)
+    category: docker
+
+  # Environment-specific commands using different compose files
+  up:prod:
+    cmd: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+    description: Start with production configuration
+    category: docker
+
+  up:staging:
+    cmd: docker compose -f docker-compose.yml -f docker-compose.staging.yml up -d
+    description: Start with staging configuration
+    category: docker
+
+  # Project-specific operations
+  clean:project:
+    cmd: |
+      # Clean up all resources for this specific project
+      docker compose -p mycompany-myapp down -v
+      docker ps -a --filter "label=com.docker.compose.project=mycompany-myapp" -q | xargs -r docker rm
+      docker volume ls --filter "label=com.docker.compose.project=mycompany-myapp" -q | xargs -r docker volume rm
+      echo "Project cleaned"
+    description: Clean all project resources
+    category: docker
+
+  # Network management for this project
+  network:inspect:
+    cmd: docker network inspect mycompany-myapp_default
+    description: Inspect project network
+    category: docker
+
+  # Volume management
+  volumes:
+    cmd: docker volume ls --filter "label=com.docker.compose.project=mycompany-myapp"
+    description: List project volumes
+    category: docker
+
+  volume:inspect:
+    cmd: docker volume inspect mycompany-myapp_$1
+    description: Inspect a project volume
+    help: "Usage: glide volume:inspect <volume_name>"
+    category: docker
+
+  # Advanced health checking with custom project
+  health:full:
+    cmd: |
+      echo "=== Project: mycompany-myapp ==="
+      echo ""
+      echo "=== Containers ==="
+      docker ps --filter "label=com.docker.compose.project=mycompany-myapp" \
+        --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+      echo ""
+      echo "=== Volumes ==="
+      docker volume ls --filter "label=com.docker.compose.project=mycompany-myapp" \
+        --format "table {{.Name}}\t{{.Driver}}\t{{.Mountpoint}}"
+      echo ""
+      echo "=== Networks ==="
+      docker network ls --filter "label=com.docker.compose.project=mycompany-myapp" \
+        --format "table {{.Name}}\t{{.Driver}}\t{{.Scope}}"
+      echo ""
+      echo "=== Docker System Health ==="
+      glide docker:health
+    description: Comprehensive health check
+    category: docker
+
+  # Configuration validation
+  validate:
+    cmd: docker compose config --quiet
+    description: Validate compose configuration
+    category: docker
+
+  show:config:
+    cmd: docker compose config
+    description: Show resolved compose configuration
+    help: |
+      Shows the final merged configuration from all compose files.
+      Useful for debugging compose file layering.
+    category: docker
+
+  # Development workflow with environment files
+  dev:setup:
+    cmd: |
+      if [ ! -f .env.local ]; then
+        echo "Creating .env.local from template..."
+        cp .env.example .env.local
+        echo "Please edit .env.local with your local settings"
+      fi
+      echo "Starting development environment..."
+      glide compose:up -d
+      echo "Development environment ready!"
+    description: Set up development environment
+    category: setup
+
+  # Testing with isolated environment
+  test:isolated:
+    cmd: |
+      # Use a different project name for test isolation
+      docker compose -p mycompany-myapp-test \
+        -f docker-compose.yml \
+        -f docker-compose.test.yml \
+        up -d
+
+      docker compose -p mycompany-myapp-test exec web npm test
+
+      # Cleanup test environment
+      docker compose -p mycompany-myapp-test down -v
+    description: Run tests in isolated environment
+    category: testing
+
+  # Backup with project-specific naming
+  backup:
+    cmd: |
+      timestamp=$(date +%Y%m%d_%H%M%S)
+      backup_dir="backups/mycompany-myapp"
+      mkdir -p "$backup_dir"
+
+      echo "Backing up volumes..."
+      for volume in $(docker volume ls --filter "label=com.docker.compose.project=mycompany-myapp" -q); do
+        echo "  - $volume"
+        docker run --rm \
+          -v "$volume:/source:ro" \
+          -v "$PWD/$backup_dir:/backup" \
+          alpine tar czf "/backup/${volume}_${timestamp}.tar.gz" -C /source .
+      done
+
+      echo "Backup complete: $backup_dir"
+    description: Backup all project volumes
+    category: docker
+
+# Additional metadata
+metadata:
+  project:
+    name: "MyCompany MyApp"
+    description: "Production application with advanced Docker configuration"
+    team: "Platform Engineering"

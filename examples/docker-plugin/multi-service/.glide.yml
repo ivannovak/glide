@@ -1,0 +1,179 @@
+# Multi-Service Docker Compose Configuration for Glide
+#
+# This example demonstrates managing a complex microservices application
+# with multiple compose files and environment-specific commands.
+
+commands:
+  # Environment management
+  dev:
+    cmd: glide compose:up -d
+    description: Start development environment
+    category: docker
+    alias: d
+
+  prod:local:
+    cmd: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+    description: Start production-like environment locally
+    category: docker
+
+  staging:
+    cmd: docker compose -f docker-compose.yml -f docker-compose.staging.yml up -d
+    description: Start staging environment
+    category: docker
+
+  # Service-specific operations
+  api:logs:
+    cmd: glide compose:logs -f api
+    description: Follow API service logs
+    category: docker
+
+  web:logs:
+    cmd: glide compose:logs -f web
+    description: Follow web service logs
+    category: docker
+
+  worker:logs:
+    cmd: glide compose:logs -f worker
+    description: Follow worker service logs
+    category: docker
+
+  # Service access
+  api:shell:
+    cmd: glide compose:exec api sh
+    description: Open shell in API container
+    category: developer
+
+  web:shell:
+    cmd: glide compose:exec web sh
+    description: Open shell in web container
+    category: developer
+
+  worker:shell:
+    cmd: glide compose:exec worker sh
+    description: Open shell in worker container
+    category: developer
+
+  # Database operations
+  db:
+    cmd: glide compose:exec postgres psql -U postgres
+    description: Connect to PostgreSQL CLI
+    category: database
+
+  redis:cli:
+    cmd: glide compose:exec redis redis-cli
+    description: Connect to Redis CLI
+    category: database
+
+  db:migrate:
+    cmd: glide compose:exec api npm run migrate
+    description: Run database migrations
+    category: database
+
+  db:backup:
+    cmd: |
+      timestamp=$(date +%Y%m%d_%H%M%S)
+      glide compose:exec postgres pg_dump -U postgres myapp > "backups/db_${timestamp}.sql"
+      echo "Database backed up to backups/db_${timestamp}.sql"
+    description: Backup database
+    category: database
+
+  # Service restart commands
+  restart:api:
+    cmd: glide compose:restart api
+    description: Restart API service
+    category: docker
+
+  restart:web:
+    cmd: glide compose:restart web
+    description: Restart web service
+    category: docker
+
+  restart:worker:
+    cmd: glide compose:restart worker
+    description: Restart worker service
+    category: docker
+
+  # Testing
+  test:api:
+    cmd: glide compose:exec api npm test
+    description: Run API tests
+    category: testing
+
+  test:web:
+    cmd: glide compose:exec web npm test
+    description: Run web tests
+    category: testing
+
+  test:integration:
+    cmd: |
+      echo "Starting test environment..."
+      docker compose -f docker-compose.test.yml up -d
+      echo "Running integration tests..."
+      docker compose -f docker-compose.test.yml exec test npm run test:integration
+      echo "Cleaning up test environment..."
+      docker compose -f docker-compose.test.yml down -v
+    description: Run integration tests
+    category: testing
+
+  # Monitoring and health
+  health:
+    cmd: |
+      echo "=== API Health ==="
+      curl -s http://localhost:3000/health | jq
+      echo ""
+      echo "=== Web Health ==="
+      curl -s http://localhost:8080/health | jq
+      echo ""
+      echo "=== Container Status ==="
+      glide docker:ps
+    description: Check health of all services
+    category: docker
+
+  stats:
+    cmd: glide docker:stats api web worker postgres redis
+    description: Show resource usage for all services
+    category: docker
+
+  # Cleanup operations
+  clean:
+    cmd: |
+      echo "Stopping all services..."
+      glide compose:down -v
+      echo "Removing unused Docker resources..."
+      glide docker:clean --containers --images --volumes
+      echo "Cleanup complete"
+    description: Full cleanup of all services and resources
+    category: docker
+
+  clean:logs:
+    cmd: docker compose logs --tail=0 -f > /dev/null &
+    description: Clear service logs
+    category: docker
+
+  # Build operations
+  build:
+    cmd: glide compose:up -d --build
+    description: Rebuild and start all services
+    category: docker
+
+  build:api:
+    cmd: docker compose build api && glide compose:restart api
+    description: Rebuild API service
+    category: docker
+
+  build:web:
+    cmd: docker compose build web && glide compose:restart web
+    description: Rebuild web service
+    category: docker
+
+# Plugin configuration for multi-service setup
+plugins:
+  docker:
+    compose_files:
+      - docker-compose.yml
+      - docker-compose.override.yml
+
+    project_name: myapp
+
+    # Optional: specify environment file
+    # env_file: .env.development

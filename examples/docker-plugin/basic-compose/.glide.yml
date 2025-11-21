@@ -1,0 +1,120 @@
+# Basic Docker Compose Configuration for Glide
+#
+# This example shows a simple web application using the Docker plugin
+# with common development workflow commands.
+
+commands:
+  # Development workflow
+  start:
+    cmd: glide compose:up -d
+    description: Start all services in background
+    category: docker
+    alias: s
+
+  stop:
+    cmd: glide compose:down
+    description: Stop all services
+    category: docker
+
+  restart:
+    cmd: glide compose:restart
+    description: Restart all services
+    category: docker
+    alias: r
+
+  # Logging
+  logs:
+    cmd: glide compose:logs -f $@
+    description: Follow logs for all or specific services
+    help: |
+      View logs from running services.
+
+      Examples:
+        glide logs           # All services
+        glide logs web       # Just web service
+        glide logs web db    # Multiple services
+    category: docker
+    alias: l
+
+  # Container access
+  shell:
+    cmd: glide compose:exec web sh
+    description: Open shell in web container
+    category: developer
+    alias: sh
+
+  db:
+    cmd: glide compose:exec db psql -U postgres myapp
+    description: Connect to PostgreSQL database
+    category: database
+
+  # Common operations
+  rebuild:
+    cmd: |
+      glide compose:down
+      glide compose:up -d --build
+      echo "Services rebuilt and started"
+    description: Rebuild and restart all services
+    category: docker
+
+  clean:
+    cmd: |
+      glide compose:down -v
+      glide docker:clean --containers --images
+      echo "Environment cleaned"
+    description: Clean up containers, volumes, and images
+    category: docker
+
+  # Development helpers
+  install:
+    cmd: glide compose:exec web npm install
+    description: Install dependencies in web container
+    category: developer
+
+  migrate:
+    cmd: glide compose:exec web npm run migrate
+    description: Run database migrations
+    category: database
+
+  seed:
+    cmd: glide compose:exec web npm run seed
+    description: Seed database with sample data
+    category: database
+
+  # Testing
+  test:
+    cmd: glide compose:exec web npm test
+    description: Run tests in web container
+    category: testing
+
+  test:watch:
+    cmd: glide compose:exec web npm test -- --watch
+    description: Run tests in watch mode
+    category: testing
+
+  # Status and health
+  status:
+    cmd: |
+      echo "=== Container Status ==="
+      glide docker:ps
+      echo ""
+      echo "=== Docker Health ==="
+      glide docker:health
+    description: Show status of all services
+    category: docker
+    alias: st
+
+# Plugin configuration (optional)
+# The Docker plugin auto-detects most settings
+plugins:
+  docker:
+    # Compose files (auto-detected if not specified)
+    compose_files:
+      - docker-compose.yml
+      - docker-compose.override.yml
+
+    # Project name (uses directory name if not specified)
+    # project_name: myapp
+
+    # Environment file (optional)
+    # env_file: .env.docker
