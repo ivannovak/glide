@@ -103,60 +103,6 @@ func TestApplicationOptions(t *testing.T) {
 	})
 }
 
-func TestGetDockerResolver(t *testing.T) {
-	t.Run("returns nil when no context", func(t *testing.T) {
-		app := NewApplication()
-		resolver := app.GetDockerResolver()
-
-		assert.Nil(t, resolver)
-	})
-
-	t.Run("creates resolver when context exists", func(t *testing.T) {
-		ctx := &context.ProjectContext{
-			ProjectRoot: "/test/project",
-			WorkingDir:  "/test/project",
-		}
-		app := NewApplication(WithProjectContext(ctx))
-
-		resolver := app.GetDockerResolver()
-		assert.NotNil(t, resolver)
-		assert.Equal(t, resolver, app.DockerResolver) // Should cache it
-	})
-
-	t.Run("returns existing resolver", func(t *testing.T) {
-		ctx := &context.ProjectContext{
-			ProjectRoot: "/test/project",
-		}
-		app := NewApplication(WithProjectContext(ctx))
-
-		resolver1 := app.GetDockerResolver()
-		resolver2 := app.GetDockerResolver()
-
-		assert.Same(t, resolver1, resolver2)
-	})
-}
-
-func TestGetContainerManager(t *testing.T) {
-	t.Run("returns nil when no context", func(t *testing.T) {
-		app := NewApplication()
-		manager := app.GetContainerManager()
-
-		assert.Nil(t, manager)
-	})
-
-	t.Run("creates manager when context exists", func(t *testing.T) {
-		ctx := &context.ProjectContext{
-			ProjectRoot: "/test/project",
-			WorkingDir:  "/test/project",
-		}
-		app := NewApplication(WithProjectContext(ctx))
-
-		manager := app.GetContainerManager()
-		assert.NotNil(t, manager)
-		assert.Equal(t, manager, app.ContainerManager) // Should cache it
-	})
-}
-
 func TestGetShellExecutor(t *testing.T) {
 	t.Run("returns default executor", func(t *testing.T) {
 		app := NewApplication()
@@ -225,8 +171,6 @@ func TestApplicationIntegration(t *testing.T) {
 		assert.Contains(t, buf.String(), "Test message")
 
 		// Test accessor methods
-		assert.NotNil(t, app.GetDockerResolver())
-		assert.NotNil(t, app.GetContainerManager())
 		assert.NotNil(t, app.GetShellExecutor())
 		assert.NotNil(t, app.GetConfigLoader())
 	})

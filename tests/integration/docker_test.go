@@ -1,6 +1,7 @@
 package integration_test
 
 import (
+	stdctx "context"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -9,6 +10,7 @@ import (
 	"time"
 
 	"github.com/ivannovak/glide/internal/context"
+	"github.com/ivannovak/glide/internal/docker"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -269,6 +271,7 @@ services:
 	})
 
 	t.Run("compose_project_name_generation", func(t *testing.T) {
+		t.Skip("Skipping: Docker functionality has moved to plugin system")
 		tmpDir := t.TempDir()
 		projectName := filepath.Base(tmpDir)
 
@@ -374,8 +377,11 @@ func TestDockerErrorHandling(t *testing.T) {
 	}
 
 	t.Run("handle_invalid_image", func(t *testing.T) {
-		// Try to run a non-existent image
-		cmd := exec.Command("docker", "run", "--rm", "definitely-not-a-real-image:latest")
+		// Try to run a non-existent image with timeout
+		ctx, cancel := stdctx.WithTimeout(stdctx.Background(), 5*time.Second)
+		defer cancel()
+
+		cmd := exec.CommandContext(ctx, "docker", "run", "--rm", "definitely-not-a-real-image:latest")
 		output, err := cmd.CombinedOutput()
 
 		assert.Error(t, err, "Should fail with non-existent image")
