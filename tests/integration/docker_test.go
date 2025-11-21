@@ -381,11 +381,14 @@ func TestDockerErrorHandling(t *testing.T) {
 		ctx, cancel := stdctx.WithTimeout(stdctx.Background(), 5*time.Second)
 		defer cancel()
 
-		cmd := exec.CommandContext(ctx, "docker", "run", "--rm", "definitely-not-a-real-image:latest")
+		cmd := exec.CommandContext(ctx, "docker", "run", "--rm", "--pull=never", "definitely-not-a-real-image:latest")
 		output, err := cmd.CombinedOutput()
 
 		assert.Error(t, err, "Should fail with non-existent image")
-		assert.Contains(t, string(output), "Unable to find image", "Should report image not found")
+		outputStr := string(output)
+		// Docker may report either "Unable to find image" or "No such image" depending on version
+		assert.True(t, strings.Contains(outputStr, "Unable to find image") || strings.Contains(outputStr, "No such image"),
+			"Should report image not found, got: %s", outputStr)
 	})
 
 	t.Run("handle_port_conflict", func(t *testing.T) {
