@@ -1,16 +1,39 @@
 # Docker Plugin for Glide
 
+> **Official Repository**: https://github.com/ivannovak/glide-plugin-docker
+
 The Docker plugin provides comprehensive Docker and Docker Compose integration for Glide, offering container management, service orchestration, and development environment commands.
 
 ## Installation
 
-The Docker plugin is distributed separately from Glide core and must be installed as a runtime plugin.
+The Docker plugin is distributed separately from Glide core as an independent plugin.
 
-### From Binary
+### From GitHub Releases (Recommended)
 
 ```bash
-# Install the plugin binary to your global plugins directory
-cp glide-plugin-docker ~/.glide/plugins/
+# Download the latest release for your platform
+# Visit: https://github.com/ivannovak/glide-plugin-docker/releases
+
+# For macOS/Linux (example for version 1.0.0, arm64):
+curl -L https://github.com/ivannovak/glide-plugin-docker/releases/download/v1.0.0/glide-plugin-docker-darwin-arm64 \
+  -o ~/.glide/plugins/glide-plugin-docker
+chmod +x ~/.glide/plugins/glide-plugin-docker
+
+# Verify installation
+glide plugins list
+```
+
+### From Source
+
+```bash
+# Clone the repository
+git clone https://github.com/ivannovak/glide-plugin-docker.git
+cd glide-plugin-docker
+
+# Build and install
+make install
+# Or manually:
+go build -o ~/.glide/plugins/glide-plugin-docker
 
 # Verify installation
 glide plugins list
@@ -19,11 +42,18 @@ glide plugins list
 ### Project-Specific Installation
 
 ```bash
-# Install for a specific project
+# Install for a specific project only
 mkdir -p .glide/plugins
-cp glide-plugin-docker .glide/plugins/
+cd .glide/plugins
+
+# Download the binary
+curl -L https://github.com/ivannovak/glide-plugin-docker/releases/latest/download/glide-plugin-docker-$(uname -s)-$(uname -m) \
+  -o glide-plugin-docker
+chmod +x glide-plugin-docker
 
 # The plugin will now be available when working in this project
+cd ../..
+glide plugins list
 ```
 
 ## Prerequisites
@@ -341,25 +371,35 @@ If you encounter permission errors:
 
 ## Development
 
-### Building from Source
+The Docker plugin is developed in its own repository for independent versioning and releases.
+
+### Contributing
 
 ```bash
-cd plugins/docker
-go build -o glide-plugin-docker
+# Clone the repository
+git clone https://github.com/ivannovak/glide-plugin-docker.git
+cd glide-plugin-docker
+
+# Build
+make build
+
+# Run tests
+make test
+
+# Install locally for testing
+make install
 ```
 
-### Running Tests
-
-```bash
-cd plugins/docker
-go test ./...
-```
+See the [Contributing Guide](https://github.com/ivannovak/glide-plugin-docker/blob/main/CONTRIBUTING.md) for more details.
 
 ## Version History
 
+See [Releases](https://github.com/ivannovak/glide-plugin-docker/releases) for the full version history.
+
+**Latest:**
 - **1.0.0** - Initial release with core Docker and Compose functionality
-- Migrated from Glide core to standalone plugin architecture
-- Full feature parity with previous built-in Docker functionality
+  - Migrated from Glide core to standalone plugin architecture
+  - Full feature parity with previous built-in Docker functionality
 
 ## License
 
@@ -368,11 +408,13 @@ MIT License - Same as Glide core
 ## Support
 
 For issues, questions, or feature requests:
-- [GitHub Issues](https://github.com/ivannovak/glide/issues)
-- Label your issue with `plugin:docker`
+- **Plugin Issues**: [glide-plugin-docker Issues](https://github.com/ivannovak/glide-plugin-docker/issues)
+- **General Glide**: [Glide Core Issues](https://github.com/ivannovak/glide/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/ivannovak/glide-plugin-docker/discussions)
 
 ## See Also
 
+- **Plugin Repository**: https://github.com/ivannovak/glide-plugin-docker
 - [Glide Plugin Development Guide](../../PLUGIN_DEVELOPMENT.md)
 - [Glide Core Documentation](../../docs/)
 - [Docker Documentation](https://docs.docker.com/)

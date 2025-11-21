@@ -4,6 +4,8 @@ This directory contains example configurations for using the Docker plugin with 
 
 ## Overview
 
+> **Plugin Repository**: https://github.com/ivannovak/glide-plugin-docker
+
 The Docker plugin provides Docker and Docker Compose integration for Glide. These examples demonstrate various ways to configure and use the plugin in your projects.
 
 ## Examples
@@ -46,12 +48,19 @@ Advanced plugin configuration with custom project names and environment files.
 ### Install the Docker Plugin
 
 ```bash
-# Install globally
-cp glide-plugin-docker ~/.glide/plugins/
+# Download the latest release for your platform
+# Visit: https://github.com/ivannovak/glide-plugin-docker/releases
+
+# Install globally (example for macOS arm64)
+curl -L https://github.com/ivannovak/glide-plugin-docker/releases/latest/download/glide-plugin-docker-darwin-arm64 \
+  -o ~/.glide/plugins/glide-plugin-docker
+chmod +x ~/.glide/plugins/glide-plugin-docker
 
 # Or install for a specific project
 mkdir -p .glide/plugins
-cp glide-plugin-docker .glide/plugins/
+curl -L https://github.com/ivannovak/glide-plugin-docker/releases/latest/download/glide-plugin-docker-darwin-arm64 \
+  -o .glide/plugins/glide-plugin-docker
+chmod +x .glide/plugins/glide-plugin-docker
 ```
 
 ### Verify Installation
@@ -235,6 +244,7 @@ plugins:
 
 ## See Also
 
-- [Docker Plugin Documentation](../../plugins/docker/README.md)
+- **[Docker Plugin Repository](https://github.com/ivannovak/glide-plugin-docker)** - Source code and releases
+- [Docker Plugin Documentation](../../plugins/docker/README.md) - Local reference copy
 - [Plugin Development Guide](../../PLUGIN_DEVELOPMENT.md)
 - [Glide Core Concepts](../../docs/core-concepts/README.md)

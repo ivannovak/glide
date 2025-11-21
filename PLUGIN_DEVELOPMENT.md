@@ -290,7 +290,23 @@ Key interfaces:
 
 ## Example Plugins
 
-See the `glide-plugin-chirocat` for a complete example implementing:
+### Official Docker Plugin
+
+**Repository**: https://github.com/ivannovak/glide-plugin-docker
+
+A complete, production-ready plugin demonstrating:
+- Comprehensive Docker and Docker Compose integration
+- 20+ commands across multiple categories
+- Context-aware configuration and auto-detection
+- Multi-service orchestration
+- Health monitoring and resource cleanup
+- Best practices for plugin architecture
+
+This is the recommended reference for building full-featured plugins.
+
+### Other Examples
+
+See `glide-plugin-chirocat` for examples of:
 - Multiple command categories
 - Both standard and interactive commands
 - Configuration handling
