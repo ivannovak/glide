@@ -1,3 +1,10 @@
+## [1.3.0](https://github.com/ivannovak/glide/compare/v1.2.0...v1.3.0) (2025-11-21)
+
+
+### Features
+
+* Extract Docker functionality to external plugin architecture ([#10](https://github.com/ivannovak/glide/issues/10)) ([e297fd9](https://github.com/ivannovak/glide/commit/e297fd974cd4f50c12f60d19051659f46cebdbc1))
+
 ## [1.2.0](https://github.com/ivannovak/glide/compare/v1.1.0...v1.2.0) (2025-11-20)
 
 
