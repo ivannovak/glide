@@ -14,6 +14,7 @@ permissions:
   issues: write
   pull-requests: write
   packages: write
+  actions: write  # Required to trigger release workflow
 
 jobs:
   # First, run all CI tests to ensure code quality
