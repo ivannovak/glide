@@ -1,3 +1,10 @@
+## [2.1.2](https://github.com/ivannovak/glide/compare/v2.1.1...v2.1.2) (2025-11-24)
+
+
+### Bug Fixes
+
+* remove CI dependency from release workflow ([3b8b007](https://github.com/ivannovak/glide/commit/3b8b007ff4f6e68ba8aaf836a14ca641d88be0c1))
+
 ## [2.1.1](https://github.com/ivannovak/glide/compare/v2.1.0...v2.1.1) (2025-11-24)
 
 
