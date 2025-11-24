@@ -1,3 +1,10 @@
+## [2.1.0](https://github.com/ivannovak/glide/compare/v2.0.0...v2.1.0) (2025-11-24)
+
+
+### Features
+
+* auto-trigger release workflow after semantic-release ([1caec4e](https://github.com/ivannovak/glide/commit/1caec4ef1a731326629c92d6e4b36827887ead3b))
+
 ## [2.0.0](https://github.com/ivannovak/glide/compare/v1.3.0...v2.0.0) (2025-11-24)
 
 
