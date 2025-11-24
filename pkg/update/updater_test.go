@@ -32,7 +32,7 @@ func TestSelfUpdate_NoUpdateAvailable(t *testing.T) {
 		TagName:     "v1.0.0",
 		Name:        "v1.0.0",
 		PublishedAt: time.Now(),
-		HTMLURL:     "https://github.com/ivannovak/glide/releases/tag/v1.0.0",
+		HTMLURL:     "https://github.com/ivannovak/glide/v2/releases/tag/v1.0.0",
 	}
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -97,8 +97,8 @@ func TestDownloadBinary_GitHubReleasePageRejected(t *testing.T) {
 
 	// Test that GitHub release pages (not direct downloads) are rejected
 	urls := []string{
-		"https://github.com/ivannovak/glide/releases/tag/v1.0.0",
-		"https://github.com/ivannovak/glide/releases/latest",
+		"https://github.com/ivannovak/glide/v2/releases/tag/v1.0.0",
+		"https://github.com/ivannovak/glide/v2/releases/latest",
 	}
 
 	for _, url := range urls {
@@ -332,7 +332,7 @@ func TestSelfUpdate_Integration(t *testing.T) {
 		TagName:     "v2.0.0",
 		Name:        "v2.0.0",
 		PublishedAt: time.Now(),
-		HTMLURL:     "https://github.com/ivannovak/glide/releases/tag/v2.0.0",
+		HTMLURL:     "https://github.com/ivannovak/glide/v2/releases/tag/v2.0.0",
 		Assets: []Asset{
 			{
 				Name:               "glide-" + runtime.GOOS + "-" + runtime.GOARCH,

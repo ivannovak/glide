@@ -11,9 +11,9 @@ import (
 	"runtime"
 	"text/tabwriter"
 
-	"github.com/ivannovak/glide/pkg/branding"
-	"github.com/ivannovak/glide/pkg/plugin/sdk"
-	v1 "github.com/ivannovak/glide/pkg/plugin/sdk/v1"
+	"github.com/ivannovak/glide/v2/pkg/branding"
+	"github.com/ivannovak/glide/v2/pkg/plugin/sdk"
+	v1 "github.com/ivannovak/glide/v2/pkg/plugin/sdk/v1"
 	"github.com/spf13/cobra"
 )
 

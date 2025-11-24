@@ -5,8 +5,8 @@ import (
 	"os"
 	"sync"
 
-	"github.com/ivannovak/glide/internal/config"
-	"github.com/ivannovak/glide/pkg/registry"
+	"github.com/ivannovak/glide/v2/internal/config"
+	"github.com/ivannovak/glide/v2/pkg/registry"
 	"github.com/spf13/cobra"
 )
 

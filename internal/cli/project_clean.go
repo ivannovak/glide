@@ -5,12 +5,12 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/ivannovak/glide/internal/config"
-	"github.com/ivannovak/glide/internal/context"
-	glideErrors "github.com/ivannovak/glide/pkg/errors"
-	"github.com/ivannovak/glide/pkg/output"
-	"github.com/ivannovak/glide/pkg/progress"
-	"github.com/ivannovak/glide/pkg/prompt"
+	"github.com/ivannovak/glide/v2/internal/config"
+	"github.com/ivannovak/glide/v2/internal/context"
+	glideErrors "github.com/ivannovak/glide/v2/pkg/errors"
+	"github.com/ivannovak/glide/v2/pkg/output"
+	"github.com/ivannovak/glide/v2/pkg/progress"
+	"github.com/ivannovak/glide/v2/pkg/prompt"
 	"github.com/spf13/cobra"
 )
 

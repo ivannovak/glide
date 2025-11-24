@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/ivannovak/glide/internal/context"
-	"github.com/ivannovak/glide/pkg/branding"
+	"github.com/ivannovak/glide/v2/internal/context"
+	"github.com/ivannovak/glide/v2/pkg/branding"
 	"gopkg.in/yaml.v3"
 )
 

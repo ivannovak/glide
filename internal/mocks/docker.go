@@ -1,7 +1,7 @@
 package mocks
 
 import (
-	"github.com/ivannovak/glide/pkg/interfaces"
+	"github.com/ivannovak/glide/v2/pkg/interfaces"
 	"github.com/stretchr/testify/mock"
 )
 

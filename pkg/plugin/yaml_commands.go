@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/ivannovak/glide/internal/config"
+	"github.com/ivannovak/glide/v2/internal/config"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )

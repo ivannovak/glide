@@ -6,9 +6,9 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/ivannovak/glide/internal/detection"
-	"github.com/ivannovak/glide/internal/shell"
-	"github.com/ivannovak/glide/pkg/plugin/sdk"
+	"github.com/ivannovak/glide/v2/internal/detection"
+	"github.com/ivannovak/glide/v2/internal/shell"
+	"github.com/ivannovak/glide/v2/pkg/plugin/sdk"
 	"github.com/spf13/cobra"
 )
 

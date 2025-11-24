@@ -17,8 +17,8 @@ import (
 
 	"github.com/hashicorp/go-hclog"
 	plugin "github.com/hashicorp/go-plugin"
-	"github.com/ivannovak/glide/pkg/branding"
-	v1 "github.com/ivannovak/glide/pkg/plugin/sdk/v1"
+	"github.com/ivannovak/glide/v2/pkg/branding"
+	v1 "github.com/ivannovak/glide/v2/pkg/plugin/sdk/v1"
 )
 
 // Cache is a simple plugin cache

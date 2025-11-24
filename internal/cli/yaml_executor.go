@@ -4,7 +4,7 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/ivannovak/glide/internal/config"
+	"github.com/ivannovak/glide/v2/internal/config"
 )
 
 // ExecuteYAMLCommand runs a YAML-defined command

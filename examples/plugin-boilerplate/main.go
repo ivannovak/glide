@@ -32,7 +32,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-plugin"
-	sdk "github.com/ivannovak/glide/pkg/plugin/sdk/v1"
+	sdk "github.com/ivannovak/glide/v2/pkg/plugin/sdk/v1"
 )
 
 func main() {

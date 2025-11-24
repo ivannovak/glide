@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	sdk "github.com/ivannovak/glide/pkg/plugin/sdk/v1"
+	sdk "github.com/ivannovak/glide/v2/pkg/plugin/sdk/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"

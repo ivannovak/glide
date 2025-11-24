@@ -3,7 +3,7 @@ package cli
 import (
 	"testing"
 
-	"github.com/ivannovak/glide/pkg/app"
+	"github.com/ivannovak/glide/v2/pkg/app"
 	"github.com/stretchr/testify/assert"
 )
 

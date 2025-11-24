@@ -3,8 +3,8 @@ package plugin_test
 import (
 	"testing"
 
-	"github.com/ivannovak/glide/pkg/plugin"
-	"github.com/ivannovak/glide/pkg/plugin/plugintest"
+	"github.com/ivannovak/glide/v2/pkg/plugin"
+	"github.com/ivannovak/glide/v2/pkg/plugin/plugintest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

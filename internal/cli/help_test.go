@@ -3,8 +3,8 @@ package cli
 import (
 	"testing"
 
-	"github.com/ivannovak/glide/internal/context"
-	v1 "github.com/ivannovak/glide/pkg/plugin/sdk/v1"
+	"github.com/ivannovak/glide/v2/internal/context"
+	v1 "github.com/ivannovak/glide/v2/pkg/plugin/sdk/v1"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 )

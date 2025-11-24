@@ -6,12 +6,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/ivannovak/glide/internal/config"
-	"github.com/ivannovak/glide/internal/context"
-	"github.com/ivannovak/glide/internal/docker"
-	"github.com/ivannovak/glide/pkg/branding"
-	glideErrors "github.com/ivannovak/glide/pkg/errors"
-	"github.com/ivannovak/glide/pkg/output"
+	"github.com/ivannovak/glide/v2/internal/config"
+	"github.com/ivannovak/glide/v2/internal/context"
+	"github.com/ivannovak/glide/v2/internal/docker"
+	"github.com/ivannovak/glide/v2/pkg/branding"
+	glideErrors "github.com/ivannovak/glide/v2/pkg/errors"
+	"github.com/ivannovak/glide/v2/pkg/output"
 	"github.com/spf13/cobra"
 )
 

@@ -3,6 +3,7 @@ package v1
 import (
 	"context"
 	"fmt"
+	"os"
 
 	plugin "github.com/hashicorp/go-plugin"
 	"google.golang.org/grpc"
@@ -85,4 +86,24 @@ type Host struct {
 func (h *Host) ExecuteDockerInteractive(ctx context.Context, req *DockerRequest) (InteractiveSession, error) {
 	// This would be implemented by the host
 	return nil, fmt.Errorf("not implemented")
+}
+
+// RunPlugin starts a plugin server with the given implementation.
+// This is a convenience function that handles the boilerplate of setting up
+// the hashicorp/go-plugin server with the correct configuration.
+func RunPlugin(impl GlidePluginServer) error {
+	// Verify we're being run as a plugin
+	if os.Getenv("GLIDE_PLUGIN_MAGIC") == "" {
+		return fmt.Errorf("this binary must be run as a Glide plugin")
+	}
+
+	plugin.Serve(&plugin.ServeConfig{
+		HandshakeConfig: HandshakeConfig,
+		Plugins: map[string]plugin.Plugin{
+			"glide": &GlidePluginImpl{Impl: impl},
+		},
+		GRPCServer: plugin.DefaultGRPCServer,
+	})
+
+	return nil
 }

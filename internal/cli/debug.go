@@ -5,11 +5,11 @@ import (
 	"strings"
 	"time"
 
-	glideContext "github.com/ivannovak/glide/internal/context"
-	"github.com/ivannovak/glide/internal/docker"
-	"github.com/ivannovak/glide/internal/shell"
-	"github.com/ivannovak/glide/pkg/app"
-	"github.com/ivannovak/glide/pkg/progress"
+	glideContext "github.com/ivannovak/glide/v2/internal/context"
+	"github.com/ivannovak/glide/v2/internal/docker"
+	"github.com/ivannovak/glide/v2/internal/shell"
+	"github.com/ivannovak/glide/v2/pkg/app"
+	"github.com/ivannovak/glide/v2/pkg/progress"
 	"github.com/spf13/cobra"
 )
 

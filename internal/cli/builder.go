@@ -3,10 +3,10 @@ package cli
 import (
 	"os"
 
-	"github.com/ivannovak/glide/internal/config"
-	"github.com/ivannovak/glide/pkg/app"
-	"github.com/ivannovak/glide/pkg/branding"
-	"github.com/ivannovak/glide/pkg/plugin"
+	"github.com/ivannovak/glide/v2/internal/config"
+	"github.com/ivannovak/glide/v2/pkg/app"
+	"github.com/ivannovak/glide/v2/pkg/branding"
+	"github.com/ivannovak/glide/v2/pkg/plugin"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )

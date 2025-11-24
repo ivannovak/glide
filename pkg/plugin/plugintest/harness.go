@@ -5,7 +5,7 @@ import (
 	"io"
 	"testing"
 
-	"github.com/ivannovak/glide/pkg/plugin"
+	"github.com/ivannovak/glide/v2/pkg/plugin"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

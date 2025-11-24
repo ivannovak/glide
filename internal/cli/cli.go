@@ -5,12 +5,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ivannovak/glide/internal/context"
-	"github.com/ivannovak/glide/internal/docker"
-	"github.com/ivannovak/glide/internal/shell"
-	"github.com/ivannovak/glide/pkg/app"
-	glideErrors "github.com/ivannovak/glide/pkg/errors"
-	"github.com/ivannovak/glide/pkg/progress"
+	"github.com/ivannovak/glide/v2/internal/context"
+	"github.com/ivannovak/glide/v2/internal/docker"
+	"github.com/ivannovak/glide/v2/internal/shell"
+	"github.com/ivannovak/glide/v2/pkg/app"
+	glideErrors "github.com/ivannovak/glide/v2/pkg/errors"
+	"github.com/ivannovak/glide/v2/pkg/progress"
 	"github.com/spf13/cobra"
 )
 

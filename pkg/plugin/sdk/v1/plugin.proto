@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package v1;
 
-option go_package = "github.com/ivannovak/glide/pkg/plugin/sdk/v1";
+option go_package = "github.com/ivannovak/glide/v2/pkg/plugin/sdk/v1";
 
 // GlidePlugin service defines the RPC interface for plugins
 service GlidePlugin {

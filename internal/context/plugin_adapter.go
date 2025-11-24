@@ -3,7 +3,7 @@ package context
 import (
 	"context"
 
-	"github.com/ivannovak/glide/pkg/plugin/sdk"
+	"github.com/ivannovak/glide/v2/pkg/plugin/sdk"
 )
 
 // pluginExtensionAdapter adapts the plugin system to the context ExtensionRegistry interface

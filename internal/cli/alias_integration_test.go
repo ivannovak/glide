@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/ivannovak/glide/pkg/app"
+	"github.com/ivannovak/glide/v2/pkg/app"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 )

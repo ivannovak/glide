@@ -1,4 +1,4 @@
-module github.com/ivannovak/glide
+module github.com/ivannovak/glide/v2
 
 go 1.24
 
