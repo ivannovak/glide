@@ -50,10 +50,29 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Release
+        id: release
         env:
           GITHUB_TOKEN: ${{ secrets.SEMANTIC_RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
           GIT_AUTHOR_NAME: semantic-release-bot
           GIT_AUTHOR_EMAIL: semantic-release-bot@users.noreply.github.com
           GIT_COMMITTER_NAME: semantic-release-bot
           GIT_COMMITTER_EMAIL: semantic-release-bot@users.noreply.github.com
-        run: npx semantic-release
+        run: |
+          npx semantic-release | tee release-output.txt
+          # Check if a new version was released
+          if grep -q "Published release" release-output.txt; then
+            echo "new_release=true" >> $GITHUB_OUTPUT
+          else
+            echo "new_release=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Trigger Release Workflow
+        if: steps.release.outputs.new_release == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Fetch latest tag created by semantic-release
+          git fetch --tags
+          LATEST_TAG=$(git describe --tags --abbrev=0)
+          echo "Triggering release workflow for $LATEST_TAG"
+          gh workflow run release.yml -f version=$LATEST_TAG
