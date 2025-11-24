@@ -1,3 +1,10 @@
+## [2.1.1](https://github.com/ivannovak/glide/compare/v2.1.0...v2.1.1) (2025-11-24)
+
+
+### Bug Fixes
+
+* add actions:write permission to trigger release workflow ([ba7cfda](https://github.com/ivannovak/glide/commit/ba7cfda98e7674614898e955245d6062bf806502))
+
 ## [2.1.0](https://github.com/ivannovak/glide/compare/v2.0.0...v2.1.0) (2025-11-24)
 
 
