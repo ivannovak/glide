@@ -8,6 +8,7 @@ import (
 
 	"github.com/ivannovak/glide/v2/internal/context"
 	"github.com/ivannovak/glide/v2/pkg/branding"
+	"github.com/ivannovak/glide/v2/pkg/validation"
 	"gopkg.in/yaml.v3"
 )
 
@@ -29,15 +30,32 @@ func (l *Loader) Load() (*Config, error) {
 	// Start with defaults
 	config := GetDefaults()
 
+	// Get user's home directory for path validation base
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get home directory: %w", err)
+	}
+
+	// Validate config path to prevent directory traversal
+	validatedPath, err := validation.ValidatePath(l.configPath, validation.PathValidationOptions{
+		BaseDir:        homeDir,
+		AllowAbsolute:  true,  // Config path is typically absolute (~/.glide/config.yml)
+		FollowSymlinks: true,  // Follow symlinks but validate they stay within bounds
+		RequireExists:  false, // Config file may not exist (we'll check below)
+	})
+	if err != nil {
+		return nil, fmt.Errorf("invalid config path: %w", err)
+	}
+
 	// Check if config file exists
-	if _, err := os.Stat(l.configPath); os.IsNotExist(err) {
+	if _, err := os.Stat(validatedPath); os.IsNotExist(err) {
 		// No config file is not an error, just use defaults
 		l.config = &config
 		return l.config, nil
 	}
 
 	// Read config file
-	data, err := os.ReadFile(l.configPath)
+	data, err := os.ReadFile(validatedPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read config file: %w", err)
 	}

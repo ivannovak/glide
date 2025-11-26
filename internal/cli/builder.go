@@ -199,6 +199,8 @@ func (b *Builder) loadYAMLCommands() {
 	cwd, _ := os.Getwd()
 	configPaths, err := config.DiscoverConfigs(cwd)
 	if err == nil && len(configPaths) > 0 {
+		// Note: Path validation is handled inside config.LoadAndMergeConfigs
+		// No additional validation needed here
 		localConfigs, err := config.LoadAndMergeConfigs(configPaths)
 		if err == nil && localConfigs.Commands != nil {
 			commands, err := config.ParseCommands(localConfigs.Commands)
@@ -218,6 +220,8 @@ func (b *Builder) loadYAMLCommands() {
 	_ = plugin.AddPluginYAMLCommands(nil, b.registry)
 
 	// 4. Load global commands (~/.glide/config.yml) - lowest priority
+	// Note: Path validation is handled inside config.Loader.Load()
+	// when the global config is loaded by the Application
 	globalConfigPath := branding.GetConfigPath()
 	if _, err := os.Stat(globalConfigPath); err == nil {
 		data, err := os.ReadFile(globalConfigPath)

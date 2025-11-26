@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/ivannovak/glide/v2/pkg/validation"
 )
 
 // Validator validates plugin binaries for security
@@ -31,7 +33,35 @@ func NewValidator(strict bool) *Validator {
 
 // Validate checks if a plugin is safe to load
 func (v *Validator) Validate(path string) error {
-	// 1. Check file exists
+	// 0. Validate path to prevent directory traversal
+	// Try to validate against each trusted path
+	var validatedPath string
+	var validationErr error
+
+	for _, trustedPath := range v.trustedPaths {
+		validated, err := validation.ValidatePath(path, validation.PathValidationOptions{
+			BaseDir:        trustedPath,
+			AllowAbsolute:  true, // Plugin paths can be absolute
+			FollowSymlinks: true, // Follow symlinks but validate they stay within bounds
+			RequireExists:  true, // Plugin must exist
+		})
+		if err == nil {
+			validatedPath = validated
+			validationErr = nil
+			break
+		}
+		validationErr = err
+	}
+
+	// If validation failed against all trusted paths, return the last error
+	if validationErr != nil {
+		return fmt.Errorf("invalid plugin path: %w", validationErr)
+	}
+
+	// Use validated path for all subsequent operations
+	path = validatedPath
+
+	// 1. Check file exists (already done in path validation, but get info)
 	info, err := os.Stat(path)
 	if err != nil {
 		return fmt.Errorf("plugin not found: %w", err)
