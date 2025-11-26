@@ -354,7 +354,8 @@ func TestCLIIntegration(t *testing.T) {
 		buf.Reset()
 		contextCmd.SetOut(buf)
 		contextCmd.SetErr(buf)
-		contextCmd.Run(contextCmd, []string{})
+		err = contextCmd.RunE(contextCmd, []string{})
+		require.NoError(t, err)
 
 		output := buf.String()
 		assert.Contains(t, output, "Project Context")

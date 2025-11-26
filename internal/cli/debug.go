@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"time"
 
@@ -14,13 +15,13 @@ import (
 )
 
 // showContext displays the current project context
-func showContext(cmd *cobra.Command, app *app.Application) {
+func showContext(cmd *cobra.Command, app *app.Application) error {
 	output := app.OutputManager
 	ctx := app.ProjectContext
 
 	if ctx == nil {
 		output.Info("No project context available")
-		return
+		return nil
 	}
 
 	output.Info("=== Project Context ===")
@@ -43,6 +44,8 @@ func showContext(cmd *cobra.Command, app *app.Application) {
 	if len(ctx.ComposeFiles) > 0 {
 		output.Info("Compose Files: %s", strings.Join(ctx.ComposeFiles, ", "))
 	}
+
+	return nil
 }
 
 // showConfig displays the current configuration
@@ -83,7 +86,7 @@ func showContext(cmd *cobra.Command, app *app.Application) {
 // }
 
 // testShell tests shell execution capabilities
-func testShell(cmd *cobra.Command, args []string, app *app.Application) {
+func testShell(cmd *cobra.Command, args []string, app *app.Application) error {
 	output := app.OutputManager
 	executor := app.GetShellExecutor()
 
@@ -101,9 +104,9 @@ func testShell(cmd *cobra.Command, args []string, app *app.Application) {
 
 	if err != nil {
 		output.Error("Failed: %v", err)
-	} else {
-		output.Success("Output: %s", strings.TrimSpace(string(result.Stdout)))
+		return err
 	}
+	output.Success("Output: %s", strings.TrimSpace(string(result.Stdout)))
 
 	// Test 2: Command with timeout (using context)
 	output.Info("\nTest 2: Command with timeout (using context)")
@@ -117,9 +120,9 @@ func testShell(cmd *cobra.Command, args []string, app *app.Application) {
 
 	if err != nil {
 		output.Error("Failed: %v", err)
-	} else {
-		output.Success("Completed in %v", result.Duration)
+		return err
 	}
+	output.Success("Completed in %v", result.Duration)
 
 	// Test 3: Progress indicator
 	output.Info("\nTest 3: Progress indicator")
@@ -127,16 +130,17 @@ func testShell(cmd *cobra.Command, args []string, app *app.Application) {
 	spinner.Start()
 	time.Sleep(1 * time.Second)
 	spinner.Success("Completed")
+
+	return nil
 }
 
 // testDockerResolution tests Docker compose file resolution
-func testDockerResolution(cmd *cobra.Command, args []string, app *app.Application) {
+func testDockerResolution(cmd *cobra.Command, args []string, app *app.Application) error {
 	output := app.OutputManager
 	ctx := app.ProjectContext
 
 	if ctx == nil {
-		output.Error("No project context available")
-		return
+		return fmt.Errorf("no project context available")
 	}
 
 	output.Info("=== Docker Compose Resolution Test ===")
@@ -152,30 +156,31 @@ func testDockerResolution(cmd *cobra.Command, args []string, app *app.Applicatio
 	err := resolver.Resolve()
 	if err != nil {
 		output.Error("Resolution failed: %v", err)
-		return
+		return fmt.Errorf("failed to resolve Docker compose files: %w", err)
 	}
 
 	// Show results
 	files := resolver.GetComposeFiles()
 	if len(files) == 0 {
 		output.Warning("No compose files found")
-		return
+		return nil
 	}
 
 	output.Success("Resolved %d compose file(s):", len(files))
 	for i, file := range files {
 		output.Info("  %d. %s", i+1, file)
 	}
+
+	return nil
 }
 
 // testContainerManagement tests container management capabilities
-func testContainerManagement(cmd *cobra.Command, args []string, app *app.Application) {
+func testContainerManagement(cmd *cobra.Command, args []string, app *app.Application) error {
 	output := app.OutputManager
 	ctx := app.ProjectContext
 
 	if ctx == nil {
-		output.Error("No project context available")
-		return
+		return fmt.Errorf("no project context available")
 	}
 
 	output.Info("=== Container Management Test ===")
@@ -188,11 +193,12 @@ func testContainerManagement(cmd *cobra.Command, args []string, app *app.Applica
 	containers, err := manager.GetStatus()
 	if err != nil {
 		output.Error("Status failed: %v", err)
-	} else {
-		output.Success("Found %d container(s)", len(containers))
-		for _, container := range containers {
-			output.Info("  - %s (%s): %s", container.Name, container.Service, container.State)
-		}
+		return fmt.Errorf("failed to get container status: %w", err)
+	}
+
+	output.Success("Found %d container(s)", len(containers))
+	for _, container := range containers {
+		output.Info("  - %s (%s): %s", container.Name, container.Service, container.State)
 	}
 
 	// Test checking if service is running
@@ -208,11 +214,12 @@ func testContainerManagement(cmd *cobra.Command, args []string, app *app.Applica
 	services, err := manager.GetComposeServices()
 	if err != nil {
 		output.Error("Failed to get services: %v", err)
-	} else {
-		output.Success("Found %d service(s)", len(services))
-		for _, service := range services {
-			output.Info("  - %s", service)
-		}
+		return fmt.Errorf("failed to get compose services: %w", err)
+	}
+
+	output.Success("Found %d service(s)", len(services))
+	for _, service := range services {
+		output.Info("  - %s", service)
 	}
 
 	// Test logs (dry run)
@@ -223,4 +230,6 @@ func testContainerManagement(cmd *cobra.Command, args []string, app *app.Applica
 	} else {
 		output.Warning("No containers available for log test")
 	}
+
+	return nil
 }

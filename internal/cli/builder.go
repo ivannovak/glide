@@ -144,8 +144,8 @@ func (b *Builder) addDebugCommands(rootCmd *cobra.Command) {
 		Use:          "context",
 		Short:        "Show detected project context (debug)",
 		SilenceUsage: true,
-		Run: func(cmd *cobra.Command, args []string) {
-			showContext(cmd, b.app)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return showContext(cmd, b.app)
 		},
 	})
 
@@ -154,8 +154,8 @@ func (b *Builder) addDebugCommands(rootCmd *cobra.Command) {
 		Use:          "shell-test",
 		Short:        "Test shell execution (debug)",
 		SilenceUsage: true,
-		Run: func(cmd *cobra.Command, args []string) {
-			testShell(cmd, args, b.app)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return testShell(cmd, args, b.app)
 		},
 	})
 
@@ -164,8 +164,8 @@ func (b *Builder) addDebugCommands(rootCmd *cobra.Command) {
 		Use:          "docker-test",
 		Short:        "Test Docker compose resolution (debug)",
 		SilenceUsage: true,
-		Run: func(cmd *cobra.Command, args []string) {
-			testDockerResolution(cmd, args, b.app)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return testDockerResolution(cmd, args, b.app)
 		},
 	})
 
@@ -174,8 +174,8 @@ func (b *Builder) addDebugCommands(rootCmd *cobra.Command) {
 		Use:          "container-test",
 		Short:        "Test Docker container management (debug)",
 		SilenceUsage: true,
-		Run: func(cmd *cobra.Command, args []string) {
-			testContainerManagement(cmd, args, b.app)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return testContainerManagement(cmd, args, b.app)
 		},
 	})
 }
