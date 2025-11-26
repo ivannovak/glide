@@ -7,6 +7,7 @@
 <p align="center">
   <a href="https://github.com/ivannovak/glide/releases"><img src="https://img.shields.io/github/v/release/ivannovak/glide?style=flat-square" alt="Release"></a>
   <a href="https://github.com/ivannovak/glide/actions"><img src="https://img.shields.io/github/actions/workflow/status/ivannovak/glide/ci.yml?branch=main&style=flat-square" alt="Build Status"></a>
+  <a href="https://codecov.io/gh/ivannovak/glide"><img src="https://img.shields.io/codecov/c/github/ivannovak/glide?style=flat-square" alt="Code Coverage"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="License"></a>
 </p>
 
@@ -19,7 +20,7 @@ Glide is a context-aware command orchestrator that adapts to your project enviro
 ### Why Glide?
 
 - **🎯 Context-Aware**: Automatically detects your project type and provides relevant commands
-- **🔌 Extensible**: Add custom commands through a powerful plugin system  
+- **🔌 Extensible**: Add custom commands through a powerful plugin system
 - **🌳 Worktree-Optimized**: First-class support for Git worktrees to work on multiple features simultaneously
 - **⚡ Fast**: Written in Go for instant command execution
 - **🛠️ Developer-First**: Built by developers, for developers who value efficient workflows

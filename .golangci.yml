@@ -61,15 +61,10 @@ linters:
     - unparam
 
   disable:
-    - exhaustivestruct
     - gci
     - gofmt
     - gofumpt
     - goimports
-    - golint
-    - interfacer
-    - maligned
-    - scopelint
 
 issues:
   exclude-use-default: false
@@ -79,12 +74,12 @@ issues:
       linters:
         - gosec
         - gocritic
-    
+
     # Ignore complexity in test files
     - path: _test\.go
       linters:
         - gocyclo
-    
+
     # Ignore magic numbers in tests
     - path: _test\.go
       text: "mnd:"
