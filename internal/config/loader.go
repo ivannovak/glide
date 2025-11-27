@@ -8,6 +8,7 @@ import (
 
 	"github.com/ivannovak/glide/v2/internal/context"
 	"github.com/ivannovak/glide/v2/pkg/branding"
+	"github.com/ivannovak/glide/v2/pkg/logging"
 	"github.com/ivannovak/glide/v2/pkg/validation"
 	"gopkg.in/yaml.v3"
 )
@@ -27,12 +28,15 @@ func NewLoader() *Loader {
 
 // Load loads the configuration from the config file
 func (l *Loader) Load() (*Config, error) {
+	logging.Debug("Loading configuration", "path", l.configPath)
+
 	// Start with defaults
 	config := GetDefaults()
 
 	// Get user's home directory for path validation base
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
+		logging.Error("Failed to get home directory", "error", err)
 		return nil, fmt.Errorf("failed to get home directory: %w", err)
 	}
 
@@ -44,24 +48,30 @@ func (l *Loader) Load() (*Config, error) {
 		RequireExists:  false, // Config file may not exist (we'll check below)
 	})
 	if err != nil {
+		logging.Error("Invalid config path", "path", l.configPath, "error", err)
 		return nil, fmt.Errorf("invalid config path: %w", err)
 	}
 
 	// Check if config file exists
 	if _, err := os.Stat(validatedPath); os.IsNotExist(err) {
 		// No config file is not an error, just use defaults
+		logging.Debug("Config file does not exist, using defaults", "path", validatedPath)
 		l.config = &config
 		return l.config, nil
 	}
 
+	logging.Debug("Reading config file", "path", validatedPath)
+
 	// Read config file
 	data, err := os.ReadFile(validatedPath)
 	if err != nil {
+		logging.Error("Failed to read config file", "path", validatedPath, "error", err)
 		return nil, fmt.Errorf("failed to read config file: %w", err)
 	}
 
 	// Parse YAML
 	if err := yaml.Unmarshal(data, &config); err != nil {
+		logging.Error("Failed to parse config file", "path", validatedPath, "error", err)
 		return nil, fmt.Errorf("failed to parse config file: %w", err)
 	}
 
@@ -70,9 +80,11 @@ func (l *Loader) Load() (*Config, error) {
 
 	// Validate configuration
 	if err := l.validate(&config); err != nil {
+		logging.Error("Invalid configuration", "error", err)
 		return nil, fmt.Errorf("invalid configuration: %w", err)
 	}
 
+	logging.Info("Configuration loaded successfully", "path", validatedPath)
 	l.config = &config
 	return l.config, nil
 }

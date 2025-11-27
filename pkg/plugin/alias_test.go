@@ -227,7 +227,7 @@ func TestRegistry_LoadAllWithAliases(t *testing.T) {
 	root := &cobra.Command{Use: "glid"}
 
 	// Load all plugins
-	err = registry.LoadAll(root)
+	_, err = registry.LoadAll(root)
 	assert.NoError(t, err)
 
 	// Verify command was added

@@ -63,6 +63,7 @@ func newPluginListCommand() *cobra.Command {
 
 			// Display plugins in table format
 			w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+			// Safe to ignore: Table header formatting (informational display only)
 			_, _ = fmt.Fprintln(w, "NAME\tVERSION\tDESCRIPTION\tSTATUS")
 			_, _ = fmt.Fprintln(w, "----\t-------\t-----------\t------")
 
@@ -74,6 +75,7 @@ func newPluginListCommand() *cobra.Command {
 				}
 
 				// Use metadata directly
+				// Safe to ignore: Plugin list row formatting (informational display only)
 				metadata := p.Metadata
 				_, _ = fmt.Fprintf(w, "%s\t%s\t%s\t%s\n",
 					metadata.Name,
@@ -82,6 +84,7 @@ func newPluginListCommand() *cobra.Command {
 					status,
 				)
 			}
+			// Safe to ignore: Table flush (informational display, operation continues if fails)
 			_ = w.Flush()
 
 			return nil

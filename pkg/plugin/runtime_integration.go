@@ -30,11 +30,18 @@ func NewRuntimePluginIntegration() *RuntimePluginIntegration {
 }
 
 // LoadRuntimePlugins discovers and loads all runtime plugins
-func (r *RuntimePluginIntegration) LoadRuntimePlugins(rootCmd *cobra.Command) error {
+func (r *RuntimePluginIntegration) LoadRuntimePlugins(rootCmd *cobra.Command) (*PluginLoadResult, error) {
+	result := &PluginLoadResult{
+		Loaded:   make([]string, 0),
+		Failed:   make([]PluginError, 0),
+		Warnings: make([]string, 0),
+	}
+
 	// Discover plugins
 	if err := r.manager.DiscoverPlugins(); err != nil {
-		// Don't fail if no plugins found
-		return nil
+		// Don't fail if no plugins found - just return empty result
+		result.Warnings = append(result.Warnings, fmt.Sprintf("No runtime plugins discovered: %v", err))
+		return result, nil
 	}
 
 	// Get all loaded plugins
@@ -43,12 +50,19 @@ func (r *RuntimePluginIntegration) LoadRuntimePlugins(rootCmd *cobra.Command) er
 	// Add commands from each plugin
 	for _, plugin := range plugins {
 		if err := r.addPluginCommands(rootCmd, plugin); err != nil {
-			// Log error but continue loading other plugins
-			fmt.Fprintf(os.Stderr, "Warning: failed to add commands from plugin %s: %v\n", plugin.Name, err)
+			// Collect error but continue loading other plugins
+			result.Failed = append(result.Failed, PluginError{
+				Name:    plugin.Name,
+				Error:   fmt.Errorf("failed to add commands: %w", err),
+				IsFatal: false,
+			})
+		} else {
+			// Successfully loaded
+			result.Loaded = append(result.Loaded, plugin.Name)
 		}
 	}
 
-	return nil
+	return result, nil
 }
 
 // addPluginCommands adds commands from a plugin to the root command
@@ -67,8 +81,11 @@ func (r *RuntimePluginIntegration) addPluginCommands(rootCmd *cobra.Command, plu
 	metadata := plugin.Metadata
 
 	// Get custom categories if the plugin defines them
-	customCategories, _ := glidePlugin.GetCustomCategories(ctx, &v1.Empty{})
-	if customCategories != nil && len(customCategories.Categories) > 0 {
+	customCategories, err := glidePlugin.GetCustomCategories(ctx, &v1.Empty{})
+	if err != nil {
+		// Log warning but continue - custom categories are optional
+		fmt.Fprintf(os.Stderr, "Warning: failed to get custom categories from plugin %s: %v\n", plugin.Name, err)
+	} else if customCategories != nil && len(customCategories.Categories) > 0 {
 		// Register custom categories with the help system
 		r.registerCustomCategories(customCategories.Categories)
 	}
@@ -257,7 +274,7 @@ func (r *RuntimePluginIntegration) executeInteractiveCommand(ctx context.Context
 }
 
 // LoadAllRuntimePlugins is the main entry point for loading runtime plugins
-func LoadAllRuntimePlugins(rootCmd *cobra.Command) error {
+func LoadAllRuntimePlugins(rootCmd *cobra.Command) (*PluginLoadResult, error) {
 	integration := NewRuntimePluginIntegration()
 	return integration.LoadRuntimePlugins(rootCmd)
 }

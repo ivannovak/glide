@@ -126,12 +126,15 @@ func TestRegistry(t *testing.T) {
 
 		// Load all plugins
 		root := &cobra.Command{Use: "test"}
-		err = reg.LoadAll(root)
+		result, err := reg.LoadAll(root)
 		require.NoError(t, err)
+		require.NotNil(t, result)
 
 		// Plugin should be configured and registered
 		assert.True(t, p.Configured)
 		assert.True(t, p.Registered)
+		assert.Contains(t, result.Loaded, "test-plugin")
+		assert.Empty(t, result.Failed)
 	})
 
 	t.Run("load all with configure error", func(t *testing.T) {
@@ -143,10 +146,17 @@ func TestRegistry(t *testing.T) {
 		require.NoError(t, err)
 
 		root := &cobra.Command{Use: "test"}
-		err = reg.LoadAll(root)
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "failed to configure plugin")
-		assert.Contains(t, err.Error(), "config error")
+		result, err := reg.LoadAll(root)
+		require.NoError(t, err) // No fatal error
+		require.NotNil(t, result)
+
+		// Error should be collected in result
+		assert.True(t, result.HasErrors())
+		assert.Len(t, result.Failed, 1)
+		assert.Equal(t, "test-plugin", result.Failed[0].Name)
+		assert.Contains(t, result.Failed[0].Error.Error(), "failed to configure")
+		assert.Contains(t, result.Failed[0].Error.Error(), "config error")
+		assert.False(t, result.Failed[0].IsFatal)
 	})
 
 	t.Run("load all with register error", func(t *testing.T) {
@@ -158,10 +168,17 @@ func TestRegistry(t *testing.T) {
 		require.NoError(t, err)
 
 		root := &cobra.Command{Use: "test"}
-		err = reg.LoadAll(root)
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "failed to register plugin")
-		assert.Contains(t, err.Error(), "register error")
+		result, err := reg.LoadAll(root)
+		require.NoError(t, err) // No fatal error
+		require.NotNil(t, result)
+
+		// Error should be collected in result
+		assert.True(t, result.HasErrors())
+		assert.Len(t, result.Failed, 1)
+		assert.Equal(t, "test-plugin", result.Failed[0].Name)
+		assert.Contains(t, result.Failed[0].Error.Error(), "failed to register commands")
+		assert.Contains(t, result.Failed[0].Error.Error(), "register error")
+		assert.False(t, result.Failed[0].IsFatal)
 	})
 }
 
@@ -202,12 +219,14 @@ func TestGlobalRegistry(t *testing.T) {
 
 		// Load all globally
 		root := &cobra.Command{Use: "test"}
-		err = plugin.LoadAll(root)
+		result, err := plugin.LoadAll(root)
 		// This might fail if other tests have registered plugins with errors
 		// In a real scenario, you'd want to clean the global registry between tests
 		if err == nil {
 			assert.True(t, p.Configured)
 			assert.True(t, p.Registered)
+			assert.NotNil(t, result)
+			assert.Contains(t, result.Loaded, "global-test-plugin")
 		}
 	})
 
@@ -290,5 +309,128 @@ func TestRegistryConcurrency(t *testing.T) {
 		for i := 0; i < 20; i++ {
 			<-done
 		}
+	})
+}
+
+func TestPluginLoadResult(t *testing.T) {
+	t.Run("empty result has no errors", func(t *testing.T) {
+		result := &plugin.PluginLoadResult{
+			Loaded:   []string{},
+			Failed:   []plugin.PluginError{},
+			Warnings: []string{},
+		}
+
+		assert.False(t, result.HasErrors())
+		assert.False(t, result.HasFatalErrors())
+		assert.Empty(t, result.ErrorMessage())
+	})
+
+	t.Run("successful loads", func(t *testing.T) {
+		result := &plugin.PluginLoadResult{
+			Loaded:   []string{"plugin1", "plugin2", "plugin3"},
+			Failed:   []plugin.PluginError{},
+			Warnings: []string{},
+		}
+
+		assert.False(t, result.HasErrors())
+		assert.False(t, result.HasFatalErrors())
+		assert.Empty(t, result.ErrorMessage())
+	})
+
+	t.Run("non-fatal errors", func(t *testing.T) {
+		result := &plugin.PluginLoadResult{
+			Loaded: []string{"plugin1"},
+			Failed: []plugin.PluginError{
+				{
+					Name:    "plugin2",
+					Error:   errors.New("config failed"),
+					IsFatal: false,
+				},
+				{
+					Name:    "plugin3",
+					Error:   errors.New("register failed"),
+					IsFatal: false,
+				},
+			},
+			Warnings: []string{},
+		}
+
+		assert.True(t, result.HasErrors())
+		assert.False(t, result.HasFatalErrors())
+
+		msg := result.ErrorMessage()
+		assert.Contains(t, msg, "Plugin loading issues")
+		assert.Contains(t, msg, "plugin2")
+		assert.Contains(t, msg, "config failed")
+		assert.Contains(t, msg, "plugin3")
+		assert.Contains(t, msg, "register failed")
+		assert.Contains(t, msg, "Successfully loaded 1 plugins: plugin1")
+	})
+
+	t.Run("fatal errors", func(t *testing.T) {
+		result := &plugin.PluginLoadResult{
+			Loaded: []string{},
+			Failed: []plugin.PluginError{
+				{
+					Name:    "plugin1",
+					Error:   errors.New("critical error"),
+					IsFatal: true,
+				},
+			},
+			Warnings: []string{},
+		}
+
+		assert.True(t, result.HasErrors())
+		assert.True(t, result.HasFatalErrors())
+
+		msg := result.ErrorMessage()
+		assert.Contains(t, msg, "FATAL")
+		assert.Contains(t, msg, "plugin1")
+		assert.Contains(t, msg, "critical error")
+	})
+
+	t.Run("mixed fatal and non-fatal errors", func(t *testing.T) {
+		result := &plugin.PluginLoadResult{
+			Loaded: []string{"plugin1"},
+			Failed: []plugin.PluginError{
+				{
+					Name:    "plugin2",
+					Error:   errors.New("non-fatal"),
+					IsFatal: false,
+				},
+				{
+					Name:    "plugin3",
+					Error:   errors.New("fatal"),
+					IsFatal: true,
+				},
+			},
+			Warnings: []string{},
+		}
+
+		assert.True(t, result.HasErrors())
+		assert.True(t, result.HasFatalErrors())
+
+		msg := result.ErrorMessage()
+		assert.Contains(t, msg, "warning")
+		assert.Contains(t, msg, "FATAL")
+	})
+
+	t.Run("error message format", func(t *testing.T) {
+		result := &plugin.PluginLoadResult{
+			Loaded: []string{"plugin1", "plugin2"},
+			Failed: []plugin.PluginError{
+				{
+					Name:    "plugin3",
+					Error:   errors.New("test error"),
+					IsFatal: false,
+				},
+			},
+			Warnings: []string{},
+		}
+
+		msg := result.ErrorMessage()
+		assert.Contains(t, msg, "Plugin loading issues:")
+		assert.Contains(t, msg, "[warning] plugin3: test error")
+		assert.Contains(t, msg, "Successfully loaded 2 plugins: plugin1, plugin2")
 	})
 }

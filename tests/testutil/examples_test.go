@@ -86,8 +86,9 @@ func ExampleNewTestConfig_customized() {
 }
 
 // Note: Application factories are not provided to avoid import cycles.
-// Tests that need Application can create them directly using app.NewApplication()
-// with testutil fixtures for Context and Config.
+// Application is deprecated - use direct dependency injection instead.
+// Tests should pass outputManager, projectContext, and config directly to constructors
+// using testutil fixtures (NewTestContext, NewTestConfig, output.NewManager).
 
 // TestAssertions demonstrates the assertion helpers
 func TestAssertions(t *testing.T) {

@@ -120,7 +120,7 @@ func (h *TestHarness) AssertCommandNotExists(cmdPath ...string) {
 }
 
 // LoadAllPlugins loads all registered plugins
-func (h *TestHarness) LoadAllPlugins() error {
+func (h *TestHarness) LoadAllPlugins() (*plugin.PluginLoadResult, error) {
 	return h.Registry.LoadAll(h.RootCmd)
 }
 

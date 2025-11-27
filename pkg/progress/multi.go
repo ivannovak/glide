@@ -182,20 +182,24 @@ func (m *Multi) render() {
 	// Move cursor to start position
 	if m.lines > 0 {
 		// Move up to the first line
+		// Safe to ignore: ANSI cursor movement for multi-progress display (cosmetic only)
 		_, _ = fmt.Fprintf(m.writer, "\033[%dA", m.lines)
 	}
 
 	// Render each item
 	for i, item := range m.items {
 		// Clear line
+		// Safe to ignore: ANSI clear line for multi-progress (visual only)
 		_, _ = fmt.Fprintf(m.writer, "\r\033[K")
 
 		// Render item
 		line := m.renderItem(item)
+		// Safe to ignore: Multi-progress item rendering (cosmetic, doesn't affect operation)
 		_, _ = fmt.Fprint(m.writer, line)
 
 		// Move to next line (except for last item)
 		if i < len(m.items)-1 {
+			// Safe to ignore: Newline for multi-progress layout (visual only)
 			_, _ = fmt.Fprintln(m.writer)
 		}
 	}
@@ -303,19 +307,23 @@ func (m *Multi) renderBar(b *Bar) string {
 func (m *Multi) clearAll() {
 	// Move to start
 	if m.lines > 0 {
+		// Safe to ignore: ANSI cursor movement for cleanup (cosmetic only)
 		_, _ = fmt.Fprintf(m.writer, "\033[%dA", m.lines)
 	}
 
 	// Clear each line
 	for i := 0; i <= m.lines; i++ {
+		// Safe to ignore: ANSI clear line for cleanup (visual only)
 		_, _ = fmt.Fprintf(m.writer, "\r\033[K")
 		if i < m.lines {
+			// Safe to ignore: Newline for clearing multi-progress (cosmetic only)
 			_, _ = fmt.Fprintln(m.writer)
 		}
 	}
 
 	// Move back to start
 	if m.lines > 0 {
+		// Safe to ignore: ANSI cursor reset for cleanup (visual only)
 		_, _ = fmt.Fprintf(m.writer, "\033[%dA", m.lines)
 	}
 }
@@ -328,10 +336,12 @@ func (m *Multi) Complete() {
 		// Show completion messages for each item
 		for _, item := range m.items {
 			if item.typ == "spinner" {
+				// Safe to ignore: Completion message formatting (informational only)
 				_, _ = fmt.Fprintf(m.writer, "%s %s\n",
 					color.GreenString("✓"),
 					item.spinner.message)
 			} else if item.typ == "bar" {
+				// Safe to ignore: Completion summary formatting (informational only)
 				_, _ = fmt.Fprintf(m.writer, "%s %s (%d/%d)\n",
 					color.GreenString("✓"),
 					item.bar.message,

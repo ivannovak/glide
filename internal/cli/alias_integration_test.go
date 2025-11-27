@@ -2,19 +2,24 @@ package cli
 
 import (
 	"bytes"
+	"os"
 	"testing"
 
-	"github.com/ivannovak/glide/v2/pkg/app"
+	"github.com/ivannovak/glide/v2/internal/config"
+	"github.com/ivannovak/glide/v2/internal/context"
+	"github.com/ivannovak/glide/v2/pkg/output"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestCLI_AliasIntegration(t *testing.T) {
-	// Create a test application
-	application := app.NewApplication()
+	// Create test dependencies
+	outputManager := output.NewManager(output.FormatTable, false, false, os.Stdout)
+	projectContext := &context.ProjectContext{}
+	cfg := &config.Config{}
 
-	// Create CLI and builder
-	cli := New(application)
+	// Create CLI
+	cli := New(outputManager, projectContext, cfg)
 
 	// Build root command
 	rootCmd := &cobra.Command{
@@ -38,11 +43,13 @@ func TestCLI_AliasIntegration(t *testing.T) {
 }
 
 func TestCLI_AliasExecution(t *testing.T) {
-	// Create a test application
-	application := app.NewApplication()
+	// Create test dependencies
+	outputManager := output.NewManager(output.FormatTable, false, false, os.Stdout)
+	projectContext := &context.ProjectContext{}
+	cfg := &config.Config{}
 
 	// Create a builder with a test command
-	builder := NewBuilder(application)
+	builder := NewBuilder(projectContext, cfg, outputManager)
 
 	// Register a test command with alias
 	testExecuted := false
@@ -82,9 +89,11 @@ func TestCLI_AliasExecution(t *testing.T) {
 }
 
 func TestCLI_AliasHelp(t *testing.T) {
-	// Create a builder with test commands
-	application := app.NewApplication()
-	builder := NewBuilder(application)
+	// Create test dependencies and builder
+	outputManager := output.NewManager(output.FormatTable, false, false, os.Stdout)
+	projectContext := &context.ProjectContext{}
+	cfg := &config.Config{}
+	builder := NewBuilder(projectContext, cfg, outputManager)
 
 	// Register a command with multiple aliases
 	builder.registry.Register("migrate", func() *cobra.Command {
@@ -124,8 +133,10 @@ func TestCLI_AliasHelp(t *testing.T) {
 
 func TestBuilder_RegisteredAliases(t *testing.T) {
 	// Create a real builder and verify it has the expected aliases
-	application := app.NewApplication()
-	builder := NewBuilder(application)
+	outputManager := output.NewManager(output.FormatTable, false, false, os.Stdout)
+	projectContext := &context.ProjectContext{}
+	cfg := &config.Config{}
+	builder := NewBuilder(projectContext, cfg, outputManager)
 
 	// Check that self-update has aliases 'update' and 'upgrade'
 	meta, exists := builder.registry.GetMetadata("self-update")

@@ -1,25 +1,32 @@
 package cli
 
 import (
+	"os"
 	"testing"
 
-	"github.com/ivannovak/glide/v2/pkg/app"
+	"github.com/ivannovak/glide/v2/internal/config"
+	"github.com/ivannovak/glide/v2/internal/context"
+	"github.com/ivannovak/glide/v2/pkg/output"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNewBuilder(t *testing.T) {
-	application := &app.Application{}
+	projectContext := &context.ProjectContext{}
+	cfg := &config.Config{}
+	outputManager := output.NewManager(output.FormatTable, false, false, os.Stdout)
 
-	builder := NewBuilder(application)
+	builder := NewBuilder(projectContext, cfg, outputManager)
 
 	assert.NotNil(t, builder)
 	assert.NotNil(t, builder.GetRegistry())
 }
 
 func TestBuilder_Build(t *testing.T) {
-	application := &app.Application{}
+	projectContext := &context.ProjectContext{}
+	cfg := &config.Config{}
+	outputManager := output.NewManager(output.FormatTable, false, false, os.Stdout)
 
-	builder := NewBuilder(application)
+	builder := NewBuilder(projectContext, cfg, outputManager)
 	rootCmd := builder.Build()
 
 	assert.NotNil(t, rootCmd)
@@ -28,9 +35,11 @@ func TestBuilder_Build(t *testing.T) {
 }
 
 func TestBuilder_RegisterCommands(t *testing.T) {
-	application := &app.Application{}
+	projectContext := &context.ProjectContext{}
+	cfg := &config.Config{}
+	outputManager := output.NewManager(output.FormatTable, false, false, os.Stdout)
 
-	builder := NewBuilder(application)
+	builder := NewBuilder(projectContext, cfg, outputManager)
 	registry := builder.GetRegistry()
 
 	// Check that commands are registered
@@ -52,18 +61,22 @@ func TestBuilder_RegisterCommands(t *testing.T) {
 }
 
 func TestBuilder_GetRegistry(t *testing.T) {
-	application := &app.Application{}
+	projectContext := &context.ProjectContext{}
+	cfg := &config.Config{}
+	outputManager := output.NewManager(output.FormatTable, false, false, os.Stdout)
 
-	builder := NewBuilder(application)
+	builder := NewBuilder(projectContext, cfg, outputManager)
 	registry := builder.GetRegistry()
 
 	assert.NotNil(t, registry)
 }
 
 func TestBuilder_CommandCategories(t *testing.T) {
-	application := &app.Application{}
+	projectContext := &context.ProjectContext{}
+	cfg := &config.Config{}
+	outputManager := output.NewManager(output.FormatTable, false, false, os.Stdout)
 
-	builder := NewBuilder(application)
+	builder := NewBuilder(projectContext, cfg, outputManager)
 	registry := builder.GetRegistry()
 
 	// Check core commands
@@ -85,9 +98,11 @@ func TestBuilder_CommandCategories(t *testing.T) {
 }
 
 func TestBuilder_CommandMetadata(t *testing.T) {
-	application := &app.Application{}
+	projectContext := &context.ProjectContext{}
+	cfg := &config.Config{}
+	outputManager := output.NewManager(output.FormatTable, false, false, os.Stdout)
 
-	builder := NewBuilder(application)
+	builder := NewBuilder(projectContext, cfg, outputManager)
 	registry := builder.GetRegistry()
 
 	// Check setup command metadata
@@ -106,9 +121,11 @@ func TestBuilder_CommandMetadata(t *testing.T) {
 }
 
 func TestBuilder_CreateCommands(t *testing.T) {
-	application := &app.Application{}
+	projectContext := &context.ProjectContext{}
+	cfg := &config.Config{}
+	outputManager := output.NewManager(output.FormatTable, false, false, os.Stdout)
 
-	builder := NewBuilder(application)
+	builder := NewBuilder(projectContext, cfg, outputManager)
 	registry := builder.GetRegistry()
 
 	// Test creating all commands

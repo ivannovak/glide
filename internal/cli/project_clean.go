@@ -162,11 +162,22 @@ func (c *ProjectCleanCommand) promptForCleanup() (orphaned, volumes, images bool
 	output.Info("What would you like to clean?")
 	output.Println()
 
-	orphaned, _ = prompt.Confirm("Remove orphaned containers?", true)
-	images, _ = prompt.Confirm("Remove dangling images?", true)
+	orphaned, err := prompt.Confirm("Remove orphaned containers?", true)
+	if err != nil {
+		return false, false, false
+	}
+
+	images, err = prompt.Confirm("Remove dangling images?", true)
+	if err != nil {
+		return false, false, false
+	}
 
 	// For volumes, use destructive confirmation since it can cause data loss
-	if confirmed, _ := prompt.ConfirmDestructive("remove unused volumes"); confirmed {
+	confirmed, err := prompt.ConfirmDestructive("remove unused volumes")
+	if err != nil {
+		return false, false, false
+	}
+	if confirmed {
 		volumes = true
 	}
 

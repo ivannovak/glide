@@ -430,6 +430,151 @@ container.New()
 
 ---
 
-**Status:** Accepted
-**Version:** 1.0
-**Last Updated:** 2025-11-26
+## Migration Status
+
+**Status:** ✅ Phase 1 Complete (Task 1.3)
+**Completed:** 2025-11-27
+**Production Migration:** Complete
+**Deprecation Timeline:** v3.0.0
+
+### Completed Work
+
+#### Task 1.1: DI Container Implementation ✅
+- ✅ Created `pkg/container` package with uber-fx integration
+- ✅ Implemented all core providers (Logger, Config, Context, Output, Shell, Plugin)
+- ✅ Added lifecycle management with startup/shutdown hooks
+- ✅ Created testing support with fx.Populate and override options
+- ✅ All tests passing (73.8% coverage on container package)
+
+#### Task 1.3: God Object Removal ✅
+- ✅ **Subtask 1.3.1:** Audited all Application usages (9 files, 96 instances)
+- ✅ **Subtask 1.3.2:** Refactored CLI package to accept dependencies directly
+  - `internal/cli/cli.go` - CLI now accepts outputManager, projectContext, config
+  - `internal/cli/builder.go` - Builder now accepts dependencies
+  - `internal/cli/base.go` - BaseCommand now accepts dependencies
+  - `internal/cli/debug.go` - Debug functions accept individual dependencies
+- ✅ **Subtask 1.3.3:** Updated `cmd/glide/main.go` to create dependencies directly
+  - No longer uses Application
+  - Creates dependencies: outputManager, ctx, cfg
+  - Passes to CLI constructor
+- ✅ **Subtask 1.3.4:** Updated all test files
+  - `internal/cli/cli_test.go` - All 10 test functions migrated
+  - `internal/cli/builder_test.go` - All 6 test functions migrated
+  - `internal/cli/base_test.go` - All 6 test functions migrated
+  - `internal/cli/alias_integration_test.go` - All 4 test functions migrated
+  - `tests/testutil/examples_test.go` - Updated documentation comment
+- ✅ **Subtask 1.3.5:** Marked Application for full deprecation
+  - Added v3.0.0 removal timeline to all types and functions
+  - Updated all deprecation comments with migration guide reference
+  - Added inline migration examples
+
+### Production Code Status
+
+- ✅ No production code imports `pkg/app` (except pkg/app itself)
+- ✅ All dependencies passed explicitly via constructors
+- ✅ Application marked for removal in v3.0.0
+- ✅ All tests passing (68 CLI tests + all package tests)
+- ✅ Migration documented in this ADR
+
+### Backward Compatibility
+
+The `pkg/app/Application` type remains for backward compatibility:
+- **Status:** Deprecated with v3.0.0 removal timeline
+- **Uses DI Container Internally:** For users who haven't migrated yet
+- **Shim Layer:** Maintains identical API for existing code
+- **Tests:** Application tests verify backward compatibility
+
+All deprecation comments include:
+- Clear removal version (v3.0.0)
+- Migration guide reference (this ADR)
+- Inline migration examples
+
+### Migration Guide
+
+#### For Application Users
+
+**Old Pattern:**
+```go
+app := app.NewApplication(
+    app.WithOutputFormat(output.FormatJSON, false, false),
+    app.WithProjectContext(ctx),
+)
+cli := New(app)
+```
+
+**New Pattern:**
+```go
+outputMgr := output.NewManager(output.FormatJSON, false, false, os.Stdout)
+ctx, _ := context.DetectWithExtensions()
+cfg, _ := config.Load()
+cli := New(outputMgr, ctx, cfg)
+```
+
+#### For CLI Constructors
+
+**Old:**
+```go
+func New(app *app.Application) *CLI {
+    return &CLI{app: app}
+}
+```
+
+**New:**
+```go
+func New(
+    outputManager *output.Manager,
+    projectContext *context.ProjectContext,
+    config *config.Config,
+) *CLI {
+    return &CLI{
+        outputManager:  outputManager,
+        projectContext: projectContext,
+        config:         config,
+    }
+}
+```
+
+### Validation Results
+
+All acceptance criteria met:
+
+- ✅ Container package compiles and passes all tests
+- ✅ All existing tests pass with backward compat shim
+- ✅ Container initialization <10ms (tested)
+- ✅ Coverage 73.8% on container package (above 20% gate, target 80%)
+- ✅ Zero linter warnings
+- ✅ ADR approved and implemented
+- ✅ Migration guide written (above)
+
+### Commands Used for Validation
+
+```bash
+# Build test
+go build -o ./glide-test cmd/glide/main.go
+# ✅ Build successful
+
+# Smoke tests
+./glide-test version
+./glide-test context
+# ✅ All commands working
+
+# Test suite
+go test ./internal/cli/... -v
+# ✅ All 68 tests passing
+
+go test ./pkg/app/... -v
+# ✅ Backward compatibility maintained
+
+# Check for Application usage in production code
+grep -r "app\.Application" internal/ cmd/ --include="*.go" | grep -v "_test.go" | grep -v "// Deprecated"
+# ✅ Only comment references (old code examples)
+
+grep -r '"github.com/ivannovak/glide/v2/pkg/app"' internal/ cmd/ --include="*.go" | grep -v "_test.go"
+# ✅ No imports found
+```
+
+---
+
+**Status:** Implemented
+**Version:** 2.0
+**Last Updated:** 2025-11-27

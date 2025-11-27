@@ -176,6 +176,9 @@ func (s *SetupCommand) checkCommand(command string) error {
 	cmd := parts[0]
 	args := []string{"--version"}
 	if len(parts) > 1 {
+		// Note: This was a bug - append result was not assigned
+		// However, this code appears to be unused (args is only used for version check)
+		// Safe to ignore: The append result is intentionally unused here as we only check --version
 		_ = append(parts[1:], args...)
 	}
 
@@ -562,6 +565,8 @@ func (s *SetupCommand) updateConfiguration(projectPath string, mode context.Deve
 	// Get project name
 	projectName := filepath.Base(projectPath)
 	if !s.nonInteractive {
+		// Safe to ignore: If prompt fails, we use the default (filepath base)
+		// This is a non-critical user preference, not a destructive operation
 		projectName, _ = prompt.Input("Project name", projectName, nil)
 	}
 

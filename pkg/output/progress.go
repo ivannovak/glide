@@ -64,10 +64,14 @@ func (s *Spinner) Start() {
 			select {
 			case <-s.stop:
 				// Clear the spinner line
+				// Safe to ignore: Writing to stdout/stderr rarely fails. If it does,
+				// the worst case is visual artifacts (functionality unaffected).
 				_, _ = fmt.Fprintf(s.writer, "\r%s\r", strings.Repeat(" ", len(s.frames[i])+len(s.message)+2))
 				return
 			case <-ticker.C:
 				frame := s.frames[i%len(s.frames)]
+				// Safe to ignore: Spinner display errors don't affect program operation.
+				// Errors would only occur if output is redirected or terminal closed.
 				_, _ = fmt.Fprintf(s.writer, "\r%s %s", InfoText("%s", frame), s.message)
 				i++
 			}
@@ -170,10 +174,13 @@ func (p *ProgressBar) draw() {
 		p.total,
 	)
 
+	// Safe to ignore: Progress bar display errors don't affect program operation.
+	// Writing to stdout/stderr rarely fails, worst case is missing visual feedback.
 	_, _ = fmt.Fprint(p.writer, output)
 
 	// Add newline when complete
 	if p.current >= p.total {
+		// Safe to ignore: Newline formatting error (cosmetic only)
 		_, _ = fmt.Fprintln(p.writer)
 	}
 }
@@ -184,6 +191,7 @@ func (p *ProgressBar) Clear() {
 	defer p.mu.Unlock()
 
 	// Clear the line
+	// Safe to ignore: Progress bar clear errors are cosmetic (functionality unaffected)
 	_, _ = fmt.Fprintf(p.writer, "\r%s\r", strings.Repeat(" ", p.width+len(p.message)+20))
 }
 
@@ -231,6 +239,7 @@ func (p *IndeterminateProgress) Start() {
 			select {
 			case <-p.stop:
 				// Clear the progress line
+				// Safe to ignore: Clearing progress indicator (cosmetic only)
 				_, _ = fmt.Fprintf(p.writer, "\r%s\r", strings.Repeat(" ", width+len(p.message)+10))
 				return
 			case <-ticker.C:
@@ -248,6 +257,7 @@ func (p *IndeterminateProgress) Start() {
 
 				bar.WriteString("]")
 
+				// Safe to ignore: Indeterminate progress display errors (visual only, doesn't affect operation)
 				_, _ = fmt.Fprintf(p.writer, "\r%s %s", p.message, bar.String())
 
 				// Update position

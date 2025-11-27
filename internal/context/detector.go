@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+
+	"github.com/ivannovak/glide/v2/pkg/logging"
 )
 
 // Detector is a refactored context detector using composition
@@ -85,6 +87,8 @@ func (d *Detector) SetExtensionRegistry(registry ExtensionRegistry) {
 
 // Detect analyzes the current environment and returns project context
 func (d *Detector) Detect() (*ProjectContext, error) {
+	logging.Debug("Detecting project context", "workingDir", d.workingDir)
+
 	ctx := &ProjectContext{
 		WorkingDir: d.workingDir,
 		Extensions: make(map[string]interface{}),
@@ -93,22 +97,27 @@ func (d *Detector) Detect() (*ProjectContext, error) {
 	// Find project root
 	projectRoot, err := d.rootFinder.FindRoot(d.workingDir)
 	if err != nil {
+		logging.Error("Failed to find project root", "workingDir", d.workingDir, "error", err)
 		ctx.Error = err
 		return ctx, err
 	}
 	ctx.ProjectRoot = projectRoot
+	logging.Debug("Found project root", "root", projectRoot)
 
 	// Detect development mode
 	ctx.DevelopmentMode = d.modeDetector.DetectMode(ctx.ProjectRoot)
+	logging.Debug("Detected development mode", "mode", ctx.DevelopmentMode)
 
 	// Identify current location
 	ctx.Location = d.locationIdentifier.IdentifyLocation(ctx, d.workingDir)
+	logging.Debug("Identified location", "location", ctx.Location)
 
 	// Detect plugin-provided context extensions
 	if d.extensionRegistry != nil {
 		extensions, err := d.extensionRegistry.DetectAll(ctx.ProjectRoot)
 		if err == nil && extensions != nil {
 			ctx.Extensions = extensions
+			logging.Debug("Detected context extensions", "count", len(extensions))
 		}
 	}
 
@@ -118,11 +127,15 @@ func (d *Detector) Detect() (*ProjectContext, error) {
 	// Resolve docker-compose files (legacy fallback)
 	if len(ctx.ComposeFiles) == 0 {
 		ctx.ComposeFiles = d.composeResolver.ResolveFiles(ctx)
+		if len(ctx.ComposeFiles) > 0 {
+			logging.Debug("Resolved compose files", "count", len(ctx.ComposeFiles))
+		}
 	}
 
 	// Check Docker daemon status (legacy fallback)
 	if !ctx.DockerRunning {
 		d.checkDockerStatus(ctx)
+		logging.Debug("Docker status checked", "running", ctx.DockerRunning)
 	}
 
 	// Update extensions from compatibility fields

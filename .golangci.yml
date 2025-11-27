@@ -41,6 +41,14 @@ linters-settings:
   revive:
     min-confidence: 0.8
 
+  forbidigo:
+    forbid:
+      - p: 'context\.WithValue'
+        msg: 'context.WithValue is an anti-pattern for domain data. Use explicit parameters, struct fields, or dependency injection. See docs/development/CONTEXT_GUIDELINES.md'
+      - p: '\.Value\('
+        pkg: '^context$'
+        msg: 'ctx.Value is an anti-pattern for domain data. Use explicit parameters, struct fields, or dependency injection. See docs/development/CONTEXT_GUIDELINES.md'
+
 linters:
   enable:
     - errcheck
@@ -59,6 +67,7 @@ linters:
     - revive
     - unconvert
     - unparam
+    - forbidigo
 
   disable:
     - gci

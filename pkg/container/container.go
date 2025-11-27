@@ -144,6 +144,8 @@ func (c *Container) Run(ctx context.Context, fn func() error) error {
 	defer func() {
 		stopCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
+		// Safe to ignore: Container cleanup in defer, errors would be logged by Stop()
+		// We're already in cleanup path, nothing useful to do with error here
 		_ = c.Stop(stopCtx)
 	}()
 
@@ -151,20 +153,16 @@ func (c *Container) Run(ctx context.Context, fn func() error) error {
 	return fn()
 }
 
-// Invoke runs a function with dependencies injected from the container.
+// Populate extracts dependencies from the container into the provided targets.
 //
-// This is useful for extracting dependencies after container creation.
-// The container must be started first.
+// This must be called during container creation via fx.Populate.
+// It's used internally by the backward compatibility shim.
 //
 // Example:
 //
-//	c.Start(ctx)
-//	defer c.Stop(ctx)
-//	err := c.Invoke(func(l *logging.Logger) {
-//	    // use logger
-//	})
-func (c *Container) Invoke(fn interface{}) error {
-	// fx.App doesn't expose Invoke directly, so we need to extract during Start
-	// This is a limitation - users should get dependencies via Run() or provider extraction
-	return fmt.Errorf("Invoke not supported - extract dependencies in Run() function instead")
+//	var logger *logging.Logger
+//	c, _ := container.New(fx.Populate(&logger))
+//	// logger is now populated
+func (c *Container) Populate(targets ...interface{}) fx.Option {
+	return fx.Populate(targets...)
 }

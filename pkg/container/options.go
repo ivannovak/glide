@@ -51,7 +51,7 @@ func WithWriter(w io.Writer) Option {
 //	testCfg := &config.Config{}
 //	c, _ := container.New(container.WithConfig(testCfg))
 func WithConfig(cfg *config.Config) Option {
-	return fx.Replace(func() (*config.Config, error) {
+	return fx.Replace(func(params ConfigParams) (*config.Config, error) {
 		return cfg, nil
 	})
 }
@@ -65,7 +65,7 @@ func WithConfig(cfg *config.Config) Option {
 //	testCtx := &context.ProjectContext{}
 //	c, _ := container.New(container.WithProjectContext(testCtx))
 func WithProjectContext(ctx *context.ProjectContext) Option {
-	return fx.Replace(func() (*context.ProjectContext, error) {
+	return fx.Replace(func(params ProjectContextParams) (*context.ProjectContext, error) {
 		return ctx, nil
 	})
 }

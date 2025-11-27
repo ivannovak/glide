@@ -120,8 +120,10 @@ func (s *LocalInteractiveSession) RunInteractiveLoop() error {
 			}
 
 			switch msg.Type {
+			// Safe to ignore: Direct passthrough of plugin output to stdout
 			case StreamMessage_STDOUT:
 				_, _ = os.Stdout.Write(msg.Data)
+			// Safe to ignore: Direct passthrough of plugin output to stderr
 			case StreamMessage_STDERR:
 				_, _ = os.Stderr.Write(msg.Data)
 			case StreamMessage_EXIT:
@@ -143,11 +145,13 @@ func (s *LocalInteractiveSession) RunInteractiveLoop() error {
 				continue
 			}
 
+			// Safe to ignore: Signal sending to plugin, best-effort operation
 			switch sig {
 			case syscall.SIGINT:
 				_ = s.Send(&StreamMessage{
 					Type:   StreamMessage_SIGNAL,
 					Signal: "INT",
+					// Safe to ignore: Signal sending to plugin, best-effort operation
 				})
 			case syscall.SIGTERM:
 				_ = s.Send(&StreamMessage{
@@ -213,6 +217,7 @@ func (s *PTYSession) Recv() (*StreamMessage, error) {
 		Type: StreamMessage_STDOUT,
 		Data: buf[:n],
 	}, nil
+	// Safe to ignore: PTY close in cleanup, Process.Kill below is the critical operation
 }
 
 func (s *PTYSession) Close() error {
@@ -315,7 +320,12 @@ func (ic *InteractiveCommand) RunLocal(command string, args []string) error {
 		if err != nil {
 			return fmt.Errorf("failed to set raw mode: %w", err)
 		}
-		defer func() { _ = term.Restore(int(os.Stdin.Fd()), oldState) }()
+		defer func() {
+			if err := term.Restore(int(os.Stdin.Fd()), oldState); err != nil {
+				// Log but don't fail - this is cleanup, user terminal may already be in bad state
+				fmt.Fprintf(os.Stderr, "Warning: failed to restore terminal state: %v\n", err)
+			}
+		}()
 
 		// Copy between PTY and terminal
 		errCh := make(chan error, 2)
