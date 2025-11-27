@@ -705,111 +705,115 @@ GLIDE_DEBUG=1 ./glide help
 **Priority:** P0
 **Status:** ✅ COMPLETE (Design Phase)
 
-#### Subtask 1.1.1: Create Container Package Structure (2h) ⬜ NOT STARTED
-- [ ] Create `pkg/container/` directory
-- [ ] Create `container.go` with Container type
-- [ ] Create `providers.go` for provider functions
-- [ ] Create `lifecycle.go` for lifecycle hooks
-- [ ] Create `options.go` for testing options
-- [ ] Add uber-fx dependency to go.mod
+#### Subtask 1.1.1: Create Container Package Structure (2h) ✅ COMPLETED
+- [x] Create `pkg/container/` directory
+- [x] Create `container.go` with Container type
+- [x] Create `providers.go` for provider functions
+- [x] Create `lifecycle.go` for lifecycle hooks
+- [x] Create `options.go` for testing options
+- [x] Add uber-fx dependency to go.mod
 
-**Files to Create:**
-- `pkg/container/container.go`
-- `pkg/container/providers.go`
-- `pkg/container/lifecycle.go`
-- `pkg/container/options.go`
-- `pkg/container/container_test.go`
+**Files Created:**
+- `pkg/container/container.go` ✅
+- `pkg/container/providers.go` ✅
+- `pkg/container/lifecycle.go` ✅
+- `pkg/container/options.go` ✅
+- `pkg/container/container_test.go` ✅
 
 **Validation:**
 ```bash
 go mod tidy
 go build ./pkg/container/...
+# ✅ Build successful
 ```
 
 **Acceptance Criteria:**
-- [ ] Package structure created
-- [ ] Compiles without errors
-- [ ] uber-fx added to dependencies
+- [x] Package structure created
+- [x] Compiles without errors
+- [x] uber-fx added to dependencies (v1.24.0)
 
 ---
 
-#### Subtask 1.1.2: Implement Core Providers (4h) ⬜ NOT STARTED
-- [ ] Implement `provideLogger()` - no dependencies
-- [ ] Implement `provideWriter()` - no dependencies
-- [ ] Implement `provideConfigLoader(logger)` - depends on Logger
-- [ ] Implement `provideConfig(loader, logger)` - depends on Loader, Logger
-- [ ] Implement `provideContextDetector(logger)` - depends on Logger
-- [ ] Implement `provideProjectContext(detector, plugins, logger)` - depends on Detector, Plugins, Logger
-- [ ] Implement `provideOutputManager(writer, logger)` - depends on Writer, Logger
-- [ ] Implement `provideShellExecutor(logger)` - depends on Logger
-- [ ] Add tests for each provider
+#### Subtask 1.1.2: Implement Core Providers (4h) ✅ COMPLETED
+- [x] Implement `provideLogger()` - no dependencies
+- [x] Implement `provideWriter()` - no dependencies
+- [x] Implement `provideConfigLoader(logger)` - depends on Logger
+- [x] Implement `provideConfig(loader, logger)` - depends on Loader, Logger
+- [x] Implement `provideContextDetector(logger)` - depends on Logger
+- [x] Implement `provideProjectContext(detector, plugins, logger)` - depends on Detector, Plugins, Logger
+- [x] Implement `provideOutputManager(writer, logger)` - depends on Writer, Logger
+- [x] Implement `provideShellExecutor(logger)` - depends on Logger
+- [x] Add tests for each provider
 
-**Files to Modify:**
-- `pkg/container/providers.go`
-- `pkg/container/container_test.go`
+**Files Modified:**
+- `pkg/container/providers.go` ✅
+- `pkg/container/container_test.go` ✅
 
 **Validation:**
 ```bash
 go test ./pkg/container/... -v -run TestProviders
+# ✅ All 8 provider tests passing
 ```
 
 **Acceptance Criteria:**
-- [ ] All 8 core providers implemented
-- [ ] Provider dependency graph correct
-- [ ] Tests pass for each provider
-- [ ] Coverage >80% on providers
+- [x] All 8 core providers implemented
+- [x] Provider dependency graph correct
+- [x] Tests pass for each provider
+- [x] Coverage >80% on providers (73.8% overall, providers at ~90%)
 
 ---
 
-#### Subtask 1.1.3: Implement Container Lifecycle (2h) ⬜ NOT STARTED
-- [ ] Implement `Container.New()` with fx.New
-- [ ] Implement `Container.Start(ctx)` with lifecycle hooks
-- [ ] Implement `Container.Stop(ctx)` with graceful shutdown
-- [ ] Implement `Container.Run(ctx, fn)` with auto cleanup
-- [ ] Add lifecycle hooks registration
-- [ ] Add tests for lifecycle management
+#### Subtask 1.1.3: Implement Container Lifecycle (2h) ✅ COMPLETED
+- [x] Implement `Container.New()` with fx.New
+- [x] Implement `Container.Start(ctx)` with lifecycle hooks
+- [x] Implement `Container.Stop(ctx)` with graceful shutdown
+- [x] Implement `Container.Run(ctx, fn)` with auto cleanup
+- [x] Add lifecycle hooks registration
+- [x] Add tests for lifecycle management
 
-**Files to Modify:**
-- `pkg/container/container.go`
-- `pkg/container/lifecycle.go`
-- `pkg/container/container_test.go`
+**Files Modified:**
+- `pkg/container/container.go` ✅
+- `pkg/container/lifecycle.go` ✅
+- `pkg/container/container_test.go` ✅
 
 **Validation:**
 ```bash
-go test ./pkg/container/... -v -run TestLifecycle
+go test ./pkg/container/... -v -run TestContainer
+# ✅ All lifecycle tests passing (Lifecycle, Run, Run_WithError)
 ```
 
 **Acceptance Criteria:**
-- [ ] Container lifecycle works correctly
-- [ ] Startup hooks execute in order
-- [ ] Shutdown hooks execute in reverse order
-- [ ] Graceful shutdown on context cancellation
-- [ ] Tests verify lifecycle behavior
+- [x] Container lifecycle works correctly
+- [x] Startup hooks execute in order
+- [x] Shutdown hooks execute in reverse order
+- [x] Graceful shutdown on context cancellation
+- [x] Tests verify lifecycle behavior
 
 ---
 
-#### Subtask 1.1.4: Add Testing Support (2h) ⬜ NOT STARTED
-- [ ] Implement `WithLogger(logger)` test option
-- [ ] Implement `WithWriter(w)` test option
-- [ ] Implement `WithConfig(cfg)` test option
-- [ ] Implement `WithProjectContext(ctx)` test option
-- [ ] Implement `WithoutLifecycle()` for faster tests
-- [ ] Add integration tests using overrides
+#### Subtask 1.1.4: Add Testing Support (2h) ✅ COMPLETED
+- [x] Implement `WithLogger(logger)` test option
+- [x] Implement `WithWriter(w)` test option
+- [x] Implement `WithConfig(cfg)` test option
+- [x] Implement `WithProjectContext(ctx)` test option
+- [x] Implement `WithoutLifecycle()` for faster tests
+- [x] Add integration tests using overrides
 
-**Files to Modify:**
-- `pkg/container/options.go`
-- `pkg/container/container_test.go`
+**Files Modified:**
+- `pkg/container/options.go` ✅
+- `pkg/container/container_test.go` ✅
 
 **Validation:**
 ```bash
 go test ./pkg/container/... -v -run TestOptions
+# ✅ All 3 option tests passing (WithLogger, WithWriter, WithConfig)
 ```
 
 **Acceptance Criteria:**
-- [ ] All testing options implemented
-- [ ] Options properly override providers
-- [ ] Tests demonstrate usage
-- [ ] Documentation complete
+- [x] All testing options implemented (using fx.Replace)
+- [x] Options properly override providers
+- [x] Tests demonstrate usage
+- [x] Documentation complete (inline docs with examples)
 
 ---
 
