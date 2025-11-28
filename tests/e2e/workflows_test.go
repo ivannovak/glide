@@ -16,6 +16,11 @@ import (
 
 // TestDeveloperWorkflows tests complete end-to-end user workflows
 func TestDeveloperWorkflows(t *testing.T) {
+	// Skip in short mode (pre-commit hooks)
+	if testing.Short() {
+		t.Skip("Skipping workflow tests with git worktrees in short mode")
+	}
+
 	// Skip if required tools are not available
 	if err := exec.Command("git", "--version").Run(); err != nil {
 		t.Skip("Git is not available")
@@ -320,7 +325,7 @@ class CreateUsersTable extends Migration
 # Error reproduction script
 echo "Reproducing error..."
 echo "Step 1: Check database connection"
-echo "Step 2: Verify user authentication"  
+echo "Step 2: Verify user authentication"
 echo "Step 3: Run failing query"
 echo "Error reproduced successfully"
 `
@@ -356,6 +361,11 @@ echo "Error reproduced successfully"
 
 // TestComplexWorkflows tests more advanced end-to-end scenarios
 func TestComplexWorkflows(t *testing.T) {
+	// Skip in short mode (pre-commit hooks)
+	if testing.Short() {
+		t.Skip("Skipping complex workflow tests with git worktrees in short mode")
+	}
+
 	t.Run("full_project_lifecycle", func(t *testing.T) {
 		// Test complete project lifecycle:
 		// Setup → Development → Testing → Deployment preparation
