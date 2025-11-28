@@ -222,3 +222,197 @@ func TestSetYAMLCommandSanitizer(t *testing.T) {
 	// Restore original
 	SetYAMLCommandSanitizer(originalSanitizer)
 }
+
+// TestExecuteYAMLCommand_ActualExecution tests the actual command execution
+func TestExecuteYAMLCommand_ActualExecution(t *testing.T) {
+	// Save and restore original sanitizer
+	originalSanitizer := yamlCommandSanitizer
+	defer func() {
+		SetYAMLCommandSanitizer(originalSanitizer)
+	}()
+
+	tests := []struct {
+		name       string
+		command    string
+		args       []string
+		mode       shell.SanitizationMode
+		wantErr    bool
+		skipReason string
+	}{
+		{
+			name:    "execute safe command - echo",
+			command: "echo 'test'",
+			args:    []string{},
+			mode:    shell.ModeStrict,
+			wantErr: false,
+		},
+		{
+			name:    "execute command with safe args",
+			command: "echo $1 $2",
+			args:    []string{"hello", "world"},
+			mode:    shell.ModeStrict,
+			wantErr: false,
+		},
+		{
+			name:    "execute true command",
+			command: "true",
+			args:    []string{},
+			mode:    shell.ModeStrict,
+			wantErr: false,
+		},
+		{
+			name:    "blocked command - injection attempt",
+			command: "echo test; rm -rf /",
+			args:    []string{},
+			mode:    shell.ModeStrict,
+			wantErr: true,
+		},
+		{
+			name:    "blocked args - injection via semicolon",
+			command: "echo",
+			args:    []string{"test; rm -rf /"},
+			mode:    shell.ModeStrict,
+			wantErr: true,
+		},
+		{
+			name:    "blocked args - command substitution",
+			command: "echo",
+			args:    []string{"$(whoami)"},
+			mode:    shell.ModeStrict,
+			wantErr: true,
+		},
+		{
+			name:    "blocked after expansion",
+			command: "echo $1",
+			args:    []string{"; cat /etc/passwd"},
+			mode:    shell.ModeStrict,
+			wantErr: true,
+		},
+		{
+			name:    "disabled mode allows anything",
+			command: "echo 'test'",
+			args:    []string{},
+			mode:    shell.ModeDisabled,
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.skipReason != "" {
+				t.Skip(tt.skipReason)
+			}
+
+			// Configure sanitizer for this test
+			config := &shell.SanitizerConfig{
+				Mode:                tt.mode,
+				BlockDangerousChars: tt.mode == shell.ModeStrict,
+				AllowPipes:          false,
+				AllowRedirects:      false,
+			}
+			SetYAMLCommandSanitizer(shell.NewSanitizer(config))
+
+			// Execute the command
+			err := ExecuteYAMLCommand(tt.command, tt.args)
+
+			if tt.wantErr && err == nil {
+				t.Errorf("ExecuteYAMLCommand() expected error, got nil")
+			}
+			if !tt.wantErr && err != nil {
+				t.Errorf("ExecuteYAMLCommand() unexpected error: %v", err)
+			}
+		})
+	}
+}
+
+// TestExecuteYAMLCommand_CommandValidationStages tests the three validation stages
+func TestExecuteYAMLCommand_CommandValidationStages(t *testing.T) {
+	originalSanitizer := yamlCommandSanitizer
+	defer SetYAMLCommandSanitizer(originalSanitizer)
+
+	// Set up strict sanitizer
+	SetYAMLCommandSanitizer(shell.NewSanitizer(shell.DefaultConfig()))
+
+	t.Run("command string validation failure", func(t *testing.T) {
+		// This should fail at stage 1: command string validation
+		err := ExecuteYAMLCommand("echo; rm -rf /", []string{})
+		if err == nil {
+			t.Error("Expected error for command with semicolon")
+		}
+		if err != nil && !strings.Contains(err.Error(), "YAML command validation failed") {
+			t.Errorf("Expected 'YAML command validation failed' error, got: %v", err)
+		}
+	})
+
+	t.Run("arguments validation failure", func(t *testing.T) {
+		// This should fail at stage 2: arguments validation
+		err := ExecuteYAMLCommand("echo", []string{"; rm -rf /"})
+		if err == nil {
+			t.Error("Expected error for args with semicolon")
+		}
+		if err != nil && !strings.Contains(err.Error(), "arguments validation failed") {
+			t.Errorf("Expected 'arguments validation failed' error, got: %v", err)
+		}
+	})
+
+	t.Run("expanded command validation failure", func(t *testing.T) {
+		// This should fail at stage 3: expanded command validation
+		err := ExecuteYAMLCommand("echo $1", []string{"; malicious"})
+		if err == nil {
+			t.Error("Expected error for expanded command")
+		}
+		if err != nil && !strings.Contains(err.Error(), "validation failed") {
+			t.Errorf("Expected validation failure error, got: %v", err)
+		}
+	})
+
+	t.Run("all stages pass", func(t *testing.T) {
+		// This should pass all three validation stages
+		err := ExecuteYAMLCommand("echo", []string{"hello"})
+		if err != nil {
+			t.Errorf("Unexpected error for safe command: %v", err)
+		}
+	})
+}
+
+// TestExecuteShellCommand tests the shell command execution
+func TestExecuteShellCommand(t *testing.T) {
+	tests := []struct {
+		name    string
+		command string
+		wantErr bool
+	}{
+		{
+			name:    "successful command - echo",
+			command: "echo 'test'",
+			wantErr: false,
+		},
+		{
+			name:    "successful command - true",
+			command: "true",
+			wantErr: false,
+		},
+		{
+			name:    "failing command - false",
+			command: "false",
+			wantErr: true,
+		},
+		{
+			name:    "failing command - nonexistent",
+			command: "command_that_does_not_exist_xyz123",
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := executeShellCommand(tt.command)
+			if tt.wantErr && err == nil {
+				t.Error("Expected error, got nil")
+			}
+			if !tt.wantErr && err != nil {
+				t.Errorf("Unexpected error: %v", err)
+			}
+		})
+	}
+}
