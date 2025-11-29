@@ -1,0 +1,377 @@
+// Package v2 provides backward compatibility with v1 plugins.
+package v2
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/spf13/cobra"
+
+	"github.com/ivannovak/glide/v2/pkg/plugin/sdk"
+	v1 "github.com/ivannovak/glide/v2/pkg/plugin/sdk/v1"
+)
+
+// V1Adapter wraps a v1 plugin to implement the v2 Plugin interface.
+// This allows v1 plugins to work seamlessly in a v2 environment.
+//
+// The adapter handles:
+//   - Converting v1 metadata to v2 format
+//   - Mapping v1 command handlers to v2 command system
+//   - Bridging v1 lifecycle to v2 lifecycle
+//   - Converting v1 configuration to v2 type-safe config
+//
+// Usage:
+//
+//	v1Plugin := &myV1Plugin{}
+//	v2Plugin := v2.AdaptV1Plugin(v1Plugin)
+type V1Adapter struct {
+	v1Plugin interface{} // Can be v1.GlidePlugin or pkg/plugin.Plugin
+	metadata Metadata
+	commands []Command
+	state    *sdk.StateTracker
+}
+
+// AdaptV1GRPCPlugin wraps a v1 gRPC plugin (v1.GlidePlugin) for v2 compatibility.
+func AdaptV1GRPCPlugin(v1Plugin v1.GlidePluginClient) Plugin[map[string]interface{}] {
+	adapter := &V1Adapter{
+		v1Plugin: v1Plugin,
+		state:    sdk.NewStateTracker("v1-adapter"),
+	}
+
+	// Fetch metadata from v1 plugin
+	ctx := context.Background()
+	if v1Meta, err := v1Plugin.GetMetadata(ctx, &v1.Empty{}); err == nil {
+		adapter.metadata = convertV1Metadata(v1Meta)
+	}
+
+	// Fetch commands from v1 plugin
+	if v1Commands, err := v1Plugin.ListCommands(ctx, &v1.Empty{}); err == nil {
+		adapter.commands = convertV1Commands(v1Commands.Commands)
+	}
+
+	return adapter
+}
+
+// AdaptV1InProcessPlugin wraps a v1 in-process plugin for v2 compatibility.
+// The v1 in-process plugin interface is defined in pkg/plugin/interface.go.
+func AdaptV1InProcessPlugin(v1Plugin interface{}) Plugin[map[string]interface{}] {
+	adapter := &V1Adapter{
+		v1Plugin: v1Plugin,
+		state:    sdk.NewStateTracker("v1-adapter"),
+	}
+
+	// Extract metadata using reflection or type assertion
+	// The v1 in-process plugin has: Name(), Version(), Description() methods
+	if metadataProvider, ok := v1Plugin.(interface {
+		Name() string
+		Version() string
+		Description() string
+	}); ok {
+		adapter.metadata = Metadata{
+			Name:        metadataProvider.Name(),
+			Version:     metadataProvider.Version(),
+			Description: metadataProvider.Description(),
+		}
+	}
+
+	// v1 in-process plugins register commands directly with Cobra
+	// We can't easily extract them, so commands will be empty
+	// The plugin will use the old Register(root *cobra.Command) path
+	adapter.commands = []Command{}
+
+	return adapter
+}
+
+// Metadata returns the adapted v1 metadata.
+func (a *V1Adapter) Metadata() Metadata {
+	return a.metadata
+}
+
+// ConfigSchema returns nil for v1 plugins (no schema available).
+func (a *V1Adapter) ConfigSchema() map[string]interface{} {
+	return nil
+}
+
+// Configure passes configuration to the v1 plugin.
+func (a *V1Adapter) Configure(ctx context.Context, config map[string]interface{}) error {
+	switch p := a.v1Plugin.(type) {
+	case v1.GlidePluginClient:
+		// Convert map to v1 ConfigureRequest
+		configMap := make(map[string]string)
+		for k, v := range config {
+			configMap[k] = fmt.Sprintf("%v", v)
+		}
+		req := &v1.ConfigureRequest{Config: configMap}
+		resp, err := p.Configure(ctx, req)
+		if err != nil {
+			return err
+		}
+		if !resp.Success {
+			return fmt.Errorf("v1 plugin configuration failed: %s", resp.Message)
+		}
+		return nil
+
+	case interface{ Configure() error }:
+		// v1 in-process plugin with Configure method
+		// The config is already loaded by pkg/config, so just call Configure()
+		return p.Configure()
+
+	default:
+		// Plugin doesn't support configuration
+		return nil
+	}
+}
+
+// Init delegates to v1 lifecycle if available.
+func (a *V1Adapter) Init(ctx context.Context) error {
+	// v1 gRPC plugins don't have Init in the protocol
+	// v1 in-process plugins might have it via sdk.Lifecycle
+	if lifecycle, ok := a.v1Plugin.(sdk.Lifecycle); ok {
+		if err := lifecycle.Init(ctx); err != nil {
+			a.state.ForceSet(sdk.StateErrored)
+			return err
+		}
+		return a.state.Set(sdk.StateInitialized)
+	}
+
+	// No init method, just mark as initialized
+	return a.state.Set(sdk.StateInitialized)
+}
+
+// Start delegates to v1 lifecycle if available.
+func (a *V1Adapter) Start(ctx context.Context) error {
+	if lifecycle, ok := a.v1Plugin.(sdk.Lifecycle); ok {
+		if err := lifecycle.Start(ctx); err != nil {
+			a.state.ForceSet(sdk.StateErrored)
+			return err
+		}
+		return a.state.Set(sdk.StateStarted)
+	}
+
+	// No start method, just mark as started
+	return a.state.Set(sdk.StateStarted)
+}
+
+// Stop delegates to v1 lifecycle if available.
+func (a *V1Adapter) Stop(ctx context.Context) error {
+	if lifecycle, ok := a.v1Plugin.(sdk.Lifecycle); ok {
+		err := lifecycle.Stop(ctx)
+		a.state.ForceSet(sdk.StateStopped)
+		return err
+	}
+
+	// No stop method, just mark as stopped
+	a.state.ForceSet(sdk.StateStopped)
+	return nil
+}
+
+// HealthCheck delegates to v1 lifecycle if available.
+func (a *V1Adapter) HealthCheck(ctx context.Context) error {
+	if lifecycle, ok := a.v1Plugin.(sdk.Lifecycle); ok {
+		return lifecycle.HealthCheck()
+	}
+
+	// No health check, assume healthy
+	return nil
+}
+
+// Commands returns the converted v1 commands.
+func (a *V1Adapter) Commands() []Command {
+	return a.commands
+}
+
+// GetV1Plugin returns the underlying v1 plugin for special handling.
+func (a *V1Adapter) GetV1Plugin() interface{} {
+	return a.v1Plugin
+}
+
+// convertV1Metadata converts v1 protobuf metadata to v2 Metadata.
+func convertV1Metadata(v1Meta *v1.PluginMetadata) Metadata {
+	meta := Metadata{
+		Name:        v1Meta.Name,
+		Version:     v1Meta.Version,
+		Description: v1Meta.Description,
+		Author:      v1Meta.Author,
+		Homepage:    v1Meta.Homepage,
+		License:     v1Meta.License,
+		Tags:        v1Meta.Tags,
+	}
+
+	// Convert dependencies
+	if len(v1Meta.Dependencies) > 0 {
+		meta.Dependencies = make([]Dependency, len(v1Meta.Dependencies))
+		for i, dep := range v1Meta.Dependencies {
+			meta.Dependencies[i] = Dependency{
+				Name:     dep.Name,
+				Version:  dep.Version,
+				Optional: dep.Optional,
+			}
+		}
+	}
+
+	// Note: Capabilities are fetched via separate RPC call in v1 (GetCapabilities)
+	// We don't set them here since they're not part of PluginMetadata
+
+	return meta
+}
+
+// convertV1Commands converts v1 protobuf commands to v2 Commands.
+func convertV1Commands(v1Commands []*v1.CommandInfo) []Command {
+	commands := make([]Command, len(v1Commands))
+
+	for i, v1Cmd := range v1Commands {
+		commands[i] = Command{
+			Name:         v1Cmd.Name,
+			Description:  v1Cmd.Description,
+			Category:     v1Cmd.Category,
+			Aliases:      v1Cmd.Aliases,
+			Hidden:       v1Cmd.Hidden,
+			Interactive:  v1Cmd.Interactive,
+			RequiresTTY:  v1Cmd.RequiresTty,
+			RequiresAuth: v1Cmd.RequiresAuth,
+			Visibility:   v1Cmd.Visibility,
+			// Handler will be set up separately by the CLI
+			// since it needs to dispatch to the v1 plugin
+		}
+	}
+
+	return commands
+}
+
+// V1CommandAdapter wraps a v1 command handler to implement v2 CommandHandler.
+type V1CommandAdapter struct {
+	v1Plugin v1.GlidePluginClient
+	command  string
+}
+
+// NewV1CommandAdapter creates an adapter for a v1 command.
+func NewV1CommandAdapter(v1Plugin v1.GlidePluginClient, command string) CommandHandler {
+	return &V1CommandAdapter{
+		v1Plugin: v1Plugin,
+		command:  command,
+	}
+}
+
+// Execute adapts v2 ExecuteRequest to v1 and back.
+func (a *V1CommandAdapter) Execute(ctx context.Context, req *ExecuteRequest) (*ExecuteResponse, error) {
+	// Convert v2 request to v1
+	v1Req := &v1.ExecuteRequest{
+		Command: req.Command,
+		Args:    req.Args,
+		Env:     req.Env,
+		WorkDir: req.WorkingDir,
+	}
+
+	// Execute via v1 plugin
+	v1Resp, err := a.v1Plugin.ExecuteCommand(ctx, v1Req)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert v1 response to v2
+	// Combine stdout and stderr into single output
+	output := string(v1Resp.Stdout)
+	if len(v1Resp.Stderr) > 0 {
+		if len(output) > 0 {
+			output += "\n"
+		}
+		output += string(v1Resp.Stderr)
+	}
+
+	v2Resp := &ExecuteResponse{
+		ExitCode: int(v1Resp.ExitCode),
+		Output:   output,
+		Error:    v1Resp.Error,
+	}
+
+	return v2Resp, nil
+}
+
+// V1InteractiveCommandAdapter wraps a v1 interactive command handler.
+type V1InteractiveCommandAdapter struct {
+	v1Plugin v1.GlidePluginClient
+	command  string
+}
+
+// NewV1InteractiveCommandAdapter creates an adapter for a v1 interactive command.
+func NewV1InteractiveCommandAdapter(v1Plugin v1.GlidePluginClient, command string) InteractiveCommandHandler {
+	return &V1InteractiveCommandAdapter{
+		v1Plugin: v1Plugin,
+		command:  command,
+	}
+}
+
+// ExecuteInteractive adapts v2 interactive session to v1 streaming.
+func (a *V1InteractiveCommandAdapter) ExecuteInteractive(ctx context.Context, session *InteractiveSession) error {
+	// TODO: Implement v1 streaming → v2 session adapter
+	// This requires bridging the v1 bidirectional streaming to the v2 InteractiveSession
+	return fmt.Errorf("v1 interactive command adaptation not yet implemented")
+}
+
+// V2ToV1Adapter wraps a v2 plugin to implement v1 interfaces.
+// This allows v2 plugins to be used in v1 contexts during migration.
+type V2ToV1Adapter[C any] struct {
+	v2Plugin Plugin[C]
+}
+
+// AdaptV2ToV1 creates a v1-compatible adapter for a v2 plugin.
+func AdaptV2ToV1[C any](v2Plugin Plugin[C]) *V2ToV1Adapter[C] {
+	return &V2ToV1Adapter[C]{v2Plugin: v2Plugin}
+}
+
+// Name implements the v1 in-process PluginIdentifier interface.
+func (a *V2ToV1Adapter[C]) Name() string {
+	return a.v2Plugin.Metadata().Name
+}
+
+// Version implements the v1 in-process PluginIdentifier interface.
+func (a *V2ToV1Adapter[C]) Version() string {
+	return a.v2Plugin.Metadata().Version
+}
+
+// Description implements the v1 in-process PluginIdentifier interface.
+func (a *V2ToV1Adapter[C]) Description() string {
+	return a.v2Plugin.Metadata().Description
+}
+
+// Configure implements the v1 in-process PluginConfigurable interface.
+func (a *V2ToV1Adapter[C]) Configure() error {
+	// v2 plugins expect typed config in Configure(ctx, config)
+	// For v1 compatibility, we assume config is already loaded
+	// This is a simplified adapter - full implementation would need config loading
+	ctx := context.Background()
+	var emptyConfig C
+	return a.v2Plugin.Configure(ctx, emptyConfig)
+}
+
+// Register implements the v1 in-process PluginRegistrar interface.
+func (a *V2ToV1Adapter[C]) Register(root *cobra.Command) error {
+	// Build v2 commands and add them to the root
+	adapter := NewCobraAdapter(a.v2Plugin)
+	commands := adapter.BuildCommands()
+	for _, cmd := range commands {
+		root.AddCommand(cmd)
+	}
+	return nil
+}
+
+// Init implements the v1 sdk.Lifecycle interface.
+func (a *V2ToV1Adapter[C]) Init(ctx context.Context) error {
+	return a.v2Plugin.Init(ctx)
+}
+
+// Start implements the v1 sdk.Lifecycle interface.
+func (a *V2ToV1Adapter[C]) Start(ctx context.Context) error {
+	return a.v2Plugin.Start(ctx)
+}
+
+// Stop implements the v1 sdk.Lifecycle interface.
+func (a *V2ToV1Adapter[C]) Stop(ctx context.Context) error {
+	return a.v2Plugin.Stop(ctx)
+}
+
+// HealthCheck implements the v1 sdk.Lifecycle interface.
+func (a *V2ToV1Adapter[C]) HealthCheck() error {
+	ctx := context.Background()
+	return a.v2Plugin.HealthCheck(ctx)
+}
