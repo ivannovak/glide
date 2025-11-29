@@ -16,7 +16,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-hclog"
-	plugin "github.com/hashicorp/go-plugin"
+	goplugin "github.com/hashicorp/go-plugin"
 	"github.com/ivannovak/glide/v2/pkg/branding"
 	v1 "github.com/ivannovak/glide/v2/pkg/plugin/sdk/v1"
 )
@@ -57,22 +57,24 @@ func (c *Cache) Clear() {
 
 // Manager handles plugin discovery, loading, and lifecycle
 type Manager struct {
-	mu         sync.RWMutex
-	plugins    map[string]*LoadedPlugin
-	discoverer *Discoverer
-	validator  *Validator
-	cache      *Cache
-	config     *ManagerConfig
+	mu               sync.RWMutex
+	plugins          map[string]*LoadedPlugin
+	discoverer       *Discoverer
+	validator        *Validator
+	cache            *Cache
+	config           *ManagerConfig
+	lifecycleManager *LifecycleManager
 }
 
 // LoadedPlugin represents a loaded and running plugin
 type LoadedPlugin struct {
 	Name     string
 	Path     string
-	Client   *plugin.Client
+	Client   *goplugin.Client
 	Plugin   v1.GlidePluginClient
 	Metadata *v1.PluginMetadata
 	LastUsed time.Time
+	State    *StateTracker // Lifecycle state tracking
 }
 
 // ManagerConfig configures the plugin manager
@@ -129,12 +131,17 @@ func NewManager(config *ManagerConfig) *Manager {
 		validator.AddTrustedPath(dir)
 	}
 
+	// Create lifecycle manager with default config
+	lifecycleConfig := DefaultLifecycleConfig()
+	lifecycleManager := NewLifecycleManager(lifecycleConfig)
+
 	return &Manager{
-		plugins:    make(map[string]*LoadedPlugin),
-		discoverer: NewDiscoverer(config.PluginDirs),
-		validator:  validator,
-		cache:      NewCache(config.CacheTimeout),
-		config:     config,
+		plugins:          make(map[string]*LoadedPlugin),
+		discoverer:       NewDiscoverer(config.PluginDirs),
+		validator:        validator,
+		cache:            NewCache(config.CacheTimeout),
+		config:           config,
+		lifecycleManager: lifecycleManager,
 	}
 }
 
@@ -217,11 +224,11 @@ func (m *Manager) loadPlugin(info *PluginInfo) error {
 	}
 
 	// Create plugin client
-	client := plugin.NewClient(&plugin.ClientConfig{
+	client := goplugin.NewClient(&goplugin.ClientConfig{
 		HandshakeConfig:  v1.HandshakeConfig,
 		Plugins:          v1.PluginMap,
 		Cmd:              exec.Command(info.Path),
-		AllowedProtocols: []plugin.Protocol{plugin.ProtocolGRPC},
+		AllowedProtocols: []goplugin.Protocol{goplugin.ProtocolGRPC},
 		Managed:          true,
 		Logger:           logger,
 	})
@@ -256,7 +263,7 @@ func (m *Manager) loadPlugin(info *PluginInfo) error {
 		return fmt.Errorf("failed to get plugin metadata: %w", err)
 	}
 
-	// Create loaded plugin
+	// Create loaded plugin with state tracker
 	loaded := &LoadedPlugin{
 		Name:     metadata.Name,
 		Path:     info.Path,
@@ -264,11 +271,36 @@ func (m *Manager) loadPlugin(info *PluginInfo) error {
 		Plugin:   glidePlugin,
 		Metadata: metadata,
 		LastUsed: time.Now(),
+		State:    NewStateTracker(metadata.Name),
 	}
 
 	// Store in manager and cache
 	m.plugins[metadata.Name] = loaded
 	m.cache.Put(info.Path, loaded)
+
+	// Register with lifecycle manager
+	adapter := newLifecycleAdapter(loaded)
+	if err := m.lifecycleManager.Register(metadata.Name, adapter); err != nil {
+		client.Kill()
+		delete(m.plugins, metadata.Name)
+		return fmt.Errorf("failed to register plugin with lifecycle manager: %w", err)
+	}
+
+	// Initialize and start the plugin through lifecycle
+	lifecycleCtx := context.Background()
+	if err := m.lifecycleManager.InitPlugin(lifecycleCtx, metadata.Name); err != nil {
+		client.Kill()
+		delete(m.plugins, metadata.Name)
+		_ = m.lifecycleManager.Unregister(metadata.Name)
+		return fmt.Errorf("failed to initialize plugin: %w", err)
+	}
+
+	if err := m.lifecycleManager.StartPlugin(lifecycleCtx, metadata.Name); err != nil {
+		client.Kill()
+		delete(m.plugins, metadata.Name)
+		_ = m.lifecycleManager.Unregister(metadata.Name)
+		return fmt.Errorf("failed to start plugin: %w", err)
+	}
 
 	if m.config.EnableDebug {
 		log.Printf("Loaded plugin: %s v%s", metadata.Name, metadata.Version)
@@ -483,15 +515,22 @@ func (m *Manager) ListPlugins() []*LoadedPlugin {
 }
 
 // Cleanup shuts down all plugins
+// Cleanup gracefully shuts down all plugins
 func (m *Manager) Cleanup() {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	for name, plugin := range m.plugins {
+	// Use lifecycle manager for graceful shutdown
+	ctx := context.Background()
+	if err := m.lifecycleManager.StopAll(ctx); err != nil {
 		if m.config.EnableDebug {
-			log.Printf("Shutting down plugin: %s", name)
+			log.Printf("Error during graceful shutdown: %v", err)
 		}
-		plugin.Client.Kill()
+	}
+
+	// Unregister all plugins from lifecycle manager
+	for name := range m.plugins {
+		_ = m.lifecycleManager.Unregister(name)
 	}
 
 	m.plugins = make(map[string]*LoadedPlugin)

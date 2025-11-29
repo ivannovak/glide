@@ -132,11 +132,13 @@ func (a *Assertions) AssertPluginRegisteredCommands(p interface{}) {
 	}
 }
 
-// AssertConfigApplied verifies configuration was applied to a plugin
-func (a *Assertions) AssertConfigApplied(p interface{}, expectedConfig map[string]interface{}) {
+// AssertConfigApplied verifies configuration was applied to a plugin.
+// Note: With the type-safe configuration system, this only checks that Configure() was called.
+// Plugin configuration is now handled via pkg/config.Register/Get, not via Configure parameter.
+func (a *Assertions) AssertConfigApplied(p interface{}, _ map[string]interface{}) {
 	if mock, ok := p.(*MockPlugin); ok {
 		assert.True(a.t, mock.Configured, "Plugin should be configured")
-		assert.Equal(a.t, expectedConfig, mock.ReceivedConfig, "Plugin should receive expected configuration")
+		// Configuration is now type-safe via pkg/config, not passed to Configure()
 	} else {
 		a.t.Errorf("AssertConfigApplied requires a MockPlugin, got %T", p)
 	}

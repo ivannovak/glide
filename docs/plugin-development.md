@@ -23,16 +23,17 @@ All plugins must implement the `Plugin` interface:
 type Plugin interface {
     // Name returns the plugin identifier
     Name() string
-    
+
     // Version returns the plugin version
     Version() string
-    
+
     // Register adds plugin commands to the command tree
     Register(root *cobra.Command) error
-    
-    // Configure allows plugin-specific configuration
-    Configure(config map[string]interface{}) error
-    
+
+    // Configure initializes the plugin
+    // Plugins use pkg/config for type-safe configuration
+    Configure() error
+
     // Metadata returns plugin information
     Metadata() PluginMetadata
 }
@@ -69,12 +70,28 @@ type CommandInfo struct {
 package myplugin
 
 import (
+    "fmt"
     "github.com/ivannovak/glide/pkg/plugin"
+    "github.com/ivannovak/glide/pkg/config"
     "github.com/spf13/cobra"
 )
 
+// MyPluginConfig defines typed configuration for this plugin
+type MyPluginConfig struct {
+    Endpoint string `json:"endpoint" yaml:"endpoint" validate:"required,url"`
+    Timeout  int    `json:"timeout" yaml:"timeout" validate:"min=1,max=300"`
+}
+
 type MyPlugin struct {
-    config map[string]interface{}
+    endpoint string
+    timeout  int
+}
+
+func init() {
+    // Register typed configuration with defaults
+    config.Register("myplugin", MyPluginConfig{
+        Timeout: 30, // Default timeout
+    })
 }
 
 func New() plugin.Plugin {
@@ -89,8 +106,15 @@ func (p *MyPlugin) Version() string {
     return "1.0.0"
 }
 
-func (p *MyPlugin) Configure(config map[string]interface{}) error {
-    p.config = config
+func (p *MyPlugin) Configure() error {
+    // Get typed config from registry (populated by config loader from YAML)
+    cfg, err := config.GetValue[MyPluginConfig]("myplugin")
+    if err != nil {
+        return fmt.Errorf("failed to get plugin config: %w", err)
+    }
+
+    p.endpoint = cfg.Endpoint
+    p.timeout = cfg.Timeout
     return nil
 }
 
@@ -108,6 +132,7 @@ func (p *MyPlugin) Metadata() plugin.PluginMetadata {
                 Aliases:     []string{"mc"}, // Add aliases here
             },
         },
+        ConfigKeys: []string{"endpoint", "timeout"},
     }
 }
 ```
@@ -128,13 +153,13 @@ func (p *MyPlugin) Register(root *cobra.Command) error {
         Long:    `A longer description of what your command does.`,
         RunE:    p.executeCommand,
     }
-    
+
     // Add flags
     cmd.Flags().StringP("output", "o", "text", "Output format (text, json)")
-    
+
     // Add to root
     root.AddCommand(cmd)
-    
+
     return nil
 }
 
@@ -224,14 +249,14 @@ func (p *MyPlugin) Register(root *cobra.Command) error {
         Aliases: []string{"mp"},
         Short:   "My plugin commands",
     }
-    
+
     // Subcommand with aliases
     dbCmd := &cobra.Command{
         Use:     "database",
         Aliases: []string{"db", "d"},
         Short:   "Database operations",
     }
-    
+
     // Database subcommands
     dbMigrateCmd := &cobra.Command{
         Use:     "migrate",
@@ -239,20 +264,20 @@ func (p *MyPlugin) Register(root *cobra.Command) error {
         Short:   "Run database migrations",
         RunE:    p.migrate,
     }
-    
+
     dbSeedCmd := &cobra.Command{
         Use:     "seed",
         Aliases: []string{"s"},
         Short:   "Seed the database",
         RunE:    p.seed,
     }
-    
+
     // Build command tree
     dbCmd.AddCommand(dbMigrateCmd)
     dbCmd.AddCommand(dbSeedCmd)
     pluginCmd.AddCommand(dbCmd)
     root.AddCommand(pluginCmd)
-    
+
     return nil
 }
 ```
@@ -292,7 +317,7 @@ func (p *MyPlugin) executeCommand(cmd *cobra.Command, args []string) error {
     if len(args) < 1 {
         return fmt.Errorf("required argument missing")
     }
-    
+
     // Use Glide's error types for consistency
     if err := p.doSomething(); err != nil {
         return glideErrors.Wrap(err, "failed to execute command",
@@ -302,30 +327,47 @@ func (p *MyPlugin) executeCommand(cmd *cobra.Command, args []string) error {
             ),
         )
     }
-    
+
     return nil
 }
 ```
 
 ### 3. Configuration
 ```go
-func (p *MyPlugin) Configure(config map[string]interface{}) error {
-    // Validate configuration
-    if apiKey, ok := config["api_key"].(string); ok {
-        p.apiKey = apiKey
-    } else {
-        return fmt.Errorf("api_key is required")
+// Define typed configuration struct
+type MyPluginConfig struct {
+    APIKey  string `json:"api_key" yaml:"api_key" validate:"required"`
+    Timeout int    `json:"timeout" yaml:"timeout" validate:"min=1,max=300"`
+}
+
+func init() {
+    // Register with defaults in plugin's init()
+    config.Register("myplugin", MyPluginConfig{
+        Timeout: 30, // default
+    })
+}
+
+func (p *MyPlugin) Configure() error {
+    // Get typed config (populated by config loader from YAML)
+    cfg, err := config.GetValue[MyPluginConfig]("myplugin")
+    if err != nil {
+        return fmt.Errorf("failed to get plugin config: %w", err)
     }
-    
-    // Set defaults
-    if timeout, ok := config["timeout"].(int); ok {
-        p.timeout = timeout
-    } else {
-        p.timeout = 30 // default
-    }
-    
+
+    // Use the validated, type-safe configuration
+    p.apiKey = cfg.APIKey
+    p.timeout = cfg.Timeout
+
     return nil
 }
+```
+
+Users configure plugins in `.glide.yml`:
+```yaml
+plugins:
+  myplugin:
+    api_key: "your-key-here"
+    timeout: 60
 ```
 
 ### 4. Output Management
@@ -335,14 +377,14 @@ import "github.com/ivannovak/glide/pkg/output"
 func (p *MyPlugin) executeCommand(cmd *cobra.Command, args []string) error {
     // Use Glide's output manager
     output.Info("Starting operation...")
-    
+
     // Show progress
     spinner := progress.NewSpinner("Processing")
     spinner.Start()
     defer spinner.Stop()
-    
+
     // Do work...
-    
+
     spinner.Success("Operation completed")
     return nil
 }
@@ -358,13 +400,27 @@ package database
 import (
     "fmt"
     "github.com/ivannovak/glide/pkg/plugin"
+    "github.com/ivannovak/glide/pkg/config"
     "github.com/ivannovak/glide/pkg/output"
     "github.com/spf13/cobra"
 )
 
+// DatabasePluginConfig defines typed configuration
+type DatabasePluginConfig struct {
+    Connection string `json:"connection" yaml:"connection" validate:"required"`
+    Migrations string `json:"migrations" yaml:"migrations"`
+}
+
 type DatabasePlugin struct {
-    config map[string]interface{}
     connString string
+    migrations string
+}
+
+func init() {
+    // Register typed configuration with defaults
+    config.Register("database", DatabasePluginConfig{
+        Migrations: "./migrations",
+    })
 }
 
 func New() plugin.Plugin {
@@ -379,11 +435,14 @@ func (p *DatabasePlugin) Version() string {
     return "1.0.0"
 }
 
-func (p *DatabasePlugin) Configure(config map[string]interface{}) error {
-    p.config = config
-    if conn, ok := config["connection"].(string); ok {
-        p.connString = conn
+func (p *DatabasePlugin) Configure() error {
+    cfg, err := config.GetValue[DatabasePluginConfig]("database")
+    if err != nil {
+        return fmt.Errorf("failed to get database config: %w", err)
     }
+
+    p.connString = cfg.Connection
+    p.migrations = cfg.Migrations
     return nil
 }
 
@@ -394,7 +453,7 @@ func (p *DatabasePlugin) Register(root *cobra.Command) error {
         Aliases: []string{"db", "d"},
         Short:   "Database management commands",
     }
-    
+
     // Migrate command
     migrateCmd := &cobra.Command{
         Use:     "migrate",
@@ -407,7 +466,7 @@ func (p *DatabasePlugin) Register(root *cobra.Command) error {
             return nil
         },
     }
-    
+
     // Seed command
     seedCmd := &cobra.Command{
         Use:     "seed",
@@ -420,7 +479,7 @@ func (p *DatabasePlugin) Register(root *cobra.Command) error {
             return nil
         },
     }
-    
+
     // Status command
     statusCmd := &cobra.Command{
         Use:     "status",
@@ -433,11 +492,11 @@ func (p *DatabasePlugin) Register(root *cobra.Command) error {
             return nil
         },
     }
-    
+
     // Build command tree
     dbCmd.AddCommand(migrateCmd, seedCmd, statusCmd)
     root.AddCommand(dbCmd)
-    
+
     return nil
 }
 
@@ -484,24 +543,24 @@ import (
 func TestPluginRegistration(t *testing.T) {
     plugin := New()
     root := &cobra.Command{Use: "test"}
-    
+
     err := plugin.Register(root)
     assert.NoError(t, err)
-    
+
     // Check command was added
     dbCmd, _, err := root.Find([]string{"database"})
     assert.NoError(t, err)
     assert.NotNil(t, dbCmd)
-    
+
     // Check aliases work
     dbCmd, _, err = root.Find([]string{"db"})
     assert.NoError(t, err)
     assert.NotNil(t, dbCmd)
-    
+
     // Check subcommand
     _, _, err = root.Find([]string{"db", "migrate"})
     assert.NoError(t, err)
-    
+
     // Check subcommand alias
     _, _, err = root.Find([]string{"db", "m"})
     assert.NoError(t, err)

@@ -64,7 +64,6 @@ func LoadAndMergeConfigs(configPaths []string) (*Config, error) {
 	merged := &Config{
 		Commands: make(CommandMap),
 		Projects: make(map[string]ProjectConfig),
-		Plugins:  make(map[string]interface{}),
 	}
 
 	// Get current working directory for path validation
@@ -111,12 +110,9 @@ func LoadAndMergeConfigs(configPaths []string) (*Config, error) {
 			}
 		}
 
-		// Merge plugins
-		if cfg.Plugins != nil {
-			for name, plugin := range cfg.Plugins {
-				merged.Plugins[name] = plugin
-			}
-		}
+		// NOTE: Plugin configs are now handled by pkg/config type-safe registry.
+		// The config loader extracts plugin configs from raw YAML and syncs them
+		// to the typed registry automatically.
 
 		// Take the first non-empty default project
 		if merged.DefaultProject == "" && cfg.DefaultProject != "" {

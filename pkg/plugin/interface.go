@@ -55,20 +55,41 @@ type PluginRegistrar interface {
 
 // PluginConfigurable handles plugin-specific configuration.
 //
-// Plugins that require configuration should implement this interface.
-// The config parameter is a map of configuration keys to values.
+// Plugins implement this interface to perform initialization and configuration
+// using the pkg/config type-safe configuration system.
+//
+// Type-safe configuration approach:
+//  1. Define a typed configuration struct
+//  2. Register it using pkg/config.Register() in init()
+//  3. Access typed config in Configure() via pkg/config.Get[T]() or pkg/config.GetValue[T]()
 //
 // Example:
 //
-//	func (p *MyPlugin) Configure(config map[string]interface{}) error {
-//	    if endpoint, ok := config["endpoint"].(string); ok {
-//	        p.endpoint = endpoint
-//	    }
-//	    return p.validateConfig()
+//	type MyPluginConfig struct {
+//	    Endpoint string `json:"endpoint" yaml:"endpoint" validate:"required,url"`
+//	    Timeout  int    `json:"timeout" yaml:"timeout" validate:"min=1,max=300"`
 //	}
+//
+//	func init() {
+//	    config.Register("my-plugin", MyPluginConfig{Timeout: 30})
+//	}
+//
+//	func (p *MyPlugin) Configure() error {
+//	    // Get typed config from registry (populated by config loader from YAML)
+//	    cfg, err := config.GetValue[MyPluginConfig]("my-plugin")
+//	    if err != nil {
+//	        return fmt.Errorf("failed to get plugin config: %w", err)
+//	    }
+//	    p.endpoint = cfg.Endpoint
+//	    p.timeout = cfg.Timeout
+//	    return nil
+//	}
+//
+// See pkg/config/MIGRATION.md for complete details.
 type PluginConfigurable interface {
-	// Configure allows plugin-specific configuration
-	Configure(config map[string]interface{}) error
+	// Configure initializes the plugin.
+	// Plugins should use pkg/config.Get[T]() to access their typed configuration.
+	Configure() error
 }
 
 // Plugin defines the complete interface for Glide extensions.

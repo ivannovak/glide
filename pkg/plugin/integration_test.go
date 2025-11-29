@@ -23,14 +23,10 @@ func (t *TestPlugin) Version() string {
 	return "1.0.0-test"
 }
 
-func (t *TestPlugin) Configure(config map[string]interface{}) error {
-	// Simulate reading configuration
-	if config != nil {
-		if testConfig, ok := config["integration-test"]; ok {
-			// Process configuration
-			_ = testConfig
-		}
-	}
+func (t *TestPlugin) Configure() error {
+	// Plugins now use pkg/config type-safe configuration system
+	// Configuration would be accessed via:
+	// cfg, err := config.GetValue[MyPluginConfig]("integration-test")
 	return nil
 }
 

@@ -3,7 +3,6 @@ package plugin
 import (
 	"fmt"
 	"strings"
-	"sync"
 
 	"github.com/ivannovak/glide/v2/pkg/logging"
 	"github.com/ivannovak/glide/v2/pkg/registry"
@@ -63,11 +62,15 @@ func (r *PluginLoadResult) ErrorMessage() string {
 	return builder.String()
 }
 
-// Registry manages plugin registration and lifecycle
+// Registry manages plugin registration and lifecycle.
+//
+// The Registry provides a centralized location for plugin management, including
+// registration and command loading.
+//
+// NOTE: Plugin configuration is now handled by the pkg/config type-safe system.
+// Plugins should register their typed configs using config.Register() in init().
 type Registry struct {
 	*registry.Registry[Plugin]
-	configMu sync.RWMutex
-	config   map[string]interface{}
 }
 
 // global registry instance
@@ -77,7 +80,6 @@ var globalRegistry = NewRegistry()
 func NewRegistry() *Registry {
 	return &Registry{
 		Registry: registry.New[Plugin](),
-		config:   make(map[string]interface{}),
 	}
 }
 
@@ -104,14 +106,7 @@ func (r *Registry) RegisterPlugin(p Plugin) error {
 	return r.Registry.Register(name, p, meta.Aliases...)
 }
 
-// SetConfig sets the configuration for all plugins
-func (r *Registry) SetConfig(config map[string]interface{}) {
-	r.configMu.Lock()
-	r.config = config
-	r.configMu.Unlock()
-}
-
-// LoadAll configures and registers all plugin commands
+// LoadAll registers all plugin commands
 func (r *Registry) LoadAll(root *cobra.Command) (*PluginLoadResult, error) {
 	logging.Debug("Loading all plugins")
 
@@ -120,11 +115,6 @@ func (r *Registry) LoadAll(root *cobra.Command) (*PluginLoadResult, error) {
 		Failed:   make([]PluginError, 0),
 		Warnings: make([]string, 0),
 	}
-
-	// Get config once with lock
-	r.configMu.RLock()
-	config := r.config
-	r.configMu.RUnlock()
 
 	// Track if we encountered any fatal errors
 	var fatalError error
@@ -136,8 +126,9 @@ func (r *Registry) LoadAll(root *cobra.Command) (*PluginLoadResult, error) {
 			return
 		}
 
-		// Configure the plugin
-		if err := plugin.Configure(config); err != nil {
+		// NOTE: Plugin configuration is now handled via pkg/config type-safe registry.
+		// Plugins access their typed config in Configure() using config.Get[T](name).
+		if err := plugin.Configure(); err != nil {
 			// Configuration errors are typically non-fatal
 			// Log and continue with other plugins
 			logging.Warn("Plugin configuration failed", "name", name, "error", err)
@@ -197,9 +188,4 @@ func Get(name string) (Plugin, bool) {
 // LoadAll loads all plugins from the global registry
 func LoadAll(root *cobra.Command) (*PluginLoadResult, error) {
 	return globalRegistry.LoadAll(root)
-}
-
-// SetConfig sets configuration for the global registry
-func SetConfig(config map[string]interface{}) {
-	globalRegistry.SetConfig(config)
 }

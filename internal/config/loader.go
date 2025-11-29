@@ -8,6 +8,7 @@ import (
 
 	"github.com/ivannovak/glide/v2/internal/context"
 	"github.com/ivannovak/glide/v2/pkg/branding"
+	pkgconfig "github.com/ivannovak/glide/v2/pkg/config"
 	"github.com/ivannovak/glide/v2/pkg/logging"
 	"github.com/ivannovak/glide/v2/pkg/validation"
 	"gopkg.in/yaml.v3"
@@ -69,10 +70,16 @@ func (l *Loader) Load() (*Config, error) {
 		return nil, fmt.Errorf("failed to read config file: %w", err)
 	}
 
-	// Parse YAML
+	// Parse YAML into main config
 	if err := yaml.Unmarshal(data, &config); err != nil {
 		logging.Error("Failed to parse config file", "path", validatedPath, "error", err)
 		return nil, fmt.Errorf("failed to parse config file: %w", err)
+	}
+
+	// Also parse raw YAML to extract plugin configs for type-safe registry
+	var rawConfig map[string]interface{}
+	if err := yaml.Unmarshal(data, &rawConfig); err == nil {
+		l.syncPluginConfigsFromRaw(rawConfig)
 	}
 
 	// Apply defaults for any missing values
@@ -267,4 +274,52 @@ func (l *Loader) GetConfigPath() string {
 func (l *Loader) ConfigExists() bool {
 	_, err := os.Stat(l.configPath)
 	return err == nil
+}
+
+// syncPluginConfigsFromRaw synchronizes plugin configurations from raw YAML data
+// to the typed configuration registry.
+//
+// This method extracts the "plugins" section from the raw YAML and updates any
+// plugin configurations that have been registered with the pkg/config typed system.
+func (l *Loader) syncPluginConfigsFromRaw(rawConfig map[string]interface{}) {
+	// Extract plugins section from raw YAML
+	pluginsRaw, ok := rawConfig["plugins"]
+	if !ok {
+		return
+	}
+
+	plugins, ok := pluginsRaw.(map[string]interface{})
+	if !ok {
+		logging.Warn("Invalid plugins configuration format in YAML")
+		return
+	}
+
+	// For each plugin config in the YAML
+	for pluginName, rawPluginConfig := range plugins {
+		// Check if this plugin has registered a typed config
+		if !pkgconfig.Exists(pluginName) {
+			logging.Debug("Plugin config not registered in typed registry",
+				"plugin", pluginName)
+			continue
+		}
+
+		// Update the typed config with the raw YAML data
+		if err := pkgconfig.Update(pluginName, rawPluginConfig); err != nil {
+			logging.Warn("Failed to update typed plugin config",
+				"plugin", pluginName,
+				"error", err)
+			continue
+		}
+
+		// Validate the updated config
+		if err := pkgconfig.Validate(pluginName); err != nil {
+			logging.Warn("Plugin config validation failed",
+				"plugin", pluginName,
+				"error", err)
+			continue
+		}
+
+		logging.Debug("Synced plugin config to typed registry",
+			"plugin", pluginName)
+	}
 }

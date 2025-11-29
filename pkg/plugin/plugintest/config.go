@@ -5,6 +5,31 @@ import (
 	"reflect"
 )
 
+// Package plugintest provides testing utilities for plugin development.
+//
+// MIGRATION NOTE: The configuration helpers in this package use the deprecated
+// map[string]interface{} configuration approach. For new tests, consider using
+// the pkg/config type-safe configuration system directly:
+//
+//   type MyPluginConfig struct {
+//       Endpoint string `json:"endpoint"`
+//   }
+//
+//   func TestMyPlugin(t *testing.T) {
+//       // Register typed config
+//       config.Register("my-plugin", MyPluginConfig{})
+//
+//       // Update with test data
+//       config.Update("my-plugin", map[string]interface{}{
+//           "endpoint": "http://test",
+//       })
+//
+//       // Plugin accesses typed config
+//       cfg, _ := config.GetValue[MyPluginConfig]("my-plugin")
+//   }
+//
+// See pkg/config/MIGRATION.md for complete migration guide.
+
 // ConfigBuilder provides a fluent interface for building test configurations
 type ConfigBuilder struct {
 	config map[string]interface{}

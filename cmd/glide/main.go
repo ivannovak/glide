@@ -150,12 +150,9 @@ func Execute() error {
 	})
 
 	// Load plugins
-	// Plugin configuration will come from config file in future phases
-	pluginConfig := make(map[string]interface{})
-	if cfg != nil && cfg.Plugins != nil {
-		pluginConfig = cfg.Plugins
-	}
-	plugin.SetConfig(pluginConfig)
+	// NOTE: Plugin configurations are loaded from YAML by internal/config/loader.go
+	// and synced to the typed config registry (pkg/config).
+	// Plugins access their typed configs using config.Get[T](pluginName).
 
 	// Set standard context for cancellation/deadline support
 	rootCmd.SetContext(stdcontext.Background())

@@ -288,3 +288,322 @@ func TestPrompterInterface(t *testing.T) {
 	// This should compile if interface is satisfied
 	assert.NotNil(t, prompter)
 }
+
+// Test validators
+
+func TestRequiredValidator(t *testing.T) {
+	tests := []struct {
+		name        string
+		input       string
+		expectError bool
+	}{
+		{
+			name:        "valid input",
+			input:       "test value",
+			expectError: false,
+		},
+		{
+			name:        "empty string",
+			input:       "",
+			expectError: true,
+		},
+		{
+			name:        "whitespace only",
+			input:       "   ",
+			expectError: true,
+		},
+		{
+			name:        "tab only",
+			input:       "\t",
+			expectError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := RequiredValidator(tt.input)
+			if tt.expectError {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), "required")
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestMinLengthValidator(t *testing.T) {
+	validator := MinLengthValidator(5)
+
+	tests := []struct {
+		name        string
+		input       string
+		expectError bool
+	}{
+		{
+			name:        "meets minimum",
+			input:       "12345",
+			expectError: false,
+		},
+		{
+			name:        "exceeds minimum",
+			input:       "123456",
+			expectError: false,
+		},
+		{
+			name:        "below minimum",
+			input:       "1234",
+			expectError: true,
+		},
+		{
+			name:        "empty",
+			input:       "",
+			expectError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validator(tt.input)
+			if tt.expectError {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), "at least 5")
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestMaxLengthValidator(t *testing.T) {
+	validator := MaxLengthValidator(10)
+
+	tests := []struct {
+		name        string
+		input       string
+		expectError bool
+	}{
+		{
+			name:        "within limit",
+			input:       "12345",
+			expectError: false,
+		},
+		{
+			name:        "at limit",
+			input:       "1234567890",
+			expectError: false,
+		},
+		{
+			name:        "exceeds limit",
+			input:       "12345678901",
+			expectError: true,
+		},
+		{
+			name:        "empty",
+			input:       "",
+			expectError: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validator(tt.input)
+			if tt.expectError {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), "at most 10")
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestPathValidator(t *testing.T) {
+	tests := []struct {
+		name        string
+		input       string
+		expectError bool
+		errorMsg    string
+	}{
+		{
+			name:        "valid unix path",
+			input:       "/usr/local/bin",
+			expectError: false,
+		},
+		{
+			name:        "valid relative path",
+			input:       "./test/path",
+			expectError: false,
+		},
+		{
+			name:        "valid windows path",
+			input:       "C:\\Users\\test",
+			expectError: false,
+		},
+		{
+			name:        "empty path",
+			input:       "",
+			expectError: true,
+			errorMsg:    "cannot be empty",
+		},
+		{
+			name:        "null byte in path",
+			input:       "/path/with\x00null",
+			expectError: true,
+			errorMsg:    "invalid characters",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := PathValidator(tt.input)
+			if tt.expectError {
+				assert.Error(t, err)
+				if tt.errorMsg != "" {
+					assert.Contains(t, err.Error(), tt.errorMsg)
+				}
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestChainValidators(t *testing.T) {
+	validator := ChainValidators(
+		RequiredValidator,
+		MinLengthValidator(3),
+		MaxLengthValidator(10),
+	)
+
+	tests := []struct {
+		name          string
+		input         string
+		expectError   bool
+		errorContains string
+	}{
+		{
+			name:        "valid input",
+			input:       "test",
+			expectError: false,
+		},
+		{
+			name:          "empty fails required",
+			input:         "",
+			expectError:   true,
+			errorContains: "required",
+		},
+		{
+			name:          "too short fails min length",
+			input:         "ab",
+			expectError:   true,
+			errorContains: "at least 3",
+		},
+		{
+			name:          "too long fails max length",
+			input:         "12345678901",
+			expectError:   true,
+			errorContains: "at most 10",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validator(tt.input)
+			if tt.expectError {
+				assert.Error(t, err)
+				if tt.errorContains != "" {
+					assert.Contains(t, err.Error(), tt.errorContains)
+				}
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestChainValidators_Empty(t *testing.T) {
+	// Empty chain should succeed for any input
+	validator := ChainValidators()
+
+	err := validator("anything")
+	assert.NoError(t, err)
+}
+
+func TestChainValidators_Order(t *testing.T) {
+	// Validators should run in order and stop at first failure
+	firstErr := fmt.Errorf("first validator failed")
+	secondErr := fmt.Errorf("second validator failed")
+
+	firstValidator := func(input string) error {
+		if input == "fail-first" {
+			return firstErr
+		}
+		return nil
+	}
+
+	secondValidator := func(input string) error {
+		if input == "fail-second" {
+			return secondErr
+		}
+		return nil
+	}
+
+	validator := ChainValidators(firstValidator, secondValidator)
+
+	// Test first validator fails
+	err := validator("fail-first")
+	assert.Equal(t, firstErr, err)
+
+	// Test second validator fails
+	err = validator("fail-second")
+	assert.Equal(t, secondErr, err)
+
+	// Test both pass
+	err = validator("pass")
+	assert.NoError(t, err)
+}
+
+func TestMinLengthValidator_Zero(t *testing.T) {
+	validator := MinLengthValidator(0)
+
+	err := validator("")
+	assert.NoError(t, err)
+}
+
+func TestMaxLengthValidator_Zero(t *testing.T) {
+	validator := MaxLengthValidator(0)
+
+	err := validator("")
+	assert.NoError(t, err)
+
+	err = validator("a")
+	assert.Error(t, err)
+}
+
+func TestPathValidator_EdgeCases(t *testing.T) {
+	// Test various edge cases
+	tests := []struct {
+		name  string
+		path  string
+		valid bool
+	}{
+		{"single dot", ".", true},
+		{"double dot", "..", true},
+		{"tilde", "~/test", true},
+		{"dollar sign", "$HOME/test", true},
+		{"space", "/path with space", true},
+		{"special chars", "/path-with_special.chars", true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := PathValidator(tt.path)
+			if tt.valid {
+				assert.NoError(t, err)
+			} else {
+				assert.Error(t, err)
+			}
+		})
+	}
+}

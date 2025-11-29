@@ -117,12 +117,8 @@ func TestRegistry(t *testing.T) {
 		require.NoError(t, err)
 
 		// Set configuration
-		config := map[string]interface{}{
-			"test-plugin": map[string]interface{}{
-				"key": "value",
-			},
-		}
-		reg.SetConfig(config)
+		// NOTE: Config is now handled by pkg/config, but for this test
+		// we just verify Configure() is called (it gets nil now)
 
 		// Load all plugins
 		root := &cobra.Command{Use: "test"}
@@ -210,12 +206,8 @@ func TestGlobalRegistry(t *testing.T) {
 		assert.True(t, found)
 
 		// Set config globally
-		config := map[string]interface{}{
-			"global-test-plugin": map[string]interface{}{
-				"key": "value",
-			},
-		}
-		plugin.SetConfig(config)
+		// NOTE: Config is now handled by pkg/config, not via SetConfig
+		// Configure() gets called with nil
 
 		// Load all globally
 		root := &cobra.Command{Use: "test"}

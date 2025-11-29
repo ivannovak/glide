@@ -30,7 +30,7 @@ func (p *MockAliasPlugin) Register(root *cobra.Command) error {
 	return nil
 }
 
-func (p *MockAliasPlugin) Configure(config map[string]interface{}) error {
+func (p *MockAliasPlugin) Configure() error {
 	return nil
 }
 

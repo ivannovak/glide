@@ -41,16 +41,13 @@ func TestPluginInterface(t *testing.T) {
 		harness := plugintest.NewTestHarness(t)
 		p := plugintest.NewMockPlugin("test-plugin")
 
-		config := plugintest.NewConfigBuilder().
-			WithValue("test_key", "test_value").
-			Build()
-
-		harness.WithConfig(config)
+		// NOTE: WithConfig is now a no-op. Plugin config is handled by pkg/config.
+		// Configure() is called without parameters.
 		err := harness.RegisterPlugin(p)
 		require.NoError(t, err)
 
 		assert.True(t, p.Configured)
-		assert.Equal(t, config, p.ReceivedConfig)
+		// Configure is now called without parameters (plugins use pkg/config for typed configs)
 	})
 
 	t.Run("plugin register with command helper", func(t *testing.T) {

@@ -1,0 +1,26 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/ivannovak/glide/v2/tests/benchmarks
+cpu: Apple M3 Max
+BenchmarkConfigLoad-16                        	time=2025-11-28T16:56:27.063-06:00 level=INFO msg="Configuration loaded successfully" path=/Users/ivannovak/.glide.yml
+BenchmarkConfigDiscoverySingleLevel-16        	  244566	      5213 ns/op	    1376 B/op	      10 allocs/op
+BenchmarkConfigDiscoveryNested-16             	   55406	     21780 ns/op	    6144 B/op	      50 allocs/op
+BenchmarkConfigMergingEmpty-16                	  726447	      1739 ns/op	     722 B/op	       8 allocs/op
+BenchmarkConfigMergingSingle-16               	   45961	     25822 ns/op	    9761 B/op	     111 allocs/op
+BenchmarkConfigMergingMultiple-16             	   10000	    119511 ns/op	   46484 B/op	     523 allocs/op
+BenchmarkConfigMergingLarge-16                	   47678	     26189 ns/op	    9745 B/op	     111 allocs/op
+BenchmarkConfigValidation-16                  	   42861	     26140 ns/op	    9713 B/op	     111 allocs/op
+BenchmarkContextDetection-16                  	      16	  70372143 ns/op	   25315 B/op	     142 allocs/op
+BenchmarkContextDetectionWithConfig-16        	      16	  75019898 ns/op	   24434 B/op	     134 allocs/op
+BenchmarkContextDetectionNested-16            	time=2025-11-28T16:56:41.806-06:00 level=ERROR msg="Failed to find project root" workingDir=/private/var/folders/pq/43bb80gj31x7009tmpvfjcy40000gn/T/BenchmarkContextDetectionNested2072437/002/a/b/c/d/e error="could not find project root"
+BenchmarkContextDetectionMultiFramework-16    	      15	 119722175 ns/op	   25555 B/op	     142 allocs/op
+BenchmarkContextDetectionSingleRepo-16        	      18	  74608845 ns/op	   25394 B/op	     142 allocs/op
+BenchmarkContextDetectionMultiWorktree-16     	      16	  74153099 ns/op	   25875 B/op	     144 allocs/op
+BenchmarkContextValidation-16                 	1000000000	         0.2790 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPluginDiscovery-16                   	       1	1192052709 ns/op	 1434440 B/op	    5653 allocs/op
+BenchmarkPluginDiscoveryEmpty-16              	   77160	     15924 ns/op	    2208 B/op	      20 allocs/op
+BenchmarkPluginListPlugins-16                 	162869230	         7.415 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPluginCachePut-16                    	84923436	        15.38 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPluginCacheGet-16                    	137608563	         8.568 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPluginCachePutGet-16                 	39800664	        28.91 ns/op	       0 B/op	       0 allocs/op
+BenchmarkPluginCleanup-16                     	21487261	        56.51 ns/op	      96 B/op	       2 allocs/op

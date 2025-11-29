@@ -185,7 +185,7 @@ func NewTestConfig(opts ...ConfigOption) *config.Config {
 				RunMigrations: false,
 			},
 		},
-		Plugins:  make(map[string]interface{}),
+		// NOTE: Plugin configuration migrated to pkg/config type-safe system
 		Commands: make(config.CommandMap),
 	}
 

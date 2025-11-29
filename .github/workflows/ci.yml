@@ -59,38 +59,95 @@ jobs:
   test-unit:
     needs: validate
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Needed for coverage diff
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
-      - run: go test -race -coverprofile=coverage.out -covermode=atomic ./...
-      - uses: codecov/codecov-action@v3
+      - name: Run tests with coverage
+        run: go test -race -coverprofile=coverage.out -covermode=atomic ./...
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
         with:
           file: ./coverage.out
-      - name: Check test coverage
+
+      - name: Check coverage gates
         run: |
-          go tool cover -func=coverage.out
-          COVERAGE=$(go tool cover -func=coverage.out | grep total: | awk '{print $3}' | sed 's/%//')
-          echo "Total coverage: ${COVERAGE}%"
+          chmod +x scripts/check-coverage.sh
+          ./scripts/check-coverage.sh
 
-          # Coverage gates (incremental approach to 80% target)
-          # Current: ~24%, Phase 0 target: 40%, Phase 2 target: 80%
-          MIN_COVERAGE=20
-          TARGET_COVERAGE=80
+      - name: Generate coverage report
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "## 📊 Coverage Report" > coverage-report.md
+          echo "" >> coverage-report.md
 
-          if (( $(echo "$COVERAGE < $MIN_COVERAGE" | bc -l) )); then
-            echo "❌ Coverage $COVERAGE% is below minimum $MIN_COVERAGE%"
-            exit 1
-          fi
+          # Total coverage
+          TOTAL=$(go tool cover -func=coverage.out | grep total: | awk '{print $3}')
+          echo "**Total Coverage:** $TOTAL" >> coverage-report.md
+          echo "" >> coverage-report.md
 
-          if (( $(echo "$COVERAGE < $TARGET_COVERAGE" | bc -l) )); then
-            echo "⚠️  Coverage $COVERAGE% is below target $TARGET_COVERAGE%"
-            echo "   Continue improving test coverage to meet gold standard."
-          else
-            echo "✅ Coverage meets gold standard target!"
-          fi
+          # Critical packages
+          echo "### Critical Packages" >> coverage-report.md
+          echo "" >> coverage-report.md
+          echo "| Package | Coverage | Status |" >> coverage-report.md
+          echo "|---------|----------|--------|" >> coverage-report.md
+
+          for pkg in "pkg/plugin/sdk/v1" "pkg/plugin/sdk" "internal/cli" "pkg/prompt"; do
+            COV=$(go tool cover -func=coverage.out | grep "github.com/ivannovak/glide/v2/${pkg}/" | \
+              awk '{sum += $3; count++} END {if (count > 0) printf "%.1f%%", sum/count; else print "N/A"}')
+
+            if [[ "$COV" == "N/A" ]]; then
+              STATUS="❓"
+            elif (( $(echo "${COV%%%*} < 80" | bc -l 2>/dev/null || echo 1) )); then
+              STATUS="⚠️"
+            else
+              STATUS="✅"
+            fi
+
+            echo "| $pkg | $COV | $STATUS |" >> coverage-report.md
+          done
+
+          echo "" >> coverage-report.md
+          echo "### High Priority Packages" >> coverage-report.md
+          echo "" >> coverage-report.md
+          echo "| Package | Coverage | Status |" >> coverage-report.md
+          echo "|---------|----------|--------|" >> coverage-report.md
+
+          for pkg in "internal/config" "pkg/errors" "pkg/output"; do
+            COV=$(go tool cover -func=coverage.out | grep "github.com/ivannovak/glide/v2/${pkg}/" | \
+              awk '{sum += $3; count++} END {if (count > 0) printf "%.1f%%", sum/count; else print "N/A"}')
+
+            if [[ "$COV" == "N/A" ]]; then
+              STATUS="❓"
+            elif (( $(echo "${COV%%%*} < 80" | bc -l 2>/dev/null || echo 1) )); then
+              STATUS="⚠️"
+            else
+              STATUS="✅"
+            fi
+
+            echo "| $pkg | $COV | $STATUS |" >> coverage-report.md
+          done
+
+          echo "" >> coverage-report.md
+          echo "**Target:** 80% for all packages" >> coverage-report.md
+          echo "" >> coverage-report.md
+          echo "---" >> coverage-report.md
+          echo "*Automated coverage report from Phase 2 Testing Infrastructure*" >> coverage-report.md
+
+      - name: Comment coverage on PR
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: coverage
+          path: coverage-report.md
 
   test-integration:
     needs: validate

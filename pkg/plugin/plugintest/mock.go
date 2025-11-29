@@ -7,16 +7,15 @@ import (
 
 // MockPlugin implements the Plugin interface for testing
 type MockPlugin struct {
-	NameValue      string
-	VersionValue   string
-	Configured     bool
-	Registered     bool
-	ConfigError    error
-	RegisterError  error
-	RegisterFunc   func(*cobra.Command) error         // Allow overriding for tests
-	ConfigureFunc  func(map[string]interface{}) error // Allow overriding for tests
-	MetadataValue  plugin.PluginMetadata
-	ReceivedConfig map[string]interface{} // Store received config for assertions
+	NameValue     string
+	VersionValue  string
+	Configured    bool
+	Registered    bool
+	ConfigError   error
+	RegisterError error
+	RegisterFunc  func(*cobra.Command) error // Allow overriding for tests
+	ConfigureFunc func() error               // Allow overriding for tests
+	MetadataValue plugin.PluginMetadata
 }
 
 // NewMockPlugin creates a new mock plugin with sensible defaults
@@ -53,12 +52,11 @@ func (m *MockPlugin) Version() string {
 }
 
 // Configure allows plugin-specific configuration
-func (m *MockPlugin) Configure(config map[string]interface{}) error {
+func (m *MockPlugin) Configure() error {
 	m.Configured = true
-	m.ReceivedConfig = config
 
 	if m.ConfigureFunc != nil {
-		return m.ConfigureFunc(config)
+		return m.ConfigureFunc()
 	}
 
 	return m.ConfigError
@@ -112,5 +110,4 @@ func (m *MockPlugin) WithMetadata(meta plugin.PluginMetadata) *MockPlugin {
 func (m *MockPlugin) Reset() {
 	m.Configured = false
 	m.Registered = false
-	m.ReceivedConfig = nil
 }
