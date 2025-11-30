@@ -280,17 +280,16 @@ func TestLoadPlugin(t *testing.T) {
 	})
 
 	t.Run("load plugin from untrusted path in strict mode", func(t *testing.T) {
-		tmpDir := t.TempDir()
-		untrustedDir := filepath.Join(tmpDir, "untrusted")
-		require.NoError(t, os.MkdirAll(untrustedDir, 0755))
+		trustedDir := t.TempDir()
+		untrustedDir := t.TempDir() // Separate temp directory, not inside trustedDir
 
-		// Create a simple executable
+		// Create a simple executable in the untrusted directory
 		pluginPath := filepath.Join(untrustedDir, "plugin")
 		err := os.WriteFile(pluginPath, []byte("#!/bin/sh\necho test"), 0755)
 		require.NoError(t, err)
 
 		config := &ManagerConfig{
-			PluginDirs:     []string{tmpDir}, // Different from untrustedDir
+			PluginDirs:     []string{trustedDir}, // Only trustedDir is trusted
 			SecurityStrict: true,
 		}
 		m := NewManager(config)

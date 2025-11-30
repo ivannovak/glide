@@ -119,14 +119,27 @@ func TestValidate_WorldWritable(t *testing.T) {
 
 	// Create world-writable plugin
 	elfHeader := []byte{0x7f, 'E', 'L', 'F'}
-	if err := os.WriteFile(pluginPath, elfHeader, 0777); err != nil {
+	if err := os.WriteFile(pluginPath, elfHeader, 0755); err != nil {
 		t.Fatalf("failed to create test plugin: %v", err)
+	}
+	// Explicitly set world-writable permissions (bypasses umask)
+	if err := os.Chmod(pluginPath, 0777); err != nil {
+		t.Fatalf("failed to chmod test plugin: %v", err)
+	}
+
+	// Verify the file is actually world-writable
+	info, err := os.Stat(pluginPath)
+	if err != nil {
+		t.Fatalf("failed to stat test plugin: %v", err)
+	}
+	if info.Mode()&0022 == 0 {
+		t.Skip("filesystem does not support group/other write permissions")
 	}
 
 	v := NewValidator(true) // Strict mode
 	v.AddTrustedPath(tmpDir)
 
-	err := v.Validate(pluginPath)
+	err = v.Validate(pluginPath)
 	if err == nil {
 		t.Fatal("expected error for world-writable plugin in strict mode, got nil")
 	}

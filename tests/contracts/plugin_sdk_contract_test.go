@@ -191,8 +191,18 @@ func TestSecurityContract(t *testing.T) {
 
 	t.Run("validator rejects world-writable plugins", func(t *testing.T) {
 		pluginPath := filepath.Join(tmpDir, "bad-plugin")
-		err := os.WriteFile(pluginPath, []byte("#!/bin/sh\n"), 0777)
+		err := os.WriteFile(pluginPath, []byte("#!/bin/sh\n"), 0755)
 		require.NoError(t, err)
+		// Explicitly set world-writable permissions (bypasses umask)
+		err = os.Chmod(pluginPath, 0777)
+		require.NoError(t, err)
+
+		// Verify the file is actually world-writable
+		info, err := os.Stat(pluginPath)
+		require.NoError(t, err)
+		if info.Mode()&0022 == 0 {
+			t.Skip("filesystem does not support group/other write permissions")
+		}
 
 		validator := sdk.NewValidator(true)
 		validator.AddTrustedPath(tmpDir)

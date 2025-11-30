@@ -7,9 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
-	"syscall"
 )
 
 // SecurityValidator validates plugin security and integrity
@@ -101,30 +99,7 @@ func (sv *SecurityValidator) validateFileSystem(pluginPath string) error {
 	return nil
 }
 
-// validateOwnership checks file ownership (Unix-specific)
-func (sv *SecurityValidator) validateOwnership(info os.FileInfo) error {
-	// Skip ownership checks on Windows
-	if runtime.GOOS == "windows" {
-		return nil
-	}
-
-	// Get the underlying syscall.Stat_t
-	stat, ok := info.Sys().(*syscall.Stat_t)
-	if !ok {
-		// If we can't get syscall info, skip this check
-		return nil
-	}
-
-	// Get current user's UID
-	currentUID := uint32(os.Getuid())
-
-	// Plugin must be owned by current user or root (UID 0)
-	if stat.Uid != currentUID && stat.Uid != 0 {
-		return fmt.Errorf("plugin file is owned by UID %d, expected current user (%d) or root (0)", stat.Uid, currentUID)
-	}
-
-	return nil
-}
+// validateOwnership checks file ownership (platform-specific implementation in security_*.go)
 
 // validateChecksum verifies plugin integrity via checksum
 func (sv *SecurityValidator) validateChecksum(pluginPath string, manifest *PluginManifest) error {

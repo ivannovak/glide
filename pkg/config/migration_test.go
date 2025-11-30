@@ -102,10 +102,10 @@ func TestMigrator_CanMigrate(t *testing.T) {
 	})
 
 	tests := []struct {
-		name    string
-		from    int
-		to      int
-		canDo   bool
+		name  string
+		from  int
+		to    int
+		canDo bool
 	}{
 		{"same version", 2, 2, true},
 		{"one hop forward", 1, 2, true},
