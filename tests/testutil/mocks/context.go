@@ -1,5 +1,7 @@
 package mocks
 
+//lint:file-ignore SA1019 interfaces.ProjectContext is deprecated but still in use until v3.0.0
+
 import (
 	"github.com/ivannovak/glide/v2/pkg/interfaces"
 	"github.com/stretchr/testify/mock"
@@ -11,26 +13,20 @@ type MockContextDetector struct {
 }
 
 // Detect mocks the Detect method
-//
-//nolint:staticcheck // SA1019: interfaces.ProjectContext is deprecated but still in use until v3.0.0
 func (m *MockContextDetector) Detect(workingDir string) (interfaces.ProjectContext, error) {
 	args := m.Called(workingDir)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	//nolint:staticcheck // SA1019: interfaces.ProjectContext is deprecated but still in use until v3.0.0
 	return args.Get(0).(interfaces.ProjectContext), args.Error(1)
 }
 
 // DetectWithRoot mocks the DetectWithRoot method
-//
-//nolint:staticcheck // SA1019: interfaces.ProjectContext is deprecated but still in use until v3.0.0
 func (m *MockContextDetector) DetectWithRoot(workingDir, projectRoot string) (interfaces.ProjectContext, error) {
 	args := m.Called(workingDir, projectRoot)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	//nolint:staticcheck // SA1019: interfaces.ProjectContext is deprecated but still in use until v3.0.0
 	return args.Get(0).(interfaces.ProjectContext), args.Error(1)
 }
 
@@ -91,15 +87,11 @@ func (m *MockProjectContext) GetWorktreeName() string {
 }
 
 // ExpectContextDetection is a helper to set up expected context detection
-//
-//nolint:staticcheck // SA1019: interfaces.ProjectContext is deprecated but still in use until v3.0.0
 func ExpectContextDetection(m *MockContextDetector, workingDir string, ctx interfaces.ProjectContext, err error) *mock.Call {
 	return m.On("Detect", workingDir).Return(ctx, err)
 }
 
 // ExpectContextDetectionWithRoot is a helper to set up expected context detection with root
-//
-//nolint:staticcheck // SA1019: interfaces.ProjectContext is deprecated but still in use until v3.0.0
 func ExpectContextDetectionWithRoot(m *MockContextDetector, workingDir, projectRoot string, ctx interfaces.ProjectContext, err error) *mock.Call {
 	return m.On("DetectWithRoot", workingDir, projectRoot).Return(ctx, err)
 }

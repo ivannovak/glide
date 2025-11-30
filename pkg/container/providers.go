@@ -1,5 +1,7 @@
 package container
 
+//lint:file-ignore SA1019 plugin.Plugin is deprecated but still valid for use
+
 import (
 	"fmt"
 	"io"
@@ -80,9 +82,8 @@ type ProjectContextParams struct {
 	fx.In
 
 	Detector *context.Detector
-	//nolint:staticcheck // SA1019: plugin.Plugin is deprecated but still valid for use
-	Plugins []*plugin.Plugin `optional:"true"` // Get all registered plugins
-	Logger  *logging.Logger
+	Plugins  []*plugin.Plugin `optional:"true"` // Get all registered plugins
+	Logger   *logging.Logger
 }
 
 // provideProjectContext detects the project context.

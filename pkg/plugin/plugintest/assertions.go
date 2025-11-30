@@ -1,5 +1,7 @@
 package plugintest
 
+//lint:file-ignore SA1019 plugin.Plugin is deprecated but still valid for use
+
 import (
 	"strings"
 	"testing"
@@ -21,8 +23,6 @@ func NewAssertions(t *testing.T) *Assertions {
 }
 
 // AssertPluginMetadata verifies plugin metadata
-//
-//nolint:staticcheck // SA1019: plugin.Plugin is deprecated but still valid for use
 func (a *Assertions) AssertPluginMetadata(p plugin.Plugin, expected plugin.PluginMetadata) {
 	actual := p.Metadata()
 
@@ -176,8 +176,6 @@ func NewQuickAssert(t *testing.T) *QuickAssert {
 }
 
 // Plugin asserts on a plugin
-//
-//nolint:staticcheck // SA1019: plugin.Plugin is deprecated but still valid for use
 func (q *QuickAssert) Plugin(p plugin.Plugin) *PluginAssert {
 	return &PluginAssert{t: q.t, plugin: p}
 }
@@ -189,8 +187,7 @@ func (q *QuickAssert) Command(cmd *cobra.Command) *CommandAssert {
 
 // PluginAssert provides fluent assertions for plugins
 type PluginAssert struct {
-	t *testing.T
-	//nolint:staticcheck // SA1019: plugin.Plugin is deprecated but still valid for use
+	t      *testing.T
 	plugin plugin.Plugin
 }
 
