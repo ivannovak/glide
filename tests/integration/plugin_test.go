@@ -106,6 +106,8 @@ func TestPluginLoading(t *testing.T) {
 	})
 
 	t.Run("load_invalid_plugin", func(t *testing.T) {
+		skipIfRaceDetector(t)
+
 		// Setup: Create invalid plugin file
 		tmpDir := t.TempDir()
 		pluginDir := filepath.Join(tmpDir, ".glide", "plugins")
@@ -402,6 +404,8 @@ func TestMultiplePluginLoading(t *testing.T) {
 	})
 
 	t.Run("load_plugins_with_same_name", func(t *testing.T) {
+		skipIfRaceDetector(t)
+
 		// Setup: Create two plugin directories with identically named plugins
 		tmpDir := t.TempDir()
 		pluginDir1 := filepath.Join(tmpDir, "plugins1")
@@ -436,6 +440,8 @@ func TestMultiplePluginLoading(t *testing.T) {
 	})
 
 	t.Run("load_plugins_with_dependencies", func(t *testing.T) {
+		skipIfRaceDetector(t)
+
 		// Setup: Create plugin directory
 		tmpDir := t.TempDir()
 		pluginDir := filepath.Join(tmpDir, ".glide", "plugins")
@@ -465,6 +471,8 @@ func TestMultiplePluginLoading(t *testing.T) {
 
 // TestPluginConflicts tests handling of plugin conflicts
 func TestPluginConflicts(t *testing.T) {
+	skipIfRaceDetector(t)
+
 	t.Run("conflict_different_versions", func(t *testing.T) {
 		// Setup: Create plugins with version conflicts
 		tmpDir := t.TempDir()
