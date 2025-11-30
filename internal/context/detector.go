@@ -5,7 +5,7 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/ivannovak/glide/v2/pkg/logging"
+	"github.com/ivannovak/glide/v3/pkg/logging"
 )
 
 // Detector is a refactored context detector using composition

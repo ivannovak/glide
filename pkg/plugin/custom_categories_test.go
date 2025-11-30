@@ -3,7 +3,7 @@ package plugin
 import (
 	"testing"
 
-	v1 "github.com/ivannovak/glide/v2/pkg/plugin/sdk/v1"
+	v1 "github.com/ivannovak/glide/v3/pkg/plugin/sdk/v1"
 	"github.com/stretchr/testify/assert"
 )
 

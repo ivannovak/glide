@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ivannovak/glide/v2/tests/testutil"
+	"github.com/ivannovak/glide/v3/tests/testutil"
 )
 
 // TestRunTableTests_Simple demonstrates a basic table-driven test

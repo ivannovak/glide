@@ -37,7 +37,7 @@ The Application God Object is used in **5 production files** and **5 test files*
 **Usage Pattern:** Application Creation and Bootstrap
 ```go
 // Line 12
-import "github.com/ivannovak/glide/v2/pkg/app"
+import "github.com/ivannovak/glide/v3/pkg/app"
 
 // Lines 74-78
 application := app.NewApplication(
@@ -90,7 +90,7 @@ cli := cliPkg.New(outputManager, projectContext, config)
 **Usage Pattern:** Service Locator Pattern
 ```go
 // Line 11
-import "github.com/ivannovak/glide/v2/pkg/app"
+import "github.com/ivannovak/glide/v3/pkg/app"
 
 // Line 19
 type CLI struct {
@@ -157,7 +157,7 @@ Then replace all:
 **Usage Pattern:** Service Locator Pattern (Builder)
 ```go
 // Line 7
-import "github.com/ivannovak/glide/v2/pkg/app"
+import "github.com/ivannovak/glide/v3/pkg/app"
 
 // Line 16
 type Builder struct {
@@ -223,7 +223,7 @@ Then replace all:
 **Usage Pattern:** Base Command Pattern
 ```go
 // Line 4
-import "github.com/ivannovak/glide/v2/pkg/app"
+import "github.com/ivannovak/glide/v3/pkg/app"
 
 // Line 12
 type BaseCommand struct {
@@ -302,7 +302,7 @@ func (b *BaseCommand) Config() *config.Config {
 **Usage Pattern:** Helper Functions with Application Parameter
 ```go
 // Line 6
-import "github.com/ivannovak/glide/v2/pkg/app"
+import "github.com/ivannovak/glide/v3/pkg/app"
 
 // Line 18
 func showContext(cmd *cobra.Command, app *app.Application) error {
@@ -624,8 +624,8 @@ cli := New(deps.OutputManager, deps.ProjectContext, deps.Config)
 
 ## Success Metrics
 
-- [ ] Zero `import "github.com/ivannovak/glide/v2/pkg/app"` in `cmd/` (except tests)
-- [ ] Zero `import "github.com/ivannovak/glide/v2/pkg/app"` in `internal/cli/` production code
+- [ ] Zero `import "github.com/ivannovak/glide/v3/pkg/app"` in `cmd/` (except tests)
+- [ ] Zero `import "github.com/ivannovak/glide/v3/pkg/app"` in `internal/cli/` production code
 - [ ] All 26 test instances migrated
 - [ ] All tests passing
 - [ ] No regressions in functionality

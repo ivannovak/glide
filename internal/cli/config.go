@@ -8,9 +8,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ivannovak/glide/v2/internal/config"
-	glideErrors "github.com/ivannovak/glide/v2/pkg/errors"
-	"github.com/ivannovak/glide/v2/pkg/output"
+	"github.com/ivannovak/glide/v3/internal/config"
+	glideErrors "github.com/ivannovak/glide/v3/pkg/errors"
+	"github.com/ivannovak/glide/v3/pkg/output"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )

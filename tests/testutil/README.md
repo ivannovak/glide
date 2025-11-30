@@ -14,7 +14,7 @@ This package includes:
 ### Creating Test Contexts
 
 ```go
-import "github.com/ivannovak/glide/v2/tests/testutil"
+import "github.com/ivannovak/glide/v3/tests/testutil"
 
 // Basic context with defaults
 ctx := testutil.NewTestContext()
@@ -294,7 +294,7 @@ The testutil package works alongside `testify/assert` and `testify/require`. You
 import (
     "testing"
     "github.com/stretchr/testify/assert"
-    "github.com/ivannovak/glide/v2/tests/testutil"
+    "github.com/ivannovak/glide/v3/tests/testutil"
 )
 
 func TestMixed(t *testing.T) {

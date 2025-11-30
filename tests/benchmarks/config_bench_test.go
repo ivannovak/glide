@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ivannovak/glide/v2/internal/config"
-	"github.com/ivannovak/glide/v2/pkg/branding"
+	"github.com/ivannovak/glide/v3/internal/config"
+	"github.com/ivannovak/glide/v3/pkg/branding"
 )
 
 // BenchmarkConfigLoad benchmarks configuration loading

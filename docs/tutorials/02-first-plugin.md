@@ -28,7 +28,7 @@ go mod init github.com/yourusername/glide-plugin-hello
 ### Add Dependencies
 
 ```bash
-go get github.com/ivannovak/glide/v2@latest
+go get github.com/ivannovak/glide/v3@latest
 ```
 
 ### Project Structure
@@ -54,7 +54,7 @@ import (
     "context"
     "fmt"
 
-    "github.com/ivannovak/glide/v2/pkg/plugin/sdk/v2"
+    "github.com/ivannovak/glide/v3/pkg/plugin/sdk/v2"
 )
 
 // Config defines the plugin's configuration
@@ -155,7 +155,7 @@ import (
     "fmt"
     "time"
 
-    "github.com/ivannovak/glide/v2/pkg/plugin/sdk/v2"
+    "github.com/ivannovak/glide/v3/pkg/plugin/sdk/v2"
 )
 
 // Commands returns the commands this plugin provides
@@ -221,7 +221,7 @@ package main
 import (
     "os"
 
-    "github.com/ivannovak/glide/v2/pkg/plugin/sdk/v2"
+    "github.com/ivannovak/glide/v3/pkg/plugin/sdk/v2"
     "github.com/yourusername/glide-plugin-hello/plugin"
 )
 
@@ -328,7 +328,7 @@ import (
     "fmt"
     "time"
 
-    "github.com/ivannovak/glide/v2/pkg/plugin/sdk/v2"
+    "github.com/ivannovak/glide/v3/pkg/plugin/sdk/v2"
 )
 
 // Config defines the plugin's configuration

@@ -137,7 +137,7 @@ mkdir my-plugin && cd my-plugin
 
 # 2. Initialize module
 go mod init my-plugin
-go get github.com/ivannovak/glide/v2/pkg/plugin/sdk/v2
+go get github.com/ivannovak/glide/v3/pkg/plugin/sdk/v2
 go get github.com/hashicorp/go-plugin
 
 # 3. Implement plugin (see PLUGIN_DEVELOPMENT.md for v2 examples)

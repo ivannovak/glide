@@ -1,7 +1,7 @@
 // DEPRECATED: Docker functionality moved to plugins/docker
 package shell
 
-import "github.com/ivannovak/glide/v2/internal/context"
+import "github.com/ivannovak/glide/v3/internal/context"
 
 // DEPRECATED: Use plugins/docker instead
 type DockerExecutor struct{}

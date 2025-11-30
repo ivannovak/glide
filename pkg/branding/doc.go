@@ -9,9 +9,9 @@
 // Override branding at build time:
 //
 //	go build -ldflags "\
-//	    -X github.com/ivannovak/glide/v2/pkg/branding.CommandName=mycli \
-//	    -X github.com/ivannovak/glide/v2/pkg/branding.ProjectName=MyProject \
-//	    -X github.com/ivannovak/glide/v2/pkg/branding.ConfigFileName=.mycli.yml"
+//	    -X github.com/ivannovak/glide/v3/pkg/branding.CommandName=mycli \
+//	    -X github.com/ivannovak/glide/v3/pkg/branding.ProjectName=MyProject \
+//	    -X github.com/ivannovak/glide/v3/pkg/branding.ConfigFileName=.mycli.yml"
 //
 // # Available Variables
 //

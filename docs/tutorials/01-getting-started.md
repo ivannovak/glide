@@ -26,7 +26,7 @@ curl -sSL https://raw.githubusercontent.com/ivannovak/glide/main/install.sh | ba
 ### Using Go Install
 
 ```bash
-go install github.com/ivannovak/glide/v2@latest
+go install github.com/ivannovak/glide/v3@latest
 ```
 
 ### Verify Installation

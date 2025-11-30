@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ivannovak/glide/v2/pkg/validation"
+	"github.com/ivannovak/glide/v3/pkg/validation"
 )
 
 // BenchmarkValidatePathSimple benchmarks validating a simple relative path

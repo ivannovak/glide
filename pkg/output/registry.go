@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/ivannovak/glide/v2/pkg/registry"
+	"github.com/ivannovak/glide/v3/pkg/registry"
 )
 
 // Factory is a function that creates a Formatter

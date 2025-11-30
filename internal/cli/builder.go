@@ -3,11 +3,11 @@ package cli
 import (
 	"os"
 
-	"github.com/ivannovak/glide/v2/internal/config"
-	"github.com/ivannovak/glide/v2/internal/context"
-	"github.com/ivannovak/glide/v2/pkg/branding"
-	"github.com/ivannovak/glide/v2/pkg/output"
-	"github.com/ivannovak/glide/v2/pkg/plugin"
+	"github.com/ivannovak/glide/v3/internal/config"
+	"github.com/ivannovak/glide/v3/internal/context"
+	"github.com/ivannovak/glide/v3/pkg/branding"
+	"github.com/ivannovak/glide/v3/pkg/output"
+	"github.com/ivannovak/glide/v3/pkg/plugin"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )

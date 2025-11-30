@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/ivannovak/glide/v2/pkg/validation"
+	"github.com/ivannovak/glide/v3/pkg/validation"
 )
 
 // Validator validates plugin binaries for security

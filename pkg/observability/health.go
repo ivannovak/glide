@@ -5,7 +5,7 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/ivannovak/glide/v2/pkg/performance"
+	"github.com/ivannovak/glide/v3/pkg/performance"
 )
 
 // HealthStatus represents the overall health status

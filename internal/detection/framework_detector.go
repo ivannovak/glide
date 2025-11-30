@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ivannovak/glide/v2/pkg/plugin/sdk"
+	"github.com/ivannovak/glide/v3/pkg/plugin/sdk"
 )
 
 // FrameworkDetector aggregates all plugin detections

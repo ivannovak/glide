@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ivannovak/glide/v2/internal/cli"
-	"github.com/ivannovak/glide/v2/internal/config"
-	"github.com/ivannovak/glide/v2/internal/context"
+	"github.com/ivannovak/glide/v3/internal/cli"
+	"github.com/ivannovak/glide/v3/internal/config"
+	"github.com/ivannovak/glide/v3/internal/context"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

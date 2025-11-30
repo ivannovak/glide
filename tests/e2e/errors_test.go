@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ivannovak/glide/v2/internal/context"
+	"github.com/ivannovak/glide/v3/internal/context"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -115,7 +115,7 @@ services:
   external_api:
     endpoint: "https://api.external-service.com/v1"
     timeout: 5000
-  
+
   image_registry:
     url: "registry.example.com"
     pull_policy: "always"
@@ -133,7 +133,7 @@ services:
     image: registry.example.com/myapp:latest  # External registry
     environment:
       - API_ENDPOINT=https://api.external-service.com/v1
-  
+
   proxy:
     image: nginx:alpine
     depends_on:
@@ -291,7 +291,7 @@ If docker-compose fails:
 2. Verify port configuration format: "host:container"
 3. Validate YAML syntax: docker-compose config
 
-## Git Issues  
+## Git Issues
 If git operations fail:
 1. Check repository status: git status
 2. Verify remote: git remote -v
@@ -418,12 +418,12 @@ Last successful: 001_create_users.sql
 app:
   name: "Test Application"
   debug: true
-  
+
 database:
   host: localhost
   port: 3306
   name: testdb
-  
+
 cache:
   driver: redis
   host: localhost
@@ -444,13 +444,13 @@ cache:
 app:
   name: "Test Application"
   debug: invalid_value_not_bool
-  
+
 database:
   host: [this is invalid yaml
   port: not_a_number
-  
+
 cache:
-  driver: 
+  driver:
     invalid: nested structure
     that: breaks things
 `
@@ -513,7 +513,7 @@ Status: IN_PROGRESS
 
 Cleanup required:
 - Remove partial worktree directory
-- Clean git worktree references  
+- Clean git worktree references
 - Remove temporary files
 - Release lock file
 `, time.Now().Format(time.RFC3339))
@@ -677,7 +677,7 @@ PID: %d
 		resourceReport := `# Resource Usage Report
 Disk Usage:
   Total: 50KB (simulated)
-  Used: 45KB 
+  Used: 45KB
   Available: 5KB
   Usage: 90%
 
@@ -738,7 +738,7 @@ Critical: Low disk space detected!
 
 Directory Permissions:
   app/config: 755 (OK)
-  app/data: 755 (OK) 
+  app/data: 755 (OK)
   storage/cache: 755 (OK)
   storage/logs: 755 (OK)
   tmp/uploads: 755 (OK)

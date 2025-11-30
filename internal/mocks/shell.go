@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/ivannovak/glide/v2/pkg/interfaces"
+	"github.com/ivannovak/glide/v3/pkg/interfaces"
 	"github.com/stretchr/testify/mock"
 )
 

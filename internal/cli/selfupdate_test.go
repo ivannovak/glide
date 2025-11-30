@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ivannovak/glide/v2/internal/config"
-	internalContext "github.com/ivannovak/glide/v2/internal/context"
-	"github.com/ivannovak/glide/v2/pkg/update"
-	"github.com/ivannovak/glide/v2/pkg/version"
+	"github.com/ivannovak/glide/v3/internal/config"
+	internalContext "github.com/ivannovak/glide/v3/internal/context"
+	"github.com/ivannovak/glide/v3/pkg/update"
+	"github.com/ivannovak/glide/v3/pkg/version"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -54,7 +54,7 @@ func TestSelfUpdateCommand_NoUpdateAvailable(t *testing.T) {
 		TagName:     "v2.0.0",
 		Name:        "v2.0.0",
 		PublishedAt: time.Now(),
-		HTMLURL:     "https://github.com/ivannovak/glide/v2/releases/tag/v2.0.0",
+		HTMLURL:     "https://github.com/ivannovak/glide/v3/releases/tag/v2.0.0",
 	}
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -232,21 +232,21 @@ func TestSelfUpdateCommand_Integration(t *testing.T) {
 		Name:        "v2.0.0",
 		Body:        "New features and improvements",
 		PublishedAt: time.Now(),
-		HTMLURL:     "https://github.com/ivannovak/glide/v2/releases/tag/v2.0.0",
+		HTMLURL:     "https://github.com/ivannovak/glide/v3/releases/tag/v2.0.0",
 		Assets: []update.Asset{
 			{
 				Name:               "glide-darwin-arm64",
-				BrowserDownloadURL: "https://github.com/ivannovak/glide/v2/releases/download/v2.0.0/glide-darwin-arm64",
+				BrowserDownloadURL: "https://github.com/ivannovak/glide/v3/releases/download/v2.0.0/glide-darwin-arm64",
 				Size:               10485760,
 			},
 			{
 				Name:               "glide-linux-amd64",
-				BrowserDownloadURL: "https://github.com/ivannovak/glide/v2/releases/download/v2.0.0/glide-linux-amd64",
+				BrowserDownloadURL: "https://github.com/ivannovak/glide/v3/releases/download/v2.0.0/glide-linux-amd64",
 				Size:               10485760,
 			},
 			{
 				Name:               "glide-windows-amd64.exe",
-				BrowserDownloadURL: "https://github.com/ivannovak/glide/v2/releases/download/v2.0.0/glide-windows-amd64.exe",
+				BrowserDownloadURL: "https://github.com/ivannovak/glide/v3/releases/download/v2.0.0/glide-windows-amd64.exe",
 				Size:               10485760,
 			},
 		},

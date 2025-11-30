@@ -3,7 +3,7 @@ package container
 import (
 	"context"
 
-	"github.com/ivannovak/glide/v2/pkg/logging"
+	"github.com/ivannovak/glide/v3/pkg/logging"
 	"go.uber.org/fx"
 )
 

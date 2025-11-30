@@ -82,7 +82,7 @@ func TestPlugin_Contract(t *testing.T) {
 ### 1. Define Your Interface Contract
 
 ```go
-import "github.com/ivannovak/glide/v2/tests/contracts"
+import "github.com/ivannovak/glide/v3/tests/contracts"
 
 func TestPluginContract(t *testing.T) {
     contract := contracts.InterfaceContract{
@@ -486,7 +486,7 @@ package contracts
 
 import (
     "testing"
-    "github.com/ivannovak/glide/v2/pkg/plugin/sdk/v1"
+    "github.com/ivannovak/glide/v3/pkg/plugin/sdk/v1"
 )
 
 func TestPluginSDKContract(t *testing.T) {
@@ -548,7 +548,7 @@ package contracts
 
 import (
     "testing"
-    "github.com/ivannovak/glide/v2/pkg/output"
+    "github.com/ivannovak/glide/v3/pkg/output"
 )
 
 func TestOutputManagerContract(t *testing.T) {

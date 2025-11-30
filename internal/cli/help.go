@@ -7,11 +7,11 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
-	"github.com/ivannovak/glide/v2/internal/config"
-	"github.com/ivannovak/glide/v2/internal/context"
-	"github.com/ivannovak/glide/v2/pkg/branding"
-	"github.com/ivannovak/glide/v2/pkg/output"
-	"github.com/ivannovak/glide/v2/pkg/plugin"
+	"github.com/ivannovak/glide/v3/internal/config"
+	"github.com/ivannovak/glide/v3/internal/context"
+	"github.com/ivannovak/glide/v3/pkg/branding"
+	"github.com/ivannovak/glide/v3/pkg/output"
+	"github.com/ivannovak/glide/v3/pkg/plugin"
 	"github.com/spf13/cobra"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
@@ -40,7 +40,7 @@ providing relevant guidance, examples, and troubleshooting information.
 
 Available help topics:
   getting-started    Complete guide for new users
-  workflows          Common development workflows  
+  workflows          Common development workflows
   modes              Understanding single-repo vs multi-worktree
   troubleshooting    Solutions for common issues
 

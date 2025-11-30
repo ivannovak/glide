@@ -38,7 +38,7 @@ package mypackage
 
 import (
     "testing"
-    "github.com/ivannovak/glide/v2/tests/testutil/mocks"
+    "github.com/ivannovak/glide/v3/tests/testutil/mocks"
     "github.com/stretchr/testify/assert"
 )
 

@@ -5,9 +5,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/ivannovak/glide/v2/internal/config"
-	"github.com/ivannovak/glide/v2/internal/context"
-	"github.com/ivannovak/glide/v2/pkg/output"
+	"github.com/ivannovak/glide/v3/internal/config"
+	"github.com/ivannovak/glide/v3/internal/context"
+	"github.com/ivannovak/glide/v3/pkg/output"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 )

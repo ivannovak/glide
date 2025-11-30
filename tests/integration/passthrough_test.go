@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ivannovak/glide/v2/internal/shell"
+	"github.com/ivannovak/glide/v3/internal/shell"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

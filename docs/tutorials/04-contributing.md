@@ -178,7 +178,7 @@ func DoSomething(input string) error {
 Use the structured error package:
 
 ```go
-import "github.com/ivannovak/glide/v2/pkg/errors"
+import "github.com/ivannovak/glide/v3/pkg/errors"
 
 func LoadConfig(path string) error {
     data, err := os.ReadFile(path)

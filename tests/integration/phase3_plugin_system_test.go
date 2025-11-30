@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ivannovak/glide/v2/pkg/plugin/sdk"
-	"github.com/ivannovak/glide/v2/pkg/plugin/sdk/v2"
+	"github.com/ivannovak/glide/v3/pkg/plugin/sdk"
+	"github.com/ivannovak/glide/v3/pkg/plugin/sdk/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

@@ -3,7 +3,7 @@ package version
 import (
 	"testing"
 
-	"github.com/ivannovak/glide/v2/tests/testutil"
+	"github.com/ivannovak/glide/v3/tests/testutil"
 )
 
 // TestGetVersionString_TableDriven demonstrates the table test framework

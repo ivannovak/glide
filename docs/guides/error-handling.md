@@ -24,7 +24,7 @@ Glide uses structured error handling through the `pkg/errors` package. This prov
 ### Built-in Error Types
 
 ```go
-import "github.com/ivannovak/glide/v2/pkg/errors"
+import "github.com/ivannovak/glide/v3/pkg/errors"
 
 // Available error types
 errors.TypeConfig      // Configuration errors
@@ -56,7 +56,7 @@ Each error type has an associated exit code:
 ### Simple Errors
 
 ```go
-import "github.com/ivannovak/glide/v2/pkg/errors"
+import "github.com/ivannovak/glide/v3/pkg/errors"
 
 // Basic error
 err := errors.New(errors.TypeConfig, "invalid configuration value")

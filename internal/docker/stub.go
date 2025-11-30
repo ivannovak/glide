@@ -4,7 +4,7 @@
 // Use: glide docker [command]
 package docker
 
-import "github.com/ivannovak/glide/v2/internal/context"
+import "github.com/ivannovak/glide/v3/internal/context"
 
 // DEPRECATED: Use plugins/docker instead
 type Resolver struct{}

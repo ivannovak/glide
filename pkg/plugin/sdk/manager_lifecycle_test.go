@@ -154,7 +154,7 @@ func buildTestPlugin(t *testing.T, dir, name string, shouldSucceed bool) string 
 import (
 	"context"
 	"github.com/hashicorp/go-plugin"
-	sdk "github.com/ivannovak/glide/v2/pkg/plugin/sdk/v1"
+	sdk "github.com/ivannovak/glide/v3/pkg/plugin/sdk/v1"
 )
 
 func main() {
@@ -201,9 +201,9 @@ func main() {
 
 go 1.23
 
-replace github.com/ivannovak/glide/v2 => %s
+replace github.com/ivannovak/glide/v3 => %s
 
-require github.com/ivannovak/glide/v2 v2.0.0
+require github.com/ivannovak/glide/v3 v2.0.0
 `, glideRoot)
 
 	srcPath := filepath.Join(dir, "main.go")

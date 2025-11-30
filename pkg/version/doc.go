@@ -8,9 +8,9 @@
 // Set version information at build time:
 //
 //	go build -ldflags "\
-//	    -X github.com/ivannovak/glide/v2/pkg/version.Version=1.2.3 \
-//	    -X github.com/ivannovak/glide/v2/pkg/version.BuildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ) \
-//	    -X github.com/ivannovak/glide/v2/pkg/version.GitCommit=$(git rev-parse HEAD)"
+//	    -X github.com/ivannovak/glide/v3/pkg/version.Version=1.2.3 \
+//	    -X github.com/ivannovak/glide/v3/pkg/version.BuildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ) \
+//	    -X github.com/ivannovak/glide/v3/pkg/version.GitCommit=$(git rev-parse HEAD)"
 //
 // # Accessing Version Information
 //

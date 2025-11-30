@@ -7,8 +7,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/ivannovak/glide/v2/pkg/plugin/sdk"
-	v1 "github.com/ivannovak/glide/v2/pkg/plugin/sdk/v1"
+	"github.com/ivannovak/glide/v3/pkg/plugin/sdk"
+	v1 "github.com/ivannovak/glide/v3/pkg/plugin/sdk/v1"
 )
 
 // V1Adapter wraps a v1 plugin to implement the v2 Plugin interface.

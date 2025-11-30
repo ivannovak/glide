@@ -3,7 +3,7 @@ package config_test
 import (
 	"fmt"
 
-	"github.com/ivannovak/glide/v2/pkg/config"
+	"github.com/ivannovak/glide/v3/pkg/config"
 )
 
 // ExampleRegister demonstrates basic type-safe configuration usage.

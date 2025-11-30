@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"os"
 
-	"github.com/ivannovak/glide/v2/internal/config"
-	"github.com/ivannovak/glide/v2/internal/context"
+	"github.com/ivannovak/glide/v3/internal/config"
+	"github.com/ivannovak/glide/v3/internal/context"
 )
 
 // ContextOption is a functional option for configuring test ProjectContext

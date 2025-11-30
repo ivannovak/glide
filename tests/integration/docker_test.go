@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ivannovak/glide/v2/internal/context"
-	"github.com/ivannovak/glide/v2/internal/docker"
+	"github.com/ivannovak/glide/v3/internal/context"
+	"github.com/ivannovak/glide/v3/internal/docker"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -258,7 +258,7 @@ services:
 services:
   test-service:
     invalid_key: should_fail
-    image: 
+    image:
 `
 		composeFile := filepath.Join(tmpDir, "docker-compose.yml")
 		err := os.WriteFile(composeFile, []byte(invalidCompose), 0644)

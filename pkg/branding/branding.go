@@ -7,7 +7,7 @@ import (
 )
 
 // These variables can be overridden at build time using ldflags
-// Example: go build -ldflags "-X github.com/ivannovak/glide/v2/pkg/branding.CommandName=mycli"
+// Example: go build -ldflags "-X github.com/ivannovak/glide/v3/pkg/branding.CommandName=mycli"
 var (
 	// CommandName is the name of the CLI command (e.g., "glide", "mycli")
 	CommandName = "glide"

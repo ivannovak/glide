@@ -5,13 +5,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ivannovak/glide/v2/internal/config"
-	"github.com/ivannovak/glide/v2/internal/context"
-	"github.com/ivannovak/glide/v2/internal/docker"
-	"github.com/ivannovak/glide/v2/internal/shell"
-	glideErrors "github.com/ivannovak/glide/v2/pkg/errors"
-	"github.com/ivannovak/glide/v2/pkg/output"
-	"github.com/ivannovak/glide/v2/pkg/progress"
+	"github.com/ivannovak/glide/v3/internal/config"
+	"github.com/ivannovak/glide/v3/internal/context"
+	"github.com/ivannovak/glide/v3/internal/docker"
+	"github.com/ivannovak/glide/v3/internal/shell"
+	glideErrors "github.com/ivannovak/glide/v3/pkg/errors"
+	"github.com/ivannovak/glide/v3/pkg/output"
+	"github.com/ivannovak/glide/v3/pkg/progress"
 	"github.com/spf13/cobra"
 )
 

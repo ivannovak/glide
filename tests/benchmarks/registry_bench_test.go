@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/ivannovak/glide/v2/pkg/registry"
+	"github.com/ivannovak/glide/v3/pkg/registry"
 )
 
 // testItem is a simple struct for benchmarking

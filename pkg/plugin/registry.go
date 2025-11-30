@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ivannovak/glide/v2/pkg/logging"
-	"github.com/ivannovak/glide/v2/pkg/registry"
+	"github.com/ivannovak/glide/v3/pkg/logging"
+	"github.com/ivannovak/glide/v3/pkg/registry"
 	"github.com/spf13/cobra"
 )
 
