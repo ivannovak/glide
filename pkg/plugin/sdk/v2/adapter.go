@@ -409,10 +409,11 @@ func (s *V2GRPCServer[C]) GetMetadata(ctx context.Context, _ *v1.Empty) (*v1.Plu
 }
 
 // Configure implements v1.GlidePluginServer.
+// Note: v2 plugins use typed configuration loaded from .glide.yml by the host,
+// not the string map passed via gRPC. The zero value is passed here because
+// the actual typed config is set by the host calling Configure directly on the
+// v2 plugin before starting the gRPC server.
 func (s *V2GRPCServer[C]) Configure(ctx context.Context, req *v1.ConfigureRequest) (*v1.ConfigureResponse, error) {
-	// v2 plugins use typed config, but from gRPC we get string map
-	// We need to decode the config into the typed config C
-	// For now, pass zero value - actual config comes from .glide.yml
 	var config C
 	if err := s.v2Plugin.Configure(ctx, config); err != nil {
 		return &v1.ConfigureResponse{Success: false, Message: err.Error()}, nil
