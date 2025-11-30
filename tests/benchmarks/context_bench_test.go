@@ -9,6 +9,7 @@ import (
 )
 
 // BenchmarkContextDetection benchmarks basic context detection
+// Note: This tests with lazy Docker checking (default mode)
 func BenchmarkContextDetection(b *testing.B) {
 	// Setup: Create git repository
 	tmpDir := b.TempDir()
@@ -28,6 +29,34 @@ func BenchmarkContextDetection(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		detector, err := context.NewDetector()
+		if err != nil {
+			b.Fatal(err)
+		}
+		_, _ = detector.Detect()
+	}
+}
+
+// BenchmarkContextDetectionFast benchmarks fast context detection
+// This skips Docker daemon checks entirely for maximum startup speed
+func BenchmarkContextDetectionFast(b *testing.B) {
+	// Setup: Create git repository
+	tmpDir := b.TempDir()
+	gitDir := filepath.Join(tmpDir, ".git")
+	if err := os.MkdirAll(gitDir, 0755); err != nil {
+		b.Fatal(err)
+	}
+
+	originalWd, _ := os.Getwd()
+	defer os.Chdir(originalWd)
+
+	if err := os.Chdir(tmpDir); err != nil {
+		b.Fatal(err)
+	}
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		detector, err := context.NewDetectorFast()
 		if err != nil {
 			b.Fatal(err)
 		}

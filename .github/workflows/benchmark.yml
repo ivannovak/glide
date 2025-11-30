@@ -1,0 +1,195 @@
+name: Benchmarks
+
+on:
+  # Manual trigger with optional baseline comparison
+  workflow_dispatch:
+    inputs:
+      compare_baseline:
+        description: 'Compare against baseline'
+        required: false
+        default: 'true'
+        type: boolean
+
+  # Run on PR when labeled
+  pull_request:
+    types: [labeled]
+
+  # Scheduled nightly run
+  schedule:
+    - cron: '0 6 * * *'  # Daily at 6 AM UTC
+
+env:
+  GO_VERSION: '1.24'
+  BENCHMARK_TIME: '1s'
+  BENCHMARK_COUNT: '5'
+
+jobs:
+  benchmark:
+    # Only run on PR if labeled 'benchmark' or on manual/scheduled triggers
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'schedule' ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'benchmark'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Install benchstat
+        run: go install golang.org/x/perf/cmd/benchstat@latest
+
+      - name: Run benchmarks
+        run: |
+          # Suppress benchmark logging noise
+          export GLIDE_LOG_LEVEL=error
+
+          # Run benchmarks with multiple iterations for statistical significance
+          go test -bench=. -benchmem -benchtime=${{ env.BENCHMARK_TIME }} \
+            -count=${{ env.BENCHMARK_COUNT }} \
+            ./tests/benchmarks/... 2>&1 | \
+            grep -E "^Benchmark.*ns/op" > benchmark-results.txt || true
+
+          echo "=== Benchmark Results ==="
+          cat benchmark-results.txt
+
+      - name: Compare with baseline
+        id: compare
+        if: github.event.inputs.compare_baseline != 'false'
+        run: |
+          if [ -f benchmarks.txt ]; then
+            echo "Comparing against baseline..."
+            echo ""
+
+            # Run benchstat comparison
+            benchstat benchmarks.txt benchmark-results.txt > comparison.txt 2>&1 || true
+
+            echo "=== Comparison Results ==="
+            cat comparison.txt
+
+            # Check for significant regressions (>15%)
+            REGRESSIONS=$(grep -E '\+[0-9]+%' comparison.txt | while read line; do
+              PERCENT=$(echo "$line" | grep -oE '\+[0-9]+%' | head -1 | tr -d '+%')
+              if [ -n "$PERCENT" ] && [ "$PERCENT" -ge 15 ]; then
+                echo "$line"
+              fi
+            done)
+
+            if [ -n "$REGRESSIONS" ]; then
+              echo "regression=true" >> $GITHUB_OUTPUT
+              echo "regression_details<<EOF" >> $GITHUB_OUTPUT
+              echo "$REGRESSIONS" >> $GITHUB_OUTPUT
+              echo "EOF" >> $GITHUB_OUTPUT
+            else
+              echo "regression=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "No baseline file found, skipping comparison"
+            echo "regression=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate benchmark report
+        run: |
+          echo "## Benchmark Report" > benchmark-report.md
+          echo "" >> benchmark-report.md
+          echo "### Performance Targets" >> benchmark-report.md
+          echo "" >> benchmark-report.md
+          echo "| Operation | Target | Current | Status |" >> benchmark-report.md
+          echo "|-----------|--------|---------|--------|" >> benchmark-report.md
+
+          # Context detection (<100ms = 100000000 ns)
+          CONTEXT_NS=$(grep "BenchmarkContextDetection-" benchmark-results.txt | head -1 | awk '{print $3}')
+          if [ -n "$CONTEXT_NS" ]; then
+            CONTEXT_MS=$(echo "scale=1; $CONTEXT_NS/1000000" | bc)
+            if (( $(echo "$CONTEXT_NS < 100000000" | bc -l) )); then
+              echo "| Context detection | <100ms | ${CONTEXT_MS}ms | ✅ |" >> benchmark-report.md
+            else
+              echo "| Context detection | <100ms | ${CONTEXT_MS}ms | ❌ |" >> benchmark-report.md
+            fi
+          fi
+
+          # Config merge (<100ms)
+          CONFIG_NS=$(grep "BenchmarkConfigMergingMultiple-" benchmark-results.txt | head -1 | awk '{print $3}')
+          if [ -n "$CONFIG_NS" ]; then
+            CONFIG_MS=$(echo "scale=1; $CONFIG_NS/1000000" | bc)
+            if (( $(echo "$CONFIG_NS < 100000000" | bc -l) )); then
+              echo "| Config merge (multi) | <100ms | ${CONFIG_MS}ms | ✅ |" >> benchmark-report.md
+            else
+              echo "| Config merge (multi) | <100ms | ${CONFIG_MS}ms | ⚠️ |" >> benchmark-report.md
+            fi
+          fi
+
+          # Plugin discovery (<500ms)
+          PLUGIN_NS=$(grep "BenchmarkPluginDiscovery-" benchmark-results.txt | head -1 | awk '{print $3}')
+          if [ -n "$PLUGIN_NS" ]; then
+            PLUGIN_MS=$(echo "scale=1; $PLUGIN_NS/1000000" | bc)
+            if (( $(echo "$PLUGIN_NS < 500000000" | bc -l) )); then
+              echo "| Plugin discovery | <500ms | ${PLUGIN_MS}ms | ✅ |" >> benchmark-report.md
+            else
+              echo "| Plugin discovery | <500ms | ${PLUGIN_MS}ms | ❌ |" >> benchmark-report.md
+            fi
+          fi
+
+          echo "" >> benchmark-report.md
+
+          # Add regression warning if needed
+          if [ "${{ steps.compare.outputs.regression }}" == "true" ]; then
+            echo "### ⚠️ Performance Regressions Detected" >> benchmark-report.md
+            echo "" >> benchmark-report.md
+            echo "The following benchmarks show >15% regression:" >> benchmark-report.md
+            echo "" >> benchmark-report.md
+            echo '```' >> benchmark-report.md
+            echo "${{ steps.compare.outputs.regression_details }}" >> benchmark-report.md
+            echo '```' >> benchmark-report.md
+            echo "" >> benchmark-report.md
+          fi
+
+          # Add comparison details if available
+          if [ -f comparison.txt ]; then
+            echo "### Comparison with Baseline" >> benchmark-report.md
+            echo "" >> benchmark-report.md
+            echo "<details>" >> benchmark-report.md
+            echo "<summary>Click to expand full comparison</summary>" >> benchmark-report.md
+            echo "" >> benchmark-report.md
+            echo '```' >> benchmark-report.md
+            cat comparison.txt >> benchmark-report.md
+            echo '```' >> benchmark-report.md
+            echo "</details>" >> benchmark-report.md
+            echo "" >> benchmark-report.md
+          fi
+
+          echo "---" >> benchmark-report.md
+          echo "*Run: $(date -u +%Y-%m-%d\ %H:%M:%S\ UTC)*" >> benchmark-report.md
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: benchmark
+          path: benchmark-report.md
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: |
+            benchmark-results.txt
+            benchmark-report.md
+            comparison.txt
+          retention-days: 30
+
+      - name: Fail on critical regression
+        if: steps.compare.outputs.regression == 'true'
+        run: |
+          echo "::error::Performance regressions detected (>15%)"
+          echo "Review the benchmark report for details"
+          exit 1
