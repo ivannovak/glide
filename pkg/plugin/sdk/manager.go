@@ -194,70 +194,28 @@ func (m *Manager) DiscoverPluginsWithOptions(lazy bool) error {
 		return nil
 	}
 
-	// Parallel plugin loading for non-lazy mode
-	return m.loadPluginsParallel(plugins)
+	// Sequential plugin loading for non-lazy mode
+	return m.loadPluginsSequential(plugins)
 }
 
-// loadPluginsParallel loads multiple plugins concurrently
-func (m *Manager) loadPluginsParallel(plugins []*PluginInfo) error {
-	// Filter to only plugins not already loaded
-	var toLoad []*PluginInfo
+// loadPluginsSequential loads multiple plugins one at a time.
+// Note: Parallel loading was removed due to a data race in hashicorp/go-plugin v1.7.0
+// (race between goroutines in Client.Start). Sequential loading is sufficient for
+// typical plugin counts (1-5 plugins) and avoids the race condition.
+func (m *Manager) loadPluginsSequential(plugins []*PluginInfo) error {
 	for _, p := range plugins {
-		if _, exists := m.plugins[p.Name]; !exists {
-			toLoad = append(toLoad, p)
+		// Skip if already loaded
+		if _, exists := m.plugins[p.Name]; exists {
+			continue
 		}
-	}
 
-	if len(toLoad) == 0 {
-		return nil
-	}
+		if m.config.EnableDebug {
+			log.Printf("Loading plugin: %s at %s", p.Name, p.Path)
+		}
 
-	// Use a worker pool to limit concurrent plugin loads
-	maxWorkers := 4
-	if len(toLoad) < maxWorkers {
-		maxWorkers = len(toLoad)
-	}
-
-	type loadResult struct {
-		info *PluginInfo
-		err  error
-	}
-
-	jobs := make(chan *PluginInfo, len(toLoad))
-	results := make(chan loadResult, len(toLoad))
-
-	// Start workers
-	var wg sync.WaitGroup
-	for i := 0; i < maxWorkers; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			for p := range jobs {
-				if m.config.EnableDebug {
-					log.Printf("Loading plugin: %s at %s", p.Name, p.Path)
-				}
-				err := m.loadPluginUnlocked(p)
-				results <- loadResult{info: p, err: err}
-			}
-		}()
-	}
-
-	// Send jobs
-	for _, p := range toLoad {
-		jobs <- p
-	}
-	close(jobs)
-
-	// Wait for workers to finish
-	go func() {
-		wg.Wait()
-		close(results)
-	}()
-
-	// Collect results and log errors
-	for result := range results {
-		if result.err != nil {
-			log.Printf("Failed to load plugin %s: %v", result.info.Name, result.err)
+		if err := m.loadPluginUnlocked(p); err != nil {
+			log.Printf("Failed to load plugin %s: %v", p.Name, err)
+			// Continue loading other plugins even if one fails
 		}
 	}
 
