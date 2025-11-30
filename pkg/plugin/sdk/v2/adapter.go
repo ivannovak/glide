@@ -375,3 +375,139 @@ func (a *V2ToV1Adapter[C]) HealthCheck() error {
 	ctx := context.Background()
 	return a.v2Plugin.HealthCheck(ctx)
 }
+
+// V2GRPCServer wraps a v2 plugin to implement the v1 GlidePluginServer interface.
+// This allows v2 plugins to run as standalone gRPC plugin processes.
+type V2GRPCServer[C any] struct {
+	v1.UnimplementedGlidePluginServer
+	v2Plugin Plugin[C]
+}
+
+// NewV2GRPCServer creates a gRPC server wrapper for a v2 plugin.
+func NewV2GRPCServer[C any](plugin Plugin[C]) *V2GRPCServer[C] {
+	return &V2GRPCServer[C]{v2Plugin: plugin}
+}
+
+// GetMetadata implements v1.GlidePluginServer.
+func (s *V2GRPCServer[C]) GetMetadata(ctx context.Context, _ *v1.Empty) (*v1.PluginMetadata, error) {
+	meta := s.v2Plugin.Metadata()
+	return &v1.PluginMetadata{
+		Name:        meta.Name,
+		Version:     meta.Version,
+		Description: meta.Description,
+		Author:      meta.Author,
+		Homepage:    meta.Homepage,
+		License:     meta.License,
+		Tags:        meta.Tags,
+	}, nil
+}
+
+// Configure implements v1.GlidePluginServer.
+func (s *V2GRPCServer[C]) Configure(ctx context.Context, req *v1.ConfigureRequest) (*v1.ConfigureResponse, error) {
+	// v2 plugins use typed config, but from gRPC we get string map
+	// We need to decode the config into the typed config C
+	// For now, pass zero value - actual config comes from .glide.yml
+	var config C
+	if err := s.v2Plugin.Configure(ctx, config); err != nil {
+		return &v1.ConfigureResponse{Success: false, Message: err.Error()}, nil
+	}
+	return &v1.ConfigureResponse{Success: true}, nil
+}
+
+// ListCommands implements v1.GlidePluginServer.
+func (s *V2GRPCServer[C]) ListCommands(ctx context.Context, _ *v1.Empty) (*v1.CommandList, error) {
+	v2Commands := s.v2Plugin.Commands()
+	v1Commands := make([]*v1.CommandInfo, len(v2Commands))
+
+	for i, cmd := range v2Commands {
+		v1Commands[i] = &v1.CommandInfo{
+			Name:         cmd.Name,
+			Description:  cmd.Description,
+			Category:     cmd.Category,
+			Aliases:      cmd.Aliases,
+			Hidden:       cmd.Hidden,
+			Interactive:  cmd.Interactive,
+			RequiresTty:  cmd.RequiresTTY,
+			RequiresAuth: cmd.RequiresAuth,
+			Visibility:   cmd.Visibility,
+		}
+	}
+
+	return &v1.CommandList{Commands: v1Commands}, nil
+}
+
+// ExecuteCommand implements v1.GlidePluginServer.
+func (s *V2GRPCServer[C]) ExecuteCommand(ctx context.Context, req *v1.ExecuteRequest) (*v1.ExecuteResponse, error) {
+	// Find the command
+	var handler CommandHandler
+	for _, cmd := range s.v2Plugin.Commands() {
+		if cmd.Name == req.Command {
+			handler = cmd.Handler
+			break
+		}
+	}
+
+	if handler == nil {
+		return &v1.ExecuteResponse{
+			ExitCode: 1,
+			Error:    fmt.Sprintf("unknown command: %s", req.Command),
+		}, nil
+	}
+
+	// Convert v1 request to v2
+	v2Req := &ExecuteRequest{
+		Command:    req.Command,
+		Args:       req.Args,
+		Flags:      make(map[string]interface{}),
+		Env:        req.Env,
+		WorkingDir: req.WorkDir,
+	}
+
+	// Execute via v2 handler
+	v2Resp, err := handler.Execute(ctx, v2Req)
+	if err != nil {
+		return &v1.ExecuteResponse{
+			ExitCode: 1,
+			Error:    err.Error(),
+		}, nil
+	}
+
+	// Convert v2 response to v1
+	return &v1.ExecuteResponse{
+		ExitCode: int32(v2Resp.ExitCode),
+		Stdout:   []byte(v2Resp.Output),
+		Error:    v2Resp.Error,
+	}, nil
+}
+
+// GetCapabilities implements v1.GlidePluginServer.
+func (s *V2GRPCServer[C]) GetCapabilities(ctx context.Context, _ *v1.Empty) (*v1.Capabilities, error) {
+	meta := s.v2Plugin.Metadata()
+	return &v1.Capabilities{
+		RequiresDocker:     meta.Capabilities.RequiresDocker,
+		RequiresNetwork:    meta.Capabilities.RequiresNetwork,
+		RequiresFilesystem: meta.Capabilities.RequiresFilesystem,
+	}, nil
+}
+
+// GetCustomCategories implements v1.GlidePluginServer.
+func (s *V2GRPCServer[C]) GetCustomCategories(ctx context.Context, _ *v1.Empty) (*v1.CategoryList, error) {
+	// v2 plugins don't have custom categories in the same way
+	return &v1.CategoryList{Categories: nil}, nil
+}
+
+// Serve starts a v2 plugin as a gRPC server using the v1 infrastructure.
+// This is the main entry point for running a v2 plugin binary.
+//
+// Usage:
+//
+//	func main() {
+//	    plugin := &MyPlugin{}
+//	    if err := v2.Serve(plugin); err != nil {
+//	        os.Exit(1)
+//	    }
+//	}
+func Serve[C any](plugin Plugin[C]) error {
+	server := NewV2GRPCServer(plugin)
+	return v1.RunPlugin(server)
+}
