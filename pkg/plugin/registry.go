@@ -2,17 +2,75 @@ package plugin
 
 import (
 	"fmt"
-	"sync"
+	"strings"
 
+	"github.com/ivannovak/glide/v2/pkg/logging"
 	"github.com/ivannovak/glide/v2/pkg/registry"
 	"github.com/spf13/cobra"
 )
 
-// Registry manages plugin registration and lifecycle
+// PluginError represents an error that occurred during plugin loading
+type PluginError struct {
+	Name    string
+	Error   error
+	IsFatal bool
+}
+
+// PluginLoadResult contains the results of loading all plugins
+type PluginLoadResult struct {
+	Loaded   []string
+	Failed   []PluginError
+	Warnings []string
+}
+
+// HasErrors returns true if any plugins failed to load
+func (r *PluginLoadResult) HasErrors() bool {
+	return len(r.Failed) > 0
+}
+
+// HasFatalErrors returns true if any fatal errors occurred
+func (r *PluginLoadResult) HasFatalErrors() bool {
+	for _, err := range r.Failed {
+		if err.IsFatal {
+			return true
+		}
+	}
+	return false
+}
+
+// ErrorMessage returns a formatted error message with all failures
+func (r *PluginLoadResult) ErrorMessage() string {
+	if !r.HasErrors() {
+		return ""
+	}
+
+	var builder strings.Builder
+	builder.WriteString("Plugin loading issues:\n")
+
+	for _, err := range r.Failed {
+		severity := "warning"
+		if err.IsFatal {
+			severity = "FATAL"
+		}
+		builder.WriteString(fmt.Sprintf("  [%s] %s: %v\n", severity, err.Name, err.Error))
+	}
+
+	if len(r.Loaded) > 0 {
+		builder.WriteString(fmt.Sprintf("\nSuccessfully loaded %d plugins: %s", len(r.Loaded), strings.Join(r.Loaded, ", ")))
+	}
+
+	return builder.String()
+}
+
+// Registry manages plugin registration and lifecycle.
+//
+// The Registry provides a centralized location for plugin management, including
+// registration and command loading.
+//
+// NOTE: Plugin configuration is now handled by the pkg/config type-safe system.
+// Plugins should register their typed configs using config.Register() in init().
 type Registry struct {
 	*registry.Registry[Plugin]
-	configMu sync.RWMutex
-	config   map[string]interface{}
 }
 
 // global registry instance
@@ -22,7 +80,6 @@ var globalRegistry = NewRegistry()
 func NewRegistry() *Registry {
 	return &Registry{
 		Registry: registry.New[Plugin](),
-		config:   make(map[string]interface{}),
 	}
 }
 
@@ -49,41 +106,66 @@ func (r *Registry) RegisterPlugin(p Plugin) error {
 	return r.Registry.Register(name, p, meta.Aliases...)
 }
 
-// SetConfig sets the configuration for all plugins
-func (r *Registry) SetConfig(config map[string]interface{}) {
-	r.configMu.Lock()
-	r.config = config
-	r.configMu.Unlock()
-}
+// LoadAll registers all plugin commands
+func (r *Registry) LoadAll(root *cobra.Command) (*PluginLoadResult, error) {
+	logging.Debug("Loading all plugins")
 
-// LoadAll configures and registers all plugin commands
-func (r *Registry) LoadAll(root *cobra.Command) error {
-	var errors []error
+	result := &PluginLoadResult{
+		Loaded:   make([]string, 0),
+		Failed:   make([]PluginError, 0),
+		Warnings: make([]string, 0),
+	}
 
-	// Get config once with lock
-	r.configMu.RLock()
-	config := r.config
-	r.configMu.RUnlock()
+	// Track if we encountered any fatal errors
+	var fatalError error
 
 	r.ForEach(func(name string, plugin Plugin) {
-		// Configure the plugin
-		if err := plugin.Configure(config); err != nil {
-			errors = append(errors, fmt.Errorf("failed to configure plugin %s: %w", name, err))
+		logging.Debug("Loading plugin", "name", name)
+		// If we already have a fatal error, skip remaining plugins
+		if fatalError != nil {
+			return
+		}
+
+		// NOTE: Plugin configuration is now handled via pkg/config type-safe registry.
+		// Plugins access their typed config in Configure() using config.Get[T](name).
+		if err := plugin.Configure(); err != nil {
+			// Configuration errors are typically non-fatal
+			// Log and continue with other plugins
+			logging.Warn("Plugin configuration failed", "name", name, "error", err)
+			result.Failed = append(result.Failed, PluginError{
+				Name:    name,
+				Error:   fmt.Errorf("failed to configure: %w", err),
+				IsFatal: false,
+			})
 			return
 		}
 
 		// Register plugin commands
 		if err := plugin.Register(root); err != nil {
-			errors = append(errors, fmt.Errorf("failed to register plugin %s: %w", name, err))
+			// Command registration errors are typically non-fatal
+			// Log and continue with other plugins
+			logging.Warn("Plugin command registration failed", "name", name, "error", err)
+			result.Failed = append(result.Failed, PluginError{
+				Name:    name,
+				Error:   fmt.Errorf("failed to register commands: %w", err),
+				IsFatal: false,
+			})
 			return
 		}
+
+		// Successfully loaded
+		logging.Info("Plugin loaded successfully", "name", name)
+		result.Loaded = append(result.Loaded, name)
 	})
 
-	// Return aggregated errors
-	if len(errors) > 0 {
-		return fmt.Errorf("plugin loading errors: %v", errors)
+	// Return fatal error if encountered
+	if fatalError != nil {
+		logging.Error("Fatal error during plugin loading", "error", fatalError)
+		return result, fatalError
 	}
-	return nil
+
+	logging.Info("All plugins loaded", "loaded", len(result.Loaded), "failed", len(result.Failed))
+	return result, nil
 }
 
 // Global registry functions
@@ -104,11 +186,6 @@ func Get(name string) (Plugin, bool) {
 }
 
 // LoadAll loads all plugins from the global registry
-func LoadAll(root *cobra.Command) error {
+func LoadAll(root *cobra.Command) (*PluginLoadResult, error) {
 	return globalRegistry.LoadAll(root)
-}
-
-// SetConfig sets configuration for the global registry
-func SetConfig(config map[string]interface{}) {
-	globalRegistry.SetConfig(config)
 }

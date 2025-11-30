@@ -2,47 +2,49 @@ package cli
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"time"
 
 	glideContext "github.com/ivannovak/glide/v2/internal/context"
 	"github.com/ivannovak/glide/v2/internal/docker"
 	"github.com/ivannovak/glide/v2/internal/shell"
-	"github.com/ivannovak/glide/v2/pkg/app"
+	"github.com/ivannovak/glide/v2/pkg/output"
 	"github.com/ivannovak/glide/v2/pkg/progress"
 	"github.com/spf13/cobra"
 )
 
 // showContext displays the current project context
-func showContext(cmd *cobra.Command, app *app.Application) {
-	output := app.OutputManager
-	ctx := app.ProjectContext
+func showContext(_ *cobra.Command, outputManager *output.Manager, projectContext *glideContext.ProjectContext) error {
+	ctx := projectContext
 
 	if ctx == nil {
-		output.Info("No project context available")
-		return
+		_ = outputManager.Info("No project context available")
+		return nil
 	}
 
-	output.Info("=== Project Context ===")
-	output.Info("Working Directory: %s", ctx.WorkingDir)
-	output.Info("Project Root: %s", ctx.ProjectRoot)
-	output.Info("Development Mode: %s", ctx.DevelopmentMode)
-	output.Info("Location: %s", ctx.Location)
+	_ = outputManager.Info("=== Project Context ===")
+	_ = outputManager.Info("Working Directory: %s", ctx.WorkingDir)
+	_ = outputManager.Info("Project Root: %s", ctx.ProjectRoot)
+	_ = outputManager.Info("Development Mode: %s", ctx.DevelopmentMode)
+	_ = outputManager.Info("Location: %s", ctx.Location)
 
 	if ctx.DevelopmentMode == glideContext.ModeMultiWorktree {
-		output.Info("")
-		output.Info("=== Multi-Worktree Details ===")
-		output.Info("Is Worktree: %v", ctx.IsWorktree)
+		_ = outputManager.Info("")
+		_ = outputManager.Info("=== Multi-Worktree Details ===")
+		_ = outputManager.Info("Is Worktree: %v", ctx.IsWorktree)
 		if ctx.IsWorktree {
-			output.Info("Worktree Name: %s", ctx.WorktreeName)
+			_ = outputManager.Info("Worktree Name: %s", ctx.WorktreeName)
 		}
 	}
 
-	output.Info("")
-	output.Info("Docker Running: %v", ctx.DockerRunning)
+	_ = outputManager.Info("")
+	_ = outputManager.Info("Docker Running: %v", ctx.DockerRunning)
 	if len(ctx.ComposeFiles) > 0 {
-		output.Info("Compose Files: %s", strings.Join(ctx.ComposeFiles, ", "))
+		_ = outputManager.Info("Compose Files: %s", strings.Join(ctx.ComposeFiles, ", "))
 	}
+
+	return nil
 }
 
 // showConfig displays the current configuration
@@ -83,14 +85,13 @@ func showContext(cmd *cobra.Command, app *app.Application) {
 // }
 
 // testShell tests shell execution capabilities
-func testShell(cmd *cobra.Command, args []string, app *app.Application) {
-	output := app.OutputManager
-	executor := app.GetShellExecutor()
+func testShell(_ *cobra.Command, _ []string, outputManager *output.Manager) error {
+	executor := shell.NewExecutor(shell.Options{})
 
-	output.Info("=== Shell Execution Test ===")
+	_ = outputManager.Info("=== Shell Execution Test ===")
 
 	// Test 1: Simple command using strategy pattern
-	output.Info("\nTest 1: Capture output (strategy pattern)")
+	_ = outputManager.Info("\nTest 1: Capture output (strategy pattern)")
 	shellCmd := shell.NewCommand("echo", "Hello from shell")
 	shellCmd.UseStrategy = true
 	shellCmd.Options = shell.CommandOptions{
@@ -100,13 +101,13 @@ func testShell(cmd *cobra.Command, args []string, app *app.Application) {
 	result, err := executor.Execute(shellCmd)
 
 	if err != nil {
-		output.Error("Failed: %v", err)
-	} else {
-		output.Success("Output: %s", strings.TrimSpace(string(result.Stdout)))
+		_ = outputManager.Error("Failed: %v", err)
+		return err
 	}
+	_ = outputManager.Success("Output: %s", strings.TrimSpace(string(result.Stdout)))
 
 	// Test 2: Command with timeout (using context)
-	output.Info("\nTest 2: Command with timeout (using context)")
+	_ = outputManager.Info("\nTest 2: Command with timeout (using context)")
 	cmd2 := shell.NewCommand("sleep", "0.5")
 	cmd2.Options = shell.CommandOptions{
 		Timeout: 2 * time.Second,
@@ -116,111 +117,111 @@ func testShell(cmd *cobra.Command, args []string, app *app.Application) {
 	result, err = executor.ExecuteWithContext(ctx, cmd2)
 
 	if err != nil {
-		output.Error("Failed: %v", err)
-	} else {
-		output.Success("Completed in %v", result.Duration)
+		_ = outputManager.Error("Failed: %v", err)
+		return err
 	}
+	_ = outputManager.Success("Completed in %v", result.Duration)
 
 	// Test 3: Progress indicator
-	output.Info("\nTest 3: Progress indicator")
+	_ = outputManager.Info("\nTest 3: Progress indicator")
 	spinner := progress.NewSpinner("Testing progress")
 	spinner.Start()
 	time.Sleep(1 * time.Second)
 	spinner.Success("Completed")
+
+	return nil
 }
 
 // testDockerResolution tests Docker compose file resolution
-func testDockerResolution(cmd *cobra.Command, args []string, app *app.Application) {
-	output := app.OutputManager
-	ctx := app.ProjectContext
-
-	if ctx == nil {
-		output.Error("No project context available")
-		return
+func testDockerResolution(_ *cobra.Command, _ []string, outputManager *output.Manager, projectContext *glideContext.ProjectContext) error {
+	if projectContext == nil {
+		return fmt.Errorf("no project context available")
 	}
 
-	output.Info("=== Docker Compose Resolution Test ===")
-	output.Info("Working Directory: %s", ctx.WorkingDir)
-	output.Info("Project Root: %s", ctx.ProjectRoot)
-	output.Info("Development Mode: %s", ctx.DevelopmentMode)
+	_ = outputManager.Info("=== Docker Compose Resolution Test ===")
+	_ = outputManager.Info("Working Directory: %s", projectContext.WorkingDir)
+	_ = outputManager.Info("Project Root: %s", projectContext.ProjectRoot)
+	_ = outputManager.Info("Development Mode: %s", projectContext.DevelopmentMode)
 
 	// Create Docker resolver
-	resolver := docker.NewResolver(ctx)
+	resolver := docker.NewResolver(projectContext)
 
 	// Try to resolve
-	output.Info("\nAttempting to resolve Docker compose files...")
+	_ = outputManager.Info("\nAttempting to resolve Docker compose files...")
 	err := resolver.Resolve()
 	if err != nil {
-		output.Error("Resolution failed: %v", err)
-		return
+		_ = outputManager.Error("Resolution failed: %v", err)
+		return fmt.Errorf("failed to resolve Docker compose files: %w", err)
 	}
 
 	// Show results
 	files := resolver.GetComposeFiles()
 	if len(files) == 0 {
-		output.Warning("No compose files found")
-		return
+		_ = outputManager.Warning("No compose files found")
+		return nil
 	}
 
-	output.Success("Resolved %d compose file(s):", len(files))
+	_ = outputManager.Success("Resolved %d compose file(s):", len(files))
 	for i, file := range files {
-		output.Info("  %d. %s", i+1, file)
+		_ = outputManager.Info("  %d. %s", i+1, file)
 	}
+
+	return nil
 }
 
 // testContainerManagement tests container management capabilities
-func testContainerManagement(cmd *cobra.Command, args []string, app *app.Application) {
-	output := app.OutputManager
-	ctx := app.ProjectContext
-
-	if ctx == nil {
-		output.Error("No project context available")
-		return
+func testContainerManagement(_ *cobra.Command, _ []string, outputManager *output.Manager, projectContext *glideContext.ProjectContext) error {
+	if projectContext == nil {
+		return fmt.Errorf("no project context available")
 	}
 
-	output.Info("=== Container Management Test ===")
+	_ = outputManager.Info("=== Container Management Test ===")
 
 	// Create container manager
-	manager := docker.NewContainerManager(ctx)
+	manager := docker.NewContainerManager(projectContext)
 
 	// Test getting container status
-	output.Info("\n1. Getting container status...")
+	_ = outputManager.Info("\n1. Getting container status...")
 	containers, err := manager.GetStatus()
 	if err != nil {
-		output.Error("Status failed: %v", err)
-	} else {
-		output.Success("Found %d container(s)", len(containers))
-		for _, container := range containers {
-			output.Info("  - %s (%s): %s", container.Name, container.Service, container.State)
-		}
+		_ = outputManager.Error("Status failed: %v", err)
+		return fmt.Errorf("failed to get container status: %w", err)
+	}
+
+	_ = outputManager.Success("Found %d container(s)", len(containers))
+	for _, container := range containers {
+		_ = outputManager.Info("  - %s (%s): %s", container.Name, container.Service, container.State)
 	}
 
 	// Test checking if service is running
-	output.Info("\n2. Checking if php service is running...")
+	_ = outputManager.Info("\n2. Checking if php service is running...")
 	if manager.IsRunning("php") {
-		output.Success("PHP service is running")
+		_ = outputManager.Success("PHP service is running")
 	} else {
-		output.Warning("PHP service is not running")
+		_ = outputManager.Warning("PHP service is not running")
 	}
 
 	// Test getting compose services
-	output.Info("\n3. Getting compose services...")
+	_ = outputManager.Info("\n3. Getting compose services...")
 	services, err := manager.GetComposeServices()
 	if err != nil {
-		output.Error("Failed to get services: %v", err)
-	} else {
-		output.Success("Found %d service(s)", len(services))
-		for _, service := range services {
-			output.Info("  - %s", service)
-		}
+		_ = outputManager.Error("Failed to get services: %v", err)
+		return fmt.Errorf("failed to get compose services: %w", err)
+	}
+
+	_ = outputManager.Success("Found %d service(s)", len(services))
+	for _, service := range services {
+		_ = outputManager.Info("  - %s", service)
 	}
 
 	// Test logs (dry run)
-	output.Info("\n4. Testing log retrieval (dry run)...")
+	_ = outputManager.Info("\n4. Testing log retrieval (dry run)...")
 	if len(containers) > 0 {
-		output.Info("Would retrieve logs for: %s", containers[0].Service)
-		output.Success("Log retrieval capability verified")
+		_ = outputManager.Info("Would retrieve logs for: %s", containers[0].Service)
+		_ = outputManager.Success("Log retrieval capability verified")
 	} else {
-		output.Warning("No containers available for log test")
+		_ = outputManager.Warning("No containers available for log test")
 	}
+
+	return nil
 }

@@ -1,296 +1,247 @@
 //go:build ignore
 // +build ignore
 
-// Glide Plugin Boilerplate
-// This is a template for creating your own Glide runtime plugin.
+// Glide Plugin Boilerplate (SDK v2)
+//
+// This is a template for creating your own Glide runtime plugin using SDK v2.
 //
 // To use this boilerplate:
 // 1. Copy this directory to a new location
 // 2. Rename the plugin and update metadata
 // 3. Implement your custom commands
-// 4. Build with: go build -o yourplugin
+// 4. Build with: go build -o glide-plugin-yourname
 // 5. Install to: ~/.glide/plugins/
 //
-// This boilerplate uses the BasePlugin helper which automatically handles:
-// - Command registration and routing
-// - Interactive command support (no manual StartInteractive routing needed!)
-// - Configuration management
-// - Command listing
-//
-// Features demonstrated:
-// - Plugin metadata with version, author, and description
-// - Simple non-interactive commands
-// - Interactive commands with automatic routing
-// - Configuration handling from .glide.yml
-// - Plugin and command aliases
+// SDK v2 Features:
+// - Type-safe configuration with Go generics
+// - Unified lifecycle management (Init/Start/Stop/HealthCheck)
+// - Declarative command definitions
+// - Simplified API with BasePlugin[C]
 
 package main
 
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 
-	"github.com/hashicorp/go-plugin"
-	sdk "github.com/ivannovak/glide/v2/pkg/plugin/sdk/v1"
+	"github.com/ivannovak/glide/v2/pkg/plugin/sdk/v2"
 )
 
-func main() {
-	// Create plugin with metadata
-	// Update these fields with your plugin's information
-	basePlugin := sdk.NewBasePlugin(&sdk.PluginMetadata{
-		Name:        "myplugin",                     // Change to your plugin name
-		Version:     "1.0.0",                        // Your plugin version
-		Author:      "Your Name",                    // Your name or organization
-		Description: "Brief description of plugin",  // What your plugin does
-		Homepage:    "https://github.com/user/repo", // Optional: plugin homepage
-		License:     "MIT",                          // Optional: plugin license
-		MinSdk:      "v1.0.0",                       // Minimum SDK version required
-		Aliases:     []string{"mp", "myp"},          // Optional: shortcuts for plugin name
-		Namespaced:  false,                          // false = commands at root level
-	})
+// Config defines the plugin's type-safe configuration.
+// Users configure this in .glide.yml under plugins.myplugin
+type Config struct {
+	// Greeting prefix for the hello command
+	Greeting string `json:"greeting" yaml:"greeting"`
 
-	// Register a simple non-interactive command
-	basePlugin.RegisterCommand("hello", sdk.NewSimpleCommand(
-		&sdk.CommandInfo{
-			Name:        "hello",
-			Description: "Say hello to someone",
-			Category:    sdk.CategoryDeveloper,
-			Aliases:     []string{"h"}, // Users can type 'glideh' or 'glidehello'
-		},
-		func(ctx context.Context, req *sdk.ExecuteRequest) (*sdk.ExecuteResponse, error) {
-			name := "World"
-			if len(req.Args) > 0 {
-				name = strings.Join(req.Args, " ")
-			}
+	// Enable debug output
+	Debug bool `json:"debug" yaml:"debug"`
 
-			greeting := fmt.Sprintf("Hello, %s! 👋\n", name)
-			return &sdk.ExecuteResponse{
-				Success: true,
-				Stdout:  []byte(greeting),
-			}, nil
-		},
-	))
-
-	// Register a command that shows configuration
-	basePlugin.RegisterCommand("config", sdk.NewSimpleCommand(
-		&sdk.CommandInfo{
-			Name:        "config",
-			Description: "Show plugin configuration",
-			Category:    sdk.CategoryDeveloper,
-			Aliases:     []string{"c"},
-		},
-		func(ctx context.Context, req *sdk.ExecuteRequest) (*sdk.ExecuteResponse, error) {
-			config := basePlugin.GetConfig()
-
-			if len(config) == 0 {
-				return &sdk.ExecuteResponse{
-					Success: true,
-					Stdout:  []byte("No configuration found\n"),
-				}, nil
-			}
-
-			var output strings.Builder
-			output.WriteString("Plugin Configuration:\n")
-			for key, value := range config {
-				output.WriteString(fmt.Sprintf("  %s: %v\n", key, value))
-			}
-
-			return &sdk.ExecuteResponse{
-				Success: true,
-				Stdout:  []byte(output.String()),
-			}, nil
-		},
-	))
-
-	// Register an interactive command - NO BOILERPLATE NEEDED!
-	// The BasePlugin automatically handles command routing
-	basePlugin.RegisterCommand("shell", sdk.NewBaseInteractiveCommand(
-		&sdk.CommandInfo{
-			Name:        "shell",
-			Description: "Interactive shell example",
-			Category:    sdk.CategoryDeveloper,
-			Interactive: true, // Automatically set by NewBaseInteractiveCommand
-			Aliases:     []string{"sh"},
-		},
-		// Execute handler (optional - returns RequiresInteractive by default)
-		nil,
-		// Interactive handler - just implement your logic!
-		func(stream sdk.GlidePlugin_StartInteractiveServer) error {
-			// Send welcome message
-			if err := stream.Send(&sdk.StreamMessage{
-				Type: sdk.StreamMessage_STDOUT,
-				Data: []byte("Welcome to the example interactive shell!\n"),
-			}); err != nil {
-				return err
-			}
-
-			if err := stream.Send(&sdk.StreamMessage{
-				Type: sdk.StreamMessage_STDOUT,
-				Data: []byte("Type 'help' for commands, 'exit' to quit.\n> "),
-			}); err != nil {
-				return err
-			}
-
-			// Simple command loop
-			for {
-				msg, err := stream.Recv()
-				if err != nil {
-					break
-				}
-
-				if msg.Type == sdk.StreamMessage_STDIN {
-					input := strings.TrimSpace(string(msg.Data))
-
-					switch input {
-					case "exit", "quit":
-						stream.Send(&sdk.StreamMessage{
-							Type: sdk.StreamMessage_STDOUT,
-							Data: []byte("Goodbye!\n"),
-						})
-						stream.Send(&sdk.StreamMessage{
-							Type:     sdk.StreamMessage_EXIT,
-							ExitCode: 0,
-						})
-						return nil
-
-					case "help":
-						help := `Available commands:
-  help  - Show this help message
-  echo  - Echo your input
-  exit  - Exit the shell
-> `
-						stream.Send(&sdk.StreamMessage{
-							Type: sdk.StreamMessage_STDOUT,
-							Data: []byte(help),
-						})
-
-					default:
-						if strings.HasPrefix(input, "echo ") {
-							echoText := strings.TrimPrefix(input, "echo ")
-							response := fmt.Sprintf("Echo: %s\n> ", echoText)
-							stream.Send(&sdk.StreamMessage{
-								Type: sdk.StreamMessage_STDOUT,
-								Data: []byte(response),
-							})
-						} else if input != "" {
-							response := fmt.Sprintf("Unknown command: %s\nType 'help' for available commands.\n> ", input)
-							stream.Send(&sdk.StreamMessage{
-								Type: sdk.StreamMessage_STDOUT,
-								Data: []byte(response),
-							})
-						} else {
-							stream.Send(&sdk.StreamMessage{
-								Type: sdk.StreamMessage_STDOUT,
-								Data: []byte("> "),
-							})
-						}
-					}
-				} else if msg.Type == sdk.StreamMessage_SIGNAL {
-					// Handle Ctrl+C
-					if msg.Signal == "SIGINT" {
-						stream.Send(&sdk.StreamMessage{
-							Type:     sdk.StreamMessage_EXIT,
-							ExitCode: 130, // Standard exit code for SIGINT
-						})
-						return nil
-					}
-				}
-			}
-
-			return nil
-		},
-	))
-
-	// Example of adding a command that can work both ways
-	basePlugin.RegisterCommand("process", sdk.NewBaseInteractiveCommand(
-		&sdk.CommandInfo{
-			Name:        "process",
-			Description: "Process data (can be interactive or non-interactive)",
-			Category:    sdk.CategoryDeveloper,
-			Interactive: true,
-		},
-		// Execute handler - for non-interactive mode
-		func(ctx context.Context, req *sdk.ExecuteRequest) (*sdk.ExecuteResponse, error) {
-			if len(req.Args) > 0 {
-				// Non-interactive mode: process arguments
-				result := fmt.Sprintf("Processed: %s\n", strings.Join(req.Args, ", "))
-				return &sdk.ExecuteResponse{
-					Success: true,
-					Stdout:  []byte(result),
-				}, nil
-			}
-
-			// No arguments: switch to interactive mode
-			return &sdk.ExecuteResponse{
-				RequiresInteractive: true,
-			}, nil
-		},
-		// Interactive handler - for interactive mode
-		func(stream sdk.GlidePlugin_StartInteractiveServer) error {
-			stream.Send(&sdk.StreamMessage{
-				Type: sdk.StreamMessage_STDOUT,
-				Data: []byte("Interactive processing mode. Enter data to process, 'done' when finished:\n"),
-			})
-
-			var items []string
-			for {
-				msg, err := stream.Recv()
-				if err != nil {
-					break
-				}
-
-				if msg.Type == sdk.StreamMessage_STDIN {
-					input := strings.TrimSpace(string(msg.Data))
-					if input == "done" {
-						result := fmt.Sprintf("\nProcessed %d items:\n- %s\n",
-							len(items), strings.Join(items, "\n- "))
-						stream.Send(&sdk.StreamMessage{
-							Type: sdk.StreamMessage_STDOUT,
-							Data: []byte(result),
-						})
-						stream.Send(&sdk.StreamMessage{
-							Type:     sdk.StreamMessage_EXIT,
-							ExitCode: 0,
-						})
-						return nil
-					}
-
-					items = append(items, input)
-					stream.Send(&sdk.StreamMessage{
-						Type: sdk.StreamMessage_STDOUT,
-						Data: []byte(fmt.Sprintf("Added: %s\n", input)),
-					})
-				}
-			}
-			return nil
-		},
-	))
-
-	// Start the plugin server
-	// That's it! No need to implement GetMetadata, Configure, ListCommands,
-	// ExecuteCommand, or StartInteractive - BasePlugin handles it all!
-	plugin.Serve(&plugin.ServeConfig{
-		HandshakeConfig: sdk.HandshakeConfig,
-		Plugins: map[string]plugin.Plugin{
-			"glide": &sdk.GlidePlugin{Impl: basePlugin},
-		},
-		GRPCServer: plugin.DefaultGRPCServer,
-	})
+	// Maximum retries for operations
+	MaxRetries int `json:"maxRetries" yaml:"maxRetries" validate:"min=0,max=10"`
 }
 
-// Benefits of using BasePlugin:
-// 1. No manual StartInteractive routing needed
-// 2. Automatic command registration and discovery
-// 3. Built-in configuration management
-// 4. Clean separation of command logic
-// 5. Less boilerplate, more focus on functionality
+// DefaultConfig returns sensible defaults
+func DefaultConfig() Config {
+	return Config{
+		Greeting:   "Hello",
+		Debug:      false,
+		MaxRetries: 3,
+	}
+}
+
+// MyPlugin is the main plugin implementation.
+// Embed v2.BasePlugin[Config] for automatic handling of common functionality.
+type MyPlugin struct {
+	v2.BasePlugin[Config]
+}
+
+// Metadata returns plugin information.
+// Update these fields with your plugin's details.
+func (p *MyPlugin) Metadata() v2.Metadata {
+	return v2.Metadata{
+		Name:        "myplugin",
+		Version:     "1.0.0",
+		Author:      "Your Name",
+		Description: "Brief description of your plugin",
+		License:     "MIT",
+		Homepage:    "https://github.com/user/glide-plugin-myplugin",
+		Aliases:     []string{"mp", "myp"}, // Optional shortcuts
+	}
+}
+
+// Configure is called with the type-safe configuration.
+func (p *MyPlugin) Configure(ctx context.Context, config Config) error {
+	// Store configuration in BasePlugin
+	if err := p.BasePlugin.Configure(ctx, config); err != nil {
+		return err
+	}
+
+	// Additional validation or setup can go here
+	if p.GetConfig().Debug {
+		fmt.Fprintln(os.Stderr, "[DEBUG] Plugin configured with debug mode enabled")
+	}
+
+	return nil
+}
+
+// Init is called once after plugin load (optional).
+func (p *MyPlugin) Init(ctx context.Context) error {
+	// One-time initialization
+	return nil
+}
+
+// Start is called when the plugin should begin operation (optional).
+func (p *MyPlugin) Start(ctx context.Context) error {
+	// Connect to services, start background workers, etc.
+	return nil
+}
+
+// Stop is called for graceful shutdown (optional).
+func (p *MyPlugin) Stop(ctx context.Context) error {
+	// Cleanup resources
+	return nil
+}
+
+// HealthCheck returns nil if the plugin is healthy (optional).
+func (p *MyPlugin) HealthCheck(ctx context.Context) error {
+	// Verify connectivity, resources, etc.
+	return nil
+}
+
+// Commands returns the list of commands this plugin provides.
+func (p *MyPlugin) Commands() []v2.Command {
+	return []v2.Command{
+		// Simple greeting command
+		{
+			Name:        "hello",
+			Description: "Say hello to someone",
+			Category:    "developer",
+			Aliases:     []string{"h"},
+			Handler:     v2.SimpleCommandHandler(p.helloCommand),
+		},
+
+		// Command that shows configuration
+		{
+			Name:        "config",
+			Description: "Show plugin configuration",
+			Category:    "developer",
+			Aliases:     []string{"c"},
+			Handler:     v2.SimpleCommandHandler(p.configCommand),
+		},
+
+		// Command with flags
+		{
+			Name:        "greet",
+			Description: "Greet with options",
+			Category:    "developer",
+			Flags: []v2.Flag{
+				{Name: "name", Short: "n", Description: "Name to greet", Default: "World"},
+				{Name: "loud", Short: "l", Description: "Use uppercase", Type: v2.FlagBool},
+			},
+			Handler: v2.SimpleCommandHandler(p.greetCommand),
+		},
+
+		// Example showing error handling
+		{
+			Name:        "validate",
+			Description: "Validate something (demonstrates error handling)",
+			Category:    "developer",
+			Handler:     v2.SimpleCommandHandler(p.validateCommand),
+		},
+	}
+}
+
+// helloCommand implements the hello command.
+func (p *MyPlugin) helloCommand(ctx context.Context, req *v2.ExecuteRequest) (*v2.ExecuteResponse, error) {
+	name := "World"
+	if len(req.Args) > 0 {
+		name = strings.Join(req.Args, " ")
+	}
+
+	// Use configured greeting prefix
+	greeting := p.GetConfig().Greeting
+	if greeting == "" {
+		greeting = "Hello"
+	}
+
+	output := fmt.Sprintf("%s, %s!\n", greeting, name)
+	return &v2.ExecuteResponse{
+		ExitCode: 0,
+		Output:   output,
+	}, nil
+}
+
+// configCommand shows the current configuration.
+func (p *MyPlugin) configCommand(ctx context.Context, req *v2.ExecuteRequest) (*v2.ExecuteResponse, error) {
+	config := p.GetConfig()
+
+	output := fmt.Sprintf(`Plugin Configuration:
+  Greeting:   %s
+  Debug:      %v
+  MaxRetries: %d
+`, config.Greeting, config.Debug, config.MaxRetries)
+
+	return &v2.ExecuteResponse{
+		ExitCode: 0,
+		Output:   output,
+	}, nil
+}
+
+// greetCommand demonstrates flag handling.
+func (p *MyPlugin) greetCommand(ctx context.Context, req *v2.ExecuteRequest) (*v2.ExecuteResponse, error) {
+	name := req.Flags["name"]
+	loud := req.Flags["loud"] == "true"
+
+	greeting := fmt.Sprintf("%s, %s!", p.GetConfig().Greeting, name)
+	if loud {
+		greeting = strings.ToUpper(greeting)
+	}
+
+	return &v2.ExecuteResponse{
+		ExitCode: 0,
+		Output:   greeting + "\n",
+	}, nil
+}
+
+// validateCommand demonstrates error handling.
+func (p *MyPlugin) validateCommand(ctx context.Context, req *v2.ExecuteRequest) (*v2.ExecuteResponse, error) {
+	if len(req.Args) == 0 {
+		return &v2.ExecuteResponse{
+			ExitCode: 1,
+			Error:    "validation requires at least one argument",
+		}, nil
+	}
+
+	// Successful validation
+	return &v2.ExecuteResponse{
+		ExitCode: 0,
+		Output:   fmt.Sprintf("Validated: %s\n", strings.Join(req.Args, ", ")),
+	}, nil
+}
+
+func main() {
+	plugin := &MyPlugin{}
+
+	// Serve the plugin
+	if err := v2.Serve(plugin); err != nil {
+		fmt.Fprintf(os.Stderr, "Plugin error: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+// User Configuration Example (.glide.yml):
 //
-// Compare this to the old way where you had to:
-// - Implement all gRPC methods manually
-// - Handle StartInteractive routing yourself
-// - Extract command names from stream messages
-// - Maintain command maps and routing logic
-// - Handle configuration storage
+// plugins:
+//   myplugin:
+//     greeting: "Hi there"
+//     debug: true
+//     maxRetries: 5
 //
-// Now you just register commands and implement their logic!
+// Usage Examples:
+//   glide hello              # Uses configured greeting
+//   glide hello John         # Greet John
+//   glide mp hello           # Using plugin alias
+//   glide config             # Show configuration
+//   glide greet -n Alice -l  # Greet Alice loudly

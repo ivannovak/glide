@@ -1,3 +1,117 @@
+## [Unreleased]
+
+### ⚠ BREAKING CHANGES
+
+* **plugin-sdk:** SDK v1 is deprecated and no longer supported
+  - All plugins must use SDK v2
+  - SDK v1 code remains in `pkg/plugin/sdk/v1/` for reference only
+  - See [Migration Guide](docs/guides/PLUGIN-SDK-V2-MIGRATION.md) for upgrade instructions
+
+### Features
+
+#### Phase 3: Plugin System Hardening
+
+* **plugin-system:** type-safe configuration system with Go generics
+  - Implement `TypedConfig[T]` for compile-time type safety
+  - Add JSON Schema generation from Go types
+  - Implement validation via struct tags (required, min, max, pattern, enum)
+  - Add configuration migration system with version detection
+  - Add backward compatibility layer for legacy map-based configs
+  - Coverage: 85.4% (exceeds 80% target)
+
+* **plugin-system:** plugin lifecycle management
+  - Add `Lifecycle` interface (Init/Start/Stop/HealthCheck)
+  - Implement `LifecycleManager` with state tracking
+  - Add configurable timeouts and health check monitoring
+  - Support ordered initialization based on dependencies
+  - Add graceful shutdown with cleanup verification
+
+* **plugin-system:** dependency resolution system
+  - Implement topological sort using Kahn's algorithm
+  - Add cycle detection with detailed error reporting
+  - Support semantic version constraints (^, ~, >=, etc.)
+  - Handle optional dependencies with warnings
+  - Validate version compatibility at load time
+
+* **plugin-system:** SDK v2 development (now the only supported SDK)
+  - Create `Plugin[C any]` generic interface for type-safe plugins
+  - Add `BasePlugin[C]` with sensible defaults
+  - Implement declarative command system
+  - Add `Metadata` structure with capabilities declaration
+  - Deprecate SDK v1 (retained for reference only)
+  - Add comprehensive migration guide
+
+#### Phase 4: Performance & Observability
+
+* **performance:** comprehensive benchmark suite and critical path optimization
+  - Add benchmark framework with comparative analysis
+  - Optimize context detection (72ms → 19μs, 3,789x improvement)
+  - Optimize plugin discovery (1.35s → 47μs, 28,723x improvement)
+  - Add lazy loading and caching across critical paths
+
+* **observability:** infrastructure for monitoring and debugging
+  - Add `pkg/observability` package with metrics, logging, health checks
+  - Implement performance budgets with configurable thresholds
+  - Add structured logging with log levels and correlation IDs
+  - Add health check framework for plugins and configuration
+
+#### Phase 5: Documentation & Polish
+
+* **docs:** comprehensive package documentation
+  - Add doc.go files to all 27 packages (pkg/ and internal/)
+  - Create architecture documentation with diagrams
+  - Add developer guides for error handling and performance
+  - Create 4 progressive tutorials (getting-started to contributing)
+
+* **adr:** architectural decision records for major changes
+  - ADR-014: Performance Budgets
+  - ADR-015: Observability Infrastructure
+  - ADR-016: Type-Safe Configuration
+  - ADR-017: Plugin Lifecycle Management
+
+#### Phase 6: Technical Debt Cleanup
+
+* **cleanup:** TODO/FIXME resolution
+  - Audit and categorize 15 TODO comments
+  - Implement critical security fix: Unix ownership validation in plugin security
+  - Document remaining TODOs with tracking
+
+* **cleanup:** dead code removal
+  - Remove unused FrameworkCommandInjector
+  - Remove unused PluginAwareExecutor and ExecutorRegistry
+  - Remove unused convenience functions
+  - Document intentionally retained SDK infrastructure
+
+* **deps:** dependency updates
+  - Update cobra v1.8.0 → v1.10.1
+  - Update pflag v1.0.5 → v1.0.10
+  - Update fatih/color v1.16.0 → v1.18.0
+  - Update uber-go/zap v1.26.0 → v1.27.1
+  - Update golang.org/x/* packages to latest
+
+* **quality:** code quality improvements
+  - Fix production code linter warnings
+  - Update golangci-lint to v1.64.6 for Go 1.24 support
+  - All tests passing (30 packages)
+
+### Documentation
+
+* **guides:** add SDK v2 migration guide with complete examples
+* **guides:** update plugin development guide with SDK v2 quickstart
+* **guides:** add error handling and performance guides
+* **tutorials:** add 4 progressive tutorials
+* **architecture:** add comprehensive architecture documentation
+
+### Tests
+
+* **integration:** add end-to-end plugin lifecycle tests
+* **integration:** add dependency resolution tests (linear, diamond, cycles)
+* **integration:** add v1/v2 plugin coexistence tests
+* **integration:** add configuration migration tests
+* **benchmarks:** add comprehensive benchmark suite
+
+---
+
 ## [2.3.0](https://github.com/ivannovak/glide/compare/v2.2.0...v2.3.0) (2025-11-25)
 
 

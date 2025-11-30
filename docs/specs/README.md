@@ -22,6 +22,9 @@ Build-time branding customization system allowing organizations to create fully-
 ### [Architectural Improvements](architectural-improvements/)
 Ongoing architectural remediation efforts to improve code quality, testability, and maintainability. Includes interface extraction, dependency injection, and testing infrastructure.
 
+### [Gold Standard Remediation](gold-standard-remediation/) ⭐ **NEW**
+Comprehensive architectural remediation plan to transform Glide into a gold standard reference codebase. Addresses critical security vulnerabilities, achieves 80%+ test coverage, implements proper DI, type-safe plugin system, and professional documentation. 16-week, 6-phase approach suitable as training material for senior engineers.
+
 ## Specification Lifecycle
 
 1. **Draft**: Initial specification under development

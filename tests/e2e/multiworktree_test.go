@@ -17,6 +17,11 @@ import (
 
 // TestMultiWorktreeScenarios tests end-to-end multi-worktree specific workflows
 func TestMultiWorktreeScenarios(t *testing.T) {
+	// Skip in short mode (pre-commit hooks)
+	if testing.Short() {
+		t.Skip("Skipping worktree tests in short mode")
+	}
+
 	// Skip if git is not available
 	if err := exec.Command("git", "--version").Run(); err != nil {
 		t.Skip("Git is not available")
@@ -569,6 +574,11 @@ volumes: 3
 
 // TestMultiWorktreeIntegration tests complex multi-worktree integration scenarios
 func TestMultiWorktreeIntegration(t *testing.T) {
+	// Skip in short mode (pre-commit hooks)
+	if testing.Short() {
+		t.Skip("Skipping worktree tests in short mode")
+	}
+
 	t.Run("branch_merge_workflow", func(t *testing.T) {
 		// Test branch merging workflow with multiple worktrees
 		tmpDir := t.TempDir()
@@ -595,7 +605,7 @@ class App {
     public function version() {
         return "1.0.0";
     }
-    
+
     public function features() {
         return [];
     }
@@ -619,11 +629,11 @@ class App {
     public function version() {
         return "1.1.0";
     }
-    
+
     public function features() {
         return ["authentication"];
     }
-    
+
     public function authenticate($user, $pass) {
         return $user === "admin" && $pass === "secret";
     }
@@ -638,11 +648,11 @@ class App {
     public function version() {
         return "1.2.0";
     }
-    
+
     public function features() {
         return ["profiles"];
     }
-    
+
     public function getProfile($userId) {
         return ["id" => $userId, "name" => "User " . $userId];
     }
@@ -747,10 +757,10 @@ app:
 		require.NoError(t, os.WriteFile("config.yml", []byte(baseConfig), 0644))
 
 		// Create environment-specific configs that worktrees might override
-		devConfig := `# Development Configuration  
+		devConfig := `# Development Configuration
 database:
   name: myapp_dev
-  
+
 app:
   debug: true
 `
@@ -786,10 +796,10 @@ app:
 					"config.perf.yml": `# Performance Testing Configuration
 database:
   name: myapp_perf
-  
+
 cache:
   driver: memory
-  
+
 app:
   debug: false
   profiling: true

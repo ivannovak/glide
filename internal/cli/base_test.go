@@ -2,47 +2,51 @@ package cli
 
 import (
 	"bytes"
+	"os"
 	"testing"
 
 	"github.com/ivannovak/glide/v2/internal/config"
 	"github.com/ivannovak/glide/v2/internal/context"
-	"github.com/ivannovak/glide/v2/pkg/app"
 	"github.com/ivannovak/glide/v2/pkg/output"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNewBaseCommand(t *testing.T) {
-	t.Run("creates base command with application", func(t *testing.T) {
-		application := app.NewApplication()
-		base := NewBaseCommand(application)
+	t.Run("creates base command with dependencies", func(t *testing.T) {
+		outputManager := output.NewManager(output.FormatTable, false, false, os.Stdout)
+		projectContext := &context.ProjectContext{}
+		cfg := &config.Config{}
+
+		base := NewBaseCommand(outputManager, projectContext, cfg)
 
 		assert.NotNil(t, base)
-		assert.NotNil(t, base.app)
-		assert.Equal(t, application, base.app)
+		assert.NotNil(t, base.Output())
+		assert.NotNil(t, base.Context())
+		assert.NotNil(t, base.Config())
 	})
 }
 
 func TestBaseCommandOutput(t *testing.T) {
-	t.Run("returns output manager from application", func(t *testing.T) {
+	t.Run("returns output manager", func(t *testing.T) {
 		buf := &bytes.Buffer{}
-		application := app.NewApplication(
-			app.WithWriter(buf),
-			app.WithOutputFormat(output.FormatJSON, false, false),
-		)
-		base := NewBaseCommand(application)
+		outputManager := output.NewManager(output.FormatJSON, false, false, buf)
+		projectContext := &context.ProjectContext{}
+		cfg := &config.Config{}
+
+		base := NewBaseCommand(outputManager, projectContext, cfg)
 
 		manager := base.Output()
 		assert.NotNil(t, manager)
-		assert.Equal(t, application.OutputManager, manager)
 		assert.Equal(t, output.FormatJSON, manager.GetFormat())
 	})
 
-	t.Run("output manager writes to application writer", func(t *testing.T) {
+	t.Run("output manager writes to provided writer", func(t *testing.T) {
 		buf := &bytes.Buffer{}
-		application := app.NewApplication(
-			app.WithWriter(buf),
-		)
-		base := NewBaseCommand(application)
+		outputManager := output.NewManager(output.FormatTable, false, false, buf)
+		projectContext := &context.ProjectContext{}
+		cfg := &config.Config{}
+
+		base := NewBaseCommand(outputManager, projectContext, cfg)
 
 		base.Output().Raw("test output")
 		assert.Equal(t, "test output", buf.String())
@@ -50,16 +54,16 @@ func TestBaseCommandOutput(t *testing.T) {
 }
 
 func TestBaseCommandContext(t *testing.T) {
-	t.Run("returns project context from application", func(t *testing.T) {
+	t.Run("returns project context", func(t *testing.T) {
 		ctx := &context.ProjectContext{
 			ProjectRoot:     "/test/project",
 			WorkingDir:      "/test/working",
 			DevelopmentMode: context.ModeMultiWorktree,
 		}
-		application := app.NewApplication(
-			app.WithProjectContext(ctx),
-		)
-		base := NewBaseCommand(application)
+		outputManager := output.NewManager(output.FormatTable, false, false, os.Stdout)
+		cfg := &config.Config{}
+
+		base := NewBaseCommand(outputManager, ctx, cfg)
 
 		projectCtx := base.Context()
 		assert.NotNil(t, projectCtx)
@@ -67,9 +71,11 @@ func TestBaseCommandContext(t *testing.T) {
 		assert.Equal(t, "/test/project", projectCtx.ProjectRoot)
 	})
 
-	t.Run("returns nil when no context", func(t *testing.T) {
-		application := app.NewApplication()
-		base := NewBaseCommand(application)
+	t.Run("handles nil context gracefully", func(t *testing.T) {
+		outputManager := output.NewManager(output.FormatTable, false, false, os.Stdout)
+		cfg := &config.Config{}
+
+		base := NewBaseCommand(outputManager, nil, cfg)
 
 		projectCtx := base.Context()
 		assert.Nil(t, projectCtx)
@@ -77,7 +83,7 @@ func TestBaseCommandContext(t *testing.T) {
 }
 
 func TestBaseCommandConfig(t *testing.T) {
-	t.Run("returns config from application", func(t *testing.T) {
+	t.Run("returns config", func(t *testing.T) {
 		cfg := &config.Config{
 			DefaultProject: "test-project",
 			Projects: map[string]config.ProjectConfig{
@@ -87,10 +93,10 @@ func TestBaseCommandConfig(t *testing.T) {
 				},
 			},
 		}
-		application := app.NewApplication(
-			app.WithConfig(cfg),
-		)
-		base := NewBaseCommand(application)
+		outputManager := output.NewManager(output.FormatTable, false, false, os.Stdout)
+		projectContext := &context.ProjectContext{}
+
+		base := NewBaseCommand(outputManager, projectContext, cfg)
 
 		config := base.Config()
 		assert.NotNil(t, config)
@@ -98,29 +104,20 @@ func TestBaseCommandConfig(t *testing.T) {
 		assert.Equal(t, "test-project", config.DefaultProject)
 	})
 
-	t.Run("returns nil when no config", func(t *testing.T) {
-		application := app.NewApplication()
-		base := NewBaseCommand(application)
+	t.Run("handles nil config gracefully", func(t *testing.T) {
+		outputManager := output.NewManager(output.FormatTable, false, false, os.Stdout)
+		projectContext := &context.ProjectContext{}
+
+		base := NewBaseCommand(outputManager, projectContext, nil)
 
 		config := base.Config()
 		assert.Nil(t, config)
 	})
 }
 
-func TestBaseCommandApplication(t *testing.T) {
-	t.Run("returns the full application", func(t *testing.T) {
-		application := app.NewApplication()
-		base := NewBaseCommand(application)
-
-		app := base.Application()
-		assert.NotNil(t, app)
-		assert.Equal(t, application, app)
-	})
-}
-
 func TestBaseCommandIntegration(t *testing.T) {
 	t.Run("base command provides access to all dependencies", func(t *testing.T) {
-		// Set up a complete application
+		// Set up complete dependencies
 		buf := &bytes.Buffer{}
 		ctx := &context.ProjectContext{
 			ProjectRoot:     "/integration/test",
@@ -137,27 +134,18 @@ func TestBaseCommandIntegration(t *testing.T) {
 				},
 			},
 		}
+		outputManager := output.NewManager(output.FormatTable, false, false, buf)
 
-		application := app.NewApplication(
-			app.WithProjectContext(ctx),
-			app.WithConfig(cfg),
-			app.WithWriter(buf),
-			app.WithOutputFormat(output.FormatTable, false, false),
-		)
-
-		base := NewBaseCommand(application)
+		base := NewBaseCommand(outputManager, ctx, cfg)
 
 		// Verify all accessors work
 		assert.NotNil(t, base.Output())
 		assert.NotNil(t, base.Context())
 		assert.NotNil(t, base.Config())
-		assert.NotNil(t, base.Application())
 
 		// Verify they return the correct instances
-		assert.Equal(t, application.OutputManager, base.Output())
 		assert.Equal(t, ctx, base.Context())
 		assert.Equal(t, cfg, base.Config())
-		assert.Equal(t, application, base.Application())
 
 		// Test that output works through the base command
 		base.Output().Info("Integration test message")
@@ -173,14 +161,14 @@ func TestBaseCommandEmbedding(t *testing.T) {
 	}
 
 	t.Run("embedded base command works correctly", func(t *testing.T) {
-		application := app.NewApplication(
-			app.WithProjectContext(&context.ProjectContext{
-				ProjectRoot: "/embed/test",
-			}),
-		)
+		outputManager := output.NewManager(output.FormatTable, false, false, os.Stdout)
+		projectContext := &context.ProjectContext{
+			ProjectRoot: "/embed/test",
+		}
+		cfg := &config.Config{}
 
 		testCmd := &TestCommand{
-			BaseCommand: NewBaseCommand(application),
+			BaseCommand: NewBaseCommand(outputManager, projectContext, cfg),
 			customField: "custom value",
 		}
 
@@ -217,29 +205,21 @@ func TestBaseCommandUsageExample(t *testing.T) {
 				cmd.Output().Info("Default project: %s", cmd.Config().DefaultProject)
 			}
 
-			// Access the full application if needed
-			app := cmd.Application()
-			if app.GetShellExecutor() != nil {
-				cmd.Output().Success("Shell executor available")
-			}
-
 			return nil
 		}
 
 		// Set up the command
 		buf := &bytes.Buffer{}
-		application := app.NewApplication(
-			app.WithProjectContext(&context.ProjectContext{
-				ProjectRoot: "/example",
-			}),
-			app.WithConfig(&config.Config{
-				DefaultProject: "example-project",
-			}),
-			app.WithWriter(buf),
-		)
+		outputManager := output.NewManager(output.FormatTable, false, false, buf)
+		projectContext := &context.ProjectContext{
+			ProjectRoot: "/example",
+		}
+		cfg := &config.Config{
+			DefaultProject: "example-project",
+		}
 
 		exampleCmd := &ExampleCommand{
-			BaseCommand: NewBaseCommand(application),
+			BaseCommand: NewBaseCommand(outputManager, projectContext, cfg),
 		}
 
 		// Execute the command
@@ -250,6 +230,5 @@ func TestBaseCommandUsageExample(t *testing.T) {
 		output := buf.String()
 		assert.Contains(t, output, "Starting example command")
 		assert.Contains(t, output, "Default project: example-project")
-		assert.Contains(t, output, "Shell executor available")
 	})
 }

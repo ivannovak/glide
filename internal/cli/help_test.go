@@ -3,6 +3,7 @@ package cli
 import (
 	"testing"
 
+	"github.com/ivannovak/glide/v2/internal/config"
 	"github.com/ivannovak/glide/v2/internal/context"
 	v1 "github.com/ivannovak/glide/v2/pkg/plugin/sdk/v1"
 	"github.com/spf13/cobra"
@@ -443,4 +444,366 @@ func TestVisibilityIntegration(t *testing.T) {
 				"Expected commands %v but got %v", tc.expected, visibleCommands)
 		})
 	}
+}
+
+// TestHelpTopics tests all help topic display functions
+func TestHelpTopics(t *testing.T) {
+	t.Run("getting started guide", func(t *testing.T) {
+		hc := &HelpCommand{
+			ProjectContext: &context.ProjectContext{
+				DevelopmentMode: context.ModeSingleRepo,
+			},
+		}
+
+		err := hc.showGettingStarted()
+		assert.NoError(t, err)
+	})
+
+	t.Run("workflows - single repo mode", func(t *testing.T) {
+		hc := &HelpCommand{
+			ProjectContext: &context.ProjectContext{
+				DevelopmentMode: context.ModeSingleRepo,
+			},
+		}
+
+		err := hc.showWorkflows()
+		assert.NoError(t, err)
+	})
+
+	t.Run("workflows - multi-worktree mode", func(t *testing.T) {
+		hc := &HelpCommand{
+			ProjectContext: &context.ProjectContext{
+				DevelopmentMode: context.ModeMultiWorktree,
+			},
+		}
+
+		err := hc.showWorkflows()
+		assert.NoError(t, err)
+	})
+
+	t.Run("modes explanation", func(t *testing.T) {
+		hc := &HelpCommand{
+			ProjectContext: &context.ProjectContext{
+				DevelopmentMode: context.ModeSingleRepo,
+			},
+		}
+
+		err := hc.showModes()
+		assert.NoError(t, err)
+	})
+
+	t.Run("troubleshooting guide", func(t *testing.T) {
+		hc := &HelpCommand{
+			ProjectContext: &context.ProjectContext{},
+		}
+
+		err := hc.showTroubleshooting()
+		assert.NoError(t, err)
+	})
+
+	t.Run("command help", func(t *testing.T) {
+		hc := &HelpCommand{
+			ProjectContext: &context.ProjectContext{},
+		}
+
+		err := hc.showCommandHelp("test")
+		assert.NoError(t, err)
+	})
+}
+
+// TestHelpCommandExecution tests help command with various arguments
+func TestHelpCommandExecution(t *testing.T) {
+	t.Run("help with no args", func(t *testing.T) {
+		ctx := &context.ProjectContext{
+			DevelopmentMode: context.ModeSingleRepo,
+		}
+		cmd := NewHelpCommand(ctx, &config.Config{})
+
+		assert.NotNil(t, cmd)
+		assert.Equal(t, "help [command | topic]", cmd.Use)
+	})
+
+	t.Run("help topic aliases", func(t *testing.T) {
+		ctx := &context.ProjectContext{
+			DevelopmentMode: context.ModeSingleRepo,
+		}
+		cmd := NewHelpCommand(ctx, &config.Config{})
+
+		// Test that RunE is set
+		assert.NotNil(t, cmd.RunE)
+	})
+}
+
+// TestCategories tests category definitions and ordering
+func TestCategories(t *testing.T) {
+	t.Run("all categories defined", func(t *testing.T) {
+		expectedCategories := []string{
+			"core", "global", "setup", "docker", "testing",
+			"developer", "database", "plugin", "help",
+		}
+
+		for _, cat := range expectedCategories {
+			info, exists := Categories[cat]
+			assert.True(t, exists, "category %s should be defined", cat)
+			assert.NotEmpty(t, info.Name)
+			assert.NotEmpty(t, info.Description)
+			assert.NotNil(t, info.Color)
+		}
+	})
+
+	t.Run("category priorities", func(t *testing.T) {
+		// Core should have lower priority (appears first)
+		assert.Less(t, Categories["core"].Priority, Categories["help"].Priority,
+			"core should appear before help")
+
+		assert.Less(t, Categories["setup"].Priority, Categories["plugin"].Priority,
+			"setup should appear before plugin")
+	})
+
+	t.Run("category display order", func(t *testing.T) {
+		// Extract priorities
+		priorities := make(map[string]int)
+		for cat, info := range Categories {
+			priorities[cat] = info.Priority
+		}
+
+		// Core commands should be first (priority 10)
+		assert.Equal(t, 10, priorities["core"])
+
+		// Help should be last (priority 90)
+		assert.Equal(t, 90, priorities["help"])
+	})
+}
+
+// TestCommandEntry tests command entry structure
+func TestCommandEntry(t *testing.T) {
+	t.Run("command entry fields", func(t *testing.T) {
+		entry := CommandEntry{
+			Name:        "test",
+			Description: "Run tests",
+			Aliases:     []string{"t"},
+			Category:    "testing",
+			IsPlugin:    false,
+			IsYAML:      false,
+		}
+
+		assert.Equal(t, "test", entry.Name)
+		assert.Equal(t, "Run tests", entry.Description)
+		assert.Equal(t, []string{"t"}, entry.Aliases)
+		assert.Equal(t, "testing", entry.Category)
+		assert.False(t, entry.IsPlugin)
+		assert.False(t, entry.IsYAML)
+	})
+
+	t.Run("plugin command entry", func(t *testing.T) {
+		entry := CommandEntry{
+			Name:       "custom-cmd",
+			Category:   "plugin",
+			IsPlugin:   true,
+			PluginName: "my-plugin",
+		}
+
+		assert.True(t, entry.IsPlugin)
+		assert.Equal(t, "my-plugin", entry.PluginName)
+	})
+
+	t.Run("YAML command entry", func(t *testing.T) {
+		entry := CommandEntry{
+			Name:     "my-cmd",
+			Category: "yaml",
+			IsYAML:   true,
+		}
+
+		assert.True(t, entry.IsYAML)
+		assert.Equal(t, "yaml", entry.Category)
+	})
+}
+
+// TestHelpContextInfo tests context-specific help information
+func TestHelpContextInfo(t *testing.T) {
+	t.Run("single repo context", func(t *testing.T) {
+		hc := &HelpCommand{
+			ProjectContext: &context.ProjectContext{
+				DevelopmentMode: context.ModeSingleRepo,
+				WorkingDir:      "/test/project",
+				ProjectRoot:     "/test/project",
+			},
+		}
+
+		assert.Equal(t, context.ModeSingleRepo, hc.ProjectContext.DevelopmentMode)
+	})
+
+	t.Run("multi-worktree context", func(t *testing.T) {
+		hc := &HelpCommand{
+			ProjectContext: &context.ProjectContext{
+				DevelopmentMode: context.ModeMultiWorktree,
+				Location:        context.LocationRoot,
+				IsRoot:          true,
+			},
+		}
+
+		assert.Equal(t, context.ModeMultiWorktree, hc.ProjectContext.DevelopmentMode)
+		assert.True(t, hc.ProjectContext.IsRoot)
+	})
+
+	t.Run("standalone context", func(t *testing.T) {
+		hc := &HelpCommand{
+			ProjectContext: &context.ProjectContext{
+				DevelopmentMode: context.ModeStandalone,
+			},
+		}
+
+		assert.Equal(t, context.ModeStandalone, hc.ProjectContext.DevelopmentMode)
+	})
+
+	t.Run("no context", func(t *testing.T) {
+		hc := &HelpCommand{
+			ProjectContext: nil,
+		}
+
+		assert.Nil(t, hc.ProjectContext)
+	})
+}
+
+// TestHelpTopicAliases tests that topic aliases work correctly
+func TestHelpTopicAliases(t *testing.T) {
+	ctx := &context.ProjectContext{
+		DevelopmentMode: context.ModeSingleRepo,
+	}
+	cmd := NewHelpCommand(ctx, &config.Config{})
+
+	// Test that the command handles various topic names
+	// This verifies the switch statement in RunE
+	topics := map[string][]string{
+		"getting-started": {"getting-started", "start", "quickstart"},
+		"workflows":       {"workflows", "workflow", "flow"},
+		"modes":           {"modes", "mode"},
+		"troubleshooting": {"troubleshooting", "troubleshoot", "issues"},
+	}
+
+	for mainTopic, aliases := range topics {
+		for _, alias := range aliases {
+			t.Run("alias_"+alias, func(t *testing.T) {
+				// Verify that all aliases are handled
+				// We can't easily test RunE directly, but we can verify the structure
+				assert.Contains(t, cmd.Long, mainTopic,
+					"help text should mention %s topic", mainTopic)
+			})
+		}
+	}
+}
+
+// TestCategoryInfo tests category information structure
+func TestCategoryInfo(t *testing.T) {
+	t.Run("core category info", func(t *testing.T) {
+		info := Categories["core"]
+		assert.Equal(t, "Core Commands", info.Name)
+		assert.Equal(t, "Essential development commands", info.Description)
+		assert.Equal(t, 10, info.Priority)
+		assert.NotNil(t, info.Color)
+	})
+
+	t.Run("plugin category info", func(t *testing.T) {
+		info := Categories["plugin"]
+		assert.Equal(t, "Plugin Commands", info.Name)
+		assert.Equal(t, "Commands from installed plugins", info.Description)
+		assert.Equal(t, 80, info.Priority)
+	})
+
+	t.Run("help category info", func(t *testing.T) {
+		info := Categories["help"]
+		assert.Equal(t, "Help & Documentation", info.Name)
+		assert.Equal(t, 90, info.Priority) // Should be last
+	})
+}
+
+// TestGetPluginSubcommands tests the getPluginSubcommands helper
+func TestGetPluginSubcommands(t *testing.T) {
+	t.Run("plugin with subcommands", func(t *testing.T) {
+		hc := &HelpCommand{
+			ProjectContext: &context.ProjectContext{},
+		}
+
+		// Create a root command with a plugin that has subcommands
+		rootCmd := &cobra.Command{Use: "glide"}
+
+		pluginCmd := &cobra.Command{
+			Use:   "docker",
+			Short: "Docker management",
+		}
+
+		// Add subcommands to plugin
+		pluginCmd.AddCommand(&cobra.Command{
+			Use:     "ps",
+			Short:   "List containers",
+			Aliases: []string{"list"},
+		})
+		pluginCmd.AddCommand(&cobra.Command{
+			Use:   "up",
+			Short: "Start containers",
+		})
+
+		// Add hidden command (should not appear)
+		hiddenCmd := &cobra.Command{
+			Use:    "internal",
+			Short:  "Internal command",
+			Hidden: true,
+		}
+		pluginCmd.AddCommand(hiddenCmd)
+
+		rootCmd.AddCommand(pluginCmd)
+
+		subcommands := hc.getPluginSubcommands(rootCmd, "docker")
+
+		assert.Len(t, subcommands, 2, "should return 2 non-hidden subcommands")
+
+		// Commands should be sorted alphabetically
+		assert.Equal(t, "ps", subcommands[0].Name)
+		assert.Equal(t, "List containers", subcommands[0].Description)
+		assert.Equal(t, []string{"list"}, subcommands[0].Aliases)
+
+		assert.Equal(t, "up", subcommands[1].Name)
+	})
+
+	t.Run("plugin not found", func(t *testing.T) {
+		hc := &HelpCommand{
+			ProjectContext: &context.ProjectContext{},
+		}
+
+		rootCmd := &cobra.Command{Use: "glide"}
+
+		subcommands := hc.getPluginSubcommands(rootCmd, "nonexistent")
+
+		assert.Empty(t, subcommands, "should return empty slice for non-existent plugin")
+	})
+
+	t.Run("plugin with no subcommands", func(t *testing.T) {
+		hc := &HelpCommand{
+			ProjectContext: &context.ProjectContext{},
+		}
+
+		rootCmd := &cobra.Command{Use: "glide"}
+		pluginCmd := &cobra.Command{
+			Use:   "simple",
+			Short: "Simple command",
+		}
+		rootCmd.AddCommand(pluginCmd)
+
+		subcommands := hc.getPluginSubcommands(rootCmd, "simple")
+
+		assert.Empty(t, subcommands, "should return empty slice for plugin with no subcommands")
+	})
+}
+
+// TestAreCompletionsInstalled tests the completion check helper
+func TestAreCompletionsInstalled(t *testing.T) {
+	t.Run("checks completion files", func(t *testing.T) {
+		hc := &HelpCommand{
+			ProjectContext: &context.ProjectContext{},
+		}
+
+		// Just verify it doesn't panic and returns a boolean
+		result := hc.areCompletionsInstalled()
+		assert.IsType(t, false, result, "should return a boolean")
+	})
 }

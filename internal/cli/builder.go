@@ -4,8 +4,9 @@ import (
 	"os"
 
 	"github.com/ivannovak/glide/v2/internal/config"
-	"github.com/ivannovak/glide/v2/pkg/app"
+	"github.com/ivannovak/glide/v2/internal/context"
 	"github.com/ivannovak/glide/v2/pkg/branding"
+	"github.com/ivannovak/glide/v2/pkg/output"
 	"github.com/ivannovak/glide/v2/pkg/plugin"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
@@ -13,15 +14,23 @@ import (
 
 // Builder handles the construction of CLI commands
 type Builder struct {
-	app      *app.Application
-	registry *Registry
+	projectContext *context.ProjectContext
+	config         *config.Config
+	outputManager  *output.Manager
+	registry       *Registry
 }
 
 // NewBuilder creates a new command builder
-func NewBuilder(application *app.Application) *Builder {
+func NewBuilder(
+	projectContext *context.ProjectContext,
+	cfg *config.Config,
+	outputManager *output.Manager,
+) *Builder {
 	builder := &Builder{
-		app:      application,
-		registry: NewRegistry(),
+		projectContext: projectContext,
+		config:         cfg,
+		outputManager:  outputManager,
+		registry:       NewRegistry(),
 	}
 
 	// Register all commands
@@ -37,7 +46,7 @@ func NewBuilder(application *app.Application) *Builder {
 func (b *Builder) registerCommands() {
 	// Core commands
 	b.registry.Register("setup", func() *cobra.Command {
-		return NewSetupCommand(b.app.ProjectContext, b.app.Config)
+		return NewSetupCommand(b.projectContext, b.config)
 	}, Metadata{
 		Name:        "setup",
 		Category:    CategorySetup,
@@ -55,7 +64,7 @@ func (b *Builder) registerCommands() {
 	})
 
 	b.registry.Register("config", func() *cobra.Command {
-		return NewConfigCommand(b.app.Config)
+		return NewConfigCommand(b.config)
 	}, Metadata{
 		Name:        "config",
 		Category:    CategoryDebug,
@@ -64,7 +73,7 @@ func (b *Builder) registerCommands() {
 	})
 
 	b.registry.Register("completion", func() *cobra.Command {
-		return NewCompletionCommand(b.app.ProjectContext, b.app.Config)
+		return NewCompletionCommand(b.projectContext, b.config)
 	}, Metadata{
 		Name:        "completion",
 		Category:    CategorySetup,
@@ -72,7 +81,7 @@ func (b *Builder) registerCommands() {
 	})
 
 	b.registry.Register("project", func() *cobra.Command {
-		return NewProjectCommand(b.app.ProjectContext, b.app.Config)
+		return NewProjectCommand(b.projectContext, b.config)
 	}, Metadata{
 		Name:        "project",
 		Category:    CategoryProject,
@@ -81,7 +90,7 @@ func (b *Builder) registerCommands() {
 	})
 
 	b.registry.Register("version", func() *cobra.Command {
-		return NewVersionCommand(b.app.ProjectContext, b.app.Config)
+		return NewVersionCommand(b.projectContext, b.config)
 	}, Metadata{
 		Name:        "version",
 		Category:    CategoryCore,
@@ -89,7 +98,7 @@ func (b *Builder) registerCommands() {
 	})
 
 	b.registry.Register("help", func() *cobra.Command {
-		return NewHelpCommand(b.app.ProjectContext, b.app.Config)
+		return NewHelpCommand(b.projectContext, b.config)
 	}, Metadata{
 		Name:        "help",
 		Category:    CategoryHelp,
@@ -102,7 +111,7 @@ func (b *Builder) registerCommands() {
 	// These are now provided via the runtime plugin system
 
 	b.registry.Register("self-update", func() *cobra.Command {
-		return NewSelfUpdateCommand(b.app.ProjectContext, b.app.Config)
+		return NewSelfUpdateCommand(b.projectContext, b.config)
 	}, Metadata{
 		Name:        "self-update",
 		Category:    CategoryCore,
@@ -127,7 +136,7 @@ func (b *Builder) Build() *cobra.Command {
 	}
 
 	// Add debug commands if context is available
-	if b.app.ProjectContext != nil {
+	if b.projectContext != nil {
 		b.addDebugCommands(rootCmd)
 	}
 
@@ -144,8 +153,8 @@ func (b *Builder) addDebugCommands(rootCmd *cobra.Command) {
 		Use:          "context",
 		Short:        "Show detected project context (debug)",
 		SilenceUsage: true,
-		Run: func(cmd *cobra.Command, args []string) {
-			showContext(cmd, b.app)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return showContext(cmd, b.outputManager, b.projectContext)
 		},
 	})
 
@@ -154,8 +163,8 @@ func (b *Builder) addDebugCommands(rootCmd *cobra.Command) {
 		Use:          "shell-test",
 		Short:        "Test shell execution (debug)",
 		SilenceUsage: true,
-		Run: func(cmd *cobra.Command, args []string) {
-			testShell(cmd, args, b.app)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return testShell(cmd, args, b.outputManager)
 		},
 	})
 
@@ -164,8 +173,8 @@ func (b *Builder) addDebugCommands(rootCmd *cobra.Command) {
 		Use:          "docker-test",
 		Short:        "Test Docker compose resolution (debug)",
 		SilenceUsage: true,
-		Run: func(cmd *cobra.Command, args []string) {
-			testDockerResolution(cmd, args, b.app)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return testDockerResolution(cmd, args, b.outputManager, b.projectContext)
 		},
 	})
 
@@ -174,8 +183,8 @@ func (b *Builder) addDebugCommands(rootCmd *cobra.Command) {
 		Use:          "container-test",
 		Short:        "Test Docker container management (debug)",
 		SilenceUsage: true,
-		Run: func(cmd *cobra.Command, args []string) {
-			testContainerManagement(cmd, args, b.app)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return testContainerManagement(cmd, args, b.outputManager, b.projectContext)
 		},
 	})
 }
@@ -199,6 +208,8 @@ func (b *Builder) loadYAMLCommands() {
 	cwd, _ := os.Getwd()
 	configPaths, err := config.DiscoverConfigs(cwd)
 	if err == nil && len(configPaths) > 0 {
+		// Note: Path validation is handled inside config.LoadAndMergeConfigs
+		// No additional validation needed here
 		localConfigs, err := config.LoadAndMergeConfigs(configPaths)
 		if err == nil && localConfigs.Commands != nil {
 			commands, err := config.ParseCommands(localConfigs.Commands)
@@ -206,6 +217,8 @@ func (b *Builder) loadYAMLCommands() {
 				for name, cmd := range commands {
 					// Check for conflicts with core commands
 					if !isProtectedCommand(name) {
+						// Safe to ignore: YAML command registration errors are logged by registry
+						// Duplicate commands or invalid configs are non-fatal
 						_ = b.registry.AddYAMLCommand(name, cmd)
 					}
 				}
@@ -215,9 +228,12 @@ func (b *Builder) loadYAMLCommands() {
 
 	// 3. Plugin-bundled YAML commands
 	// Load YAML commands from plugin directories
+	// Safe to ignore: Plugin YAML command errors are logged, CLI continues with available commands
 	_ = plugin.AddPluginYAMLCommands(nil, b.registry)
 
 	// 4. Load global commands (~/.glide/config.yml) - lowest priority
+	// Note: Path validation is handled inside config.Loader.Load()
+	// when the global config is loaded by the Application
 	globalConfigPath := branding.GetConfigPath()
 	if _, err := os.Stat(globalConfigPath); err == nil {
 		data, err := os.ReadFile(globalConfigPath)
@@ -229,6 +245,8 @@ func (b *Builder) loadYAMLCommands() {
 					if err == nil {
 						for name, cmd := range commands {
 							// Only add if not already defined
+							// Safe to ignore: Global YAML command registration errors are logged
+							// Conflicts with local/plugin commands are expected behavior
 							if _, exists := b.registry.Get(name); !exists {
 								_ = b.registry.AddYAMLCommand(name, cmd)
 							}

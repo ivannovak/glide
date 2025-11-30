@@ -97,6 +97,8 @@ func AddPluginYAMLCommands(rootCmd *cobra.Command, registry interface {
 			// Add commands to registry
 			for name, cmd := range commands {
 				// Plugin commands have lower priority than local commands
+				// Safe to ignore: Plugin YAML command registration errors are logged by registry
+				// Conflicts are expected and handled by priority system
 				// so they should already be overridden if there's a conflict
 				_ = registry.AddYAMLCommand(name, cmd)
 			}

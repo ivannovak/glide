@@ -16,7 +16,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-hclog"
-	plugin "github.com/hashicorp/go-plugin"
+	goplugin "github.com/hashicorp/go-plugin"
 	"github.com/ivannovak/glide/v2/pkg/branding"
 	v1 "github.com/ivannovak/glide/v2/pkg/plugin/sdk/v1"
 )
@@ -57,22 +57,26 @@ func (c *Cache) Clear() {
 
 // Manager handles plugin discovery, loading, and lifecycle
 type Manager struct {
-	mu         sync.RWMutex
-	plugins    map[string]*LoadedPlugin
-	discoverer *Discoverer
-	validator  *Validator
-	cache      *Cache
-	config     *ManagerConfig
+	mu               sync.RWMutex
+	plugins          map[string]*LoadedPlugin
+	discovered       map[string]*PluginInfo // Discovered but not yet loaded
+	discoverer       *Discoverer
+	validator        *Validator
+	cache            *Cache
+	config           *ManagerConfig
+	lifecycleManager *LifecycleManager
+	resolver         *DependencyResolver
 }
 
 // LoadedPlugin represents a loaded and running plugin
 type LoadedPlugin struct {
 	Name     string
 	Path     string
-	Client   *plugin.Client
+	Client   *goplugin.Client
 	Plugin   v1.GlidePluginClient
 	Metadata *v1.PluginMetadata
 	LastUsed time.Time
+	State    *StateTracker // Lifecycle state tracking
 }
 
 // ManagerConfig configures the plugin manager
@@ -129,17 +133,39 @@ func NewManager(config *ManagerConfig) *Manager {
 		validator.AddTrustedPath(dir)
 	}
 
+	// Create lifecycle manager with default config
+	lifecycleConfig := DefaultLifecycleConfig()
+	lifecycleManager := NewLifecycleManager(lifecycleConfig)
+
+	// Create dependency resolver
+	resolver := NewDependencyResolver()
+
 	return &Manager{
-		plugins:    make(map[string]*LoadedPlugin),
-		discoverer: NewDiscoverer(config.PluginDirs),
-		validator:  validator,
-		cache:      NewCache(config.CacheTimeout),
-		config:     config,
+		plugins:          make(map[string]*LoadedPlugin),
+		discovered:       make(map[string]*PluginInfo),
+		discoverer:       NewDiscoverer(config.PluginDirs),
+		validator:        validator,
+		cache:            NewCache(config.CacheTimeout),
+		config:           config,
+		lifecycleManager: lifecycleManager,
+		resolver:         resolver,
 	}
 }
 
-// DiscoverPlugins finds all available plugins
+// DiscoverPlugins finds all available plugins and loads them
+// For lazy loading, use DiscoverPluginsLazy() instead
 func (m *Manager) DiscoverPlugins() error {
+	return m.DiscoverPluginsWithOptions(false)
+}
+
+// DiscoverPluginsLazy discovers plugins without loading them
+// Plugins will be loaded on-demand when GetPlugin is called
+func (m *Manager) DiscoverPluginsLazy() error {
+	return m.DiscoverPluginsWithOptions(true)
+}
+
+// DiscoverPluginsWithOptions discovers plugins with configurable loading behavior
+func (m *Manager) DiscoverPluginsWithOptions(lazy bool) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -148,41 +174,57 @@ func (m *Manager) DiscoverPlugins() error {
 		return fmt.Errorf("plugin discovery failed: %w", err)
 	}
 
-	for _, p := range plugins {
-		if m.config.EnableDebug {
-			log.Printf("Discovered plugin: %s at %s", p.Name, p.Path)
-		}
+	if lazy {
+		// Just store discovered plugins without loading
+		for _, p := range plugins {
+			if m.config.EnableDebug {
+				log.Printf("Discovered plugin (lazy): %s at %s", p.Name, p.Path)
+			}
 
-		// Don't reload if already loaded
+			// Skip if already loaded or discovered
+			if _, exists := m.plugins[p.Name]; exists {
+				continue
+			}
+			if _, exists := m.discovered[p.Name]; exists {
+				continue
+			}
+
+			m.discovered[p.Name] = p
+		}
+		return nil
+	}
+
+	// Sequential plugin loading for non-lazy mode
+	return m.loadPluginsSequential(plugins)
+}
+
+// loadPluginsSequential loads multiple plugins one at a time.
+// Note: Parallel loading was removed due to a data race in hashicorp/go-plugin v1.7.0
+// (race between goroutines in Client.Start). Sequential loading is sufficient for
+// typical plugin counts (1-5 plugins) and avoids the race condition.
+func (m *Manager) loadPluginsSequential(plugins []*PluginInfo) error {
+	for _, p := range plugins {
+		// Skip if already loaded
 		if _, exists := m.plugins[p.Name]; exists {
 			continue
 		}
 
-		// Load the plugin
-		if err := m.loadPlugin(p); err != nil {
+		if m.config.EnableDebug {
+			log.Printf("Loading plugin: %s at %s", p.Name, p.Path)
+		}
+
+		if err := m.loadPluginUnlocked(p); err != nil {
 			log.Printf("Failed to load plugin %s: %v", p.Name, err)
-			continue
+			// Continue loading other plugins even if one fails
 		}
 	}
 
 	return nil
 }
 
-// LoadPlugin loads a specific plugin by path
-func (m *Manager) LoadPlugin(path string) error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
-	info := &PluginInfo{
-		Name: filepath.Base(path),
-		Path: path,
-	}
-
-	return m.loadPlugin(info)
-}
-
-// loadPlugin internal method to load a plugin
-func (m *Manager) loadPlugin(info *PluginInfo) error {
+// loadPluginUnlocked loads a plugin without holding the lock (for parallel loading)
+// Note: Caller must hold m.mu.Lock()
+func (m *Manager) loadPluginUnlocked(info *PluginInfo) error {
 	// Validate plugin
 	if err := m.validator.Validate(info.Path); err != nil {
 		return fmt.Errorf("plugin validation failed: %w", err)
@@ -198,30 +240,27 @@ func (m *Manager) loadPlugin(info *PluginInfo) error {
 	var logger hclog.Logger
 	switch {
 	case os.Getenv("GLIDE_PLUGIN_DEBUG") == "true" || os.Getenv("PLUGIN_DEBUG") == "true":
-		// Full debug output
 		logger = hclog.New(&hclog.LoggerOptions{
 			Name:   "plugin",
 			Level:  hclog.Debug,
 			Output: os.Stderr,
 		})
 	case os.Getenv("GLIDE_PLUGIN_TRACE") == "true" || os.Getenv("PLUGIN_TRACE") == "true":
-		// Trace level (most verbose)
 		logger = hclog.New(&hclog.LoggerOptions{
 			Name:   "plugin",
 			Level:  hclog.Trace,
 			Output: os.Stderr,
 		})
 	default:
-		// Suppress all plugin debug output by default
 		logger = hclog.NewNullLogger()
 	}
 
 	// Create plugin client
-	client := plugin.NewClient(&plugin.ClientConfig{
+	client := goplugin.NewClient(&goplugin.ClientConfig{
 		HandshakeConfig:  v1.HandshakeConfig,
 		Plugins:          v1.PluginMap,
 		Cmd:              exec.Command(info.Path),
-		AllowedProtocols: []plugin.Protocol{plugin.ProtocolGRPC},
+		AllowedProtocols: []goplugin.Protocol{goplugin.ProtocolGRPC},
 		Managed:          true,
 		Logger:           logger,
 	})
@@ -256,7 +295,7 @@ func (m *Manager) loadPlugin(info *PluginInfo) error {
 		return fmt.Errorf("failed to get plugin metadata: %w", err)
 	}
 
-	// Create loaded plugin
+	// Create loaded plugin with state tracker
 	loaded := &LoadedPlugin{
 		Name:     metadata.Name,
 		Path:     info.Path,
@@ -264,11 +303,36 @@ func (m *Manager) loadPlugin(info *PluginInfo) error {
 		Plugin:   glidePlugin,
 		Metadata: metadata,
 		LastUsed: time.Now(),
+		State:    NewStateTracker(metadata.Name),
 	}
 
 	// Store in manager and cache
 	m.plugins[metadata.Name] = loaded
 	m.cache.Put(info.Path, loaded)
+
+	// Register with lifecycle manager
+	adapter := newLifecycleAdapter(loaded)
+	if err := m.lifecycleManager.Register(metadata.Name, adapter); err != nil {
+		client.Kill()
+		delete(m.plugins, metadata.Name)
+		return fmt.Errorf("failed to register plugin with lifecycle manager: %w", err)
+	}
+
+	// Initialize and start the plugin through lifecycle
+	lifecycleCtx := context.Background()
+	if err := m.lifecycleManager.InitPlugin(lifecycleCtx, metadata.Name); err != nil {
+		client.Kill()
+		delete(m.plugins, metadata.Name)
+		_ = m.lifecycleManager.Unregister(metadata.Name)
+		return fmt.Errorf("failed to initialize plugin: %w", err)
+	}
+
+	if err := m.lifecycleManager.StartPlugin(lifecycleCtx, metadata.Name); err != nil {
+		client.Kill()
+		delete(m.plugins, metadata.Name)
+		_ = m.lifecycleManager.Unregister(metadata.Name)
+		return fmt.Errorf("failed to start plugin: %w", err)
+	}
 
 	if m.config.EnableDebug {
 		log.Printf("Loaded plugin: %s v%s", metadata.Name, metadata.Version)
@@ -277,22 +341,67 @@ func (m *Manager) loadPlugin(info *PluginInfo) error {
 	return nil
 }
 
-// GetPlugin returns a loaded plugin by name
-func (m *Manager) GetPlugin(name string) (*LoadedPlugin, error) {
-	m.mu.RLock()
-	defer m.mu.RUnlock()
+// LoadPlugin loads a specific plugin by path
+func (m *Manager) LoadPlugin(path string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 
+	info := &PluginInfo{
+		Name: filepath.Base(path),
+		Path: path,
+	}
+
+	return m.loadPluginUnlocked(info)
+}
+
+// GetPlugin returns a loaded plugin by name
+// If the plugin was discovered but not loaded (lazy loading), it will be loaded on-demand
+func (m *Manager) GetPlugin(name string) (*LoadedPlugin, error) {
+	// First check if already loaded (read lock)
+	m.mu.RLock()
 	plugin, exists := m.plugins[name]
-	if !exists {
+	if exists {
+		m.mu.RUnlock()
+		// Update last used time
+		plugin.LastUsed = time.Now()
+
+		// Check if client is still alive
+		if plugin.Client.Exited() {
+			return nil, fmt.Errorf("plugin %s has exited", name)
+		}
+
+		return plugin, nil
+	}
+
+	// Check if discovered but not loaded
+	info, discovered := m.discovered[name]
+	m.mu.RUnlock()
+
+	if !discovered {
 		return nil, fmt.Errorf("plugin %s not found", name)
 	}
 
-	// Update last used time
-	plugin.LastUsed = time.Now()
+	// Load the plugin on-demand (needs write lock)
+	m.mu.Lock()
+	defer m.mu.Unlock()
 
-	// Check if client is still alive
-	if plugin.Client.Exited() {
-		return nil, fmt.Errorf("plugin %s has exited", name)
+	// Double-check after acquiring write lock
+	if plugin, exists := m.plugins[name]; exists {
+		plugin.LastUsed = time.Now()
+		return plugin, nil
+	}
+
+	// Load the plugin
+	if err := m.loadPluginUnlocked(info); err != nil {
+		return nil, fmt.Errorf("failed to load plugin %s: %w", name, err)
+	}
+
+	// Remove from discovered since it's now loaded
+	delete(m.discovered, name)
+
+	plugin = m.plugins[name]
+	if plugin == nil {
+		return nil, fmt.Errorf("plugin %s failed to load", name)
 	}
 
 	return plugin, nil
@@ -482,16 +591,66 @@ func (m *Manager) ListPlugins() []*LoadedPlugin {
 	return plugins
 }
 
+// ListDiscoveredPlugins returns all discovered plugin names (both loaded and unloaded)
+func (m *Manager) ListDiscoveredPlugins() []string {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	names := make([]string, 0, len(m.plugins)+len(m.discovered))
+
+	// Add loaded plugins
+	for name := range m.plugins {
+		names = append(names, name)
+	}
+
+	// Add discovered but unloaded plugins
+	for name := range m.discovered {
+		names = append(names, name)
+	}
+
+	return names
+}
+
+// IsPluginLoaded returns true if the plugin is currently loaded
+func (m *Manager) IsPluginLoaded(name string) bool {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	_, exists := m.plugins[name]
+	return exists
+}
+
+// IsPluginDiscovered returns true if the plugin has been discovered (loaded or not)
+func (m *Manager) IsPluginDiscovered(name string) bool {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	if _, exists := m.plugins[name]; exists {
+		return true
+	}
+	if _, exists := m.discovered[name]; exists {
+		return true
+	}
+	return false
+}
+
 // Cleanup shuts down all plugins
+// Cleanup gracefully shuts down all plugins
 func (m *Manager) Cleanup() {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	for name, plugin := range m.plugins {
+	// Use lifecycle manager for graceful shutdown
+	ctx := context.Background()
+	if err := m.lifecycleManager.StopAll(ctx); err != nil {
 		if m.config.EnableDebug {
-			log.Printf("Shutting down plugin: %s", name)
+			log.Printf("Error during graceful shutdown: %v", err)
 		}
-		plugin.Client.Kill()
+	}
+
+	// Unregister all plugins from lifecycle manager
+	for name := range m.plugins {
+		_ = m.lifecycleManager.Unregister(name)
 	}
 
 	m.plugins = make(map[string]*LoadedPlugin)
@@ -514,67 +673,96 @@ func NewDiscoverer(dirs []string) *Discoverer {
 	return &Discoverer{dirs: dirs}
 }
 
+// scanResult holds results from scanning a single directory
+type scanResult struct {
+	plugins []*PluginInfo
+	err     error
+}
+
 // Scan searches for plugins in configured directories
 func (d *Discoverer) Scan() ([]*PluginInfo, error) {
-	var plugins []*PluginInfo
-	seen := make(map[string]bool) // Track seen plugins to avoid duplicates
+	// Parallel scan: launch goroutines for each directory
+	results := make(chan scanResult, len(d.dirs))
 
 	for _, dir := range d.dirs {
-		// Expand home directory
-		if strings.HasPrefix(dir, "~") {
-			home, _ := os.UserHomeDir()
-			dir = filepath.Join(home, dir[2:])
+		go func(dir string) {
+			plugins, err := d.scanDirectory(dir)
+			results <- scanResult{plugins: plugins, err: err}
+		}(dir)
+	}
+
+	// Collect results
+	var allPlugins []*PluginInfo
+	seen := make(map[string]bool)
+
+	for i := 0; i < len(d.dirs); i++ {
+		result := <-results
+		if result.err != nil {
+			continue // Skip directories with errors
 		}
 
-		// Handle relative paths (like ./.glide/plugins)
-		if !filepath.IsAbs(dir) {
-			cwd, err := os.Getwd()
-			if err == nil {
-				dir = filepath.Join(cwd, dir)
+		for _, p := range result.plugins {
+			// Skip if we've already seen this plugin (first found takes precedence)
+			if seen[p.Name] {
+				continue
 			}
+			seen[p.Name] = true
+			allPlugins = append(allPlugins, p)
 		}
+	}
 
-		// Check if directory exists
-		if _, err := os.Stat(dir); os.IsNotExist(err) {
+	return allPlugins, nil
+}
+
+// scanDirectory scans a single directory for plugins
+func (d *Discoverer) scanDirectory(dir string) ([]*PluginInfo, error) {
+	// Expand home directory
+	if strings.HasPrefix(dir, "~") {
+		home, _ := os.UserHomeDir()
+		dir = filepath.Join(home, dir[2:])
+	}
+
+	// Handle relative paths (like ./.glide/plugins)
+	if !filepath.IsAbs(dir) {
+		cwd, err := os.Getwd()
+		if err == nil {
+			dir = filepath.Join(cwd, dir)
+		}
+	}
+
+	// Check if directory exists (fast path for non-existent)
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		return nil, nil
+	}
+
+	// Find all files in the plugin directory
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return nil, err
+	}
+
+	var plugins []*PluginInfo
+	for _, entry := range entries {
+		if entry.IsDir() {
 			continue
 		}
 
-		// Find all files in the plugin directory
-		entries, err := os.ReadDir(dir)
+		// Use DirEntry.Type() to avoid extra stat call when possible
+		fileInfo, err := entry.Info()
 		if err != nil {
 			continue
 		}
 
-		for _, entry := range entries {
-			if entry.IsDir() {
-				continue
-			}
-
-			path := filepath.Join(dir, entry.Name())
-			info, err := os.Stat(path)
-			if err != nil {
-				continue
-			}
-
-			// Check if executable
-			if info.Mode()&0111 == 0 {
-				continue
-			}
-
-			// Use the filename as the plugin name
-			name := entry.Name()
-
-			// Skip if we've already seen this plugin (project-local takes precedence)
-			if seen[name] {
-				continue
-			}
-			seen[name] = true
-
-			plugins = append(plugins, &PluginInfo{
-				Name: name,
-				Path: path,
-			})
+		// Check if executable
+		if fileInfo.Mode()&0111 == 0 {
+			continue
 		}
+
+		path := filepath.Join(dir, entry.Name())
+		plugins = append(plugins, &PluginInfo{
+			Name: entry.Name(),
+			Path: path,
+		})
 	}
 
 	return plugins, nil
@@ -625,4 +813,56 @@ func contains(slice []string, value string) bool {
 		}
 	}
 	return false
+}
+
+// convertToPluginMetadata converts v1.PluginMetadata to PluginMetadata
+// for dependency resolution
+func convertToPluginMetadata(v1Meta *v1.PluginMetadata) PluginMetadata {
+	deps := make([]PluginDependency, len(v1Meta.Dependencies))
+	for i, d := range v1Meta.Dependencies {
+		deps[i] = PluginDependency{
+			Name:     d.Name,
+			Version:  d.Version,
+			Optional: d.Optional,
+		}
+	}
+
+	return PluginMetadata{
+		Name:         v1Meta.Name,
+		Version:      v1Meta.Version,
+		Author:       v1Meta.Author,
+		Description:  v1Meta.Description,
+		Dependencies: deps,
+	}
+}
+
+// ResolveLoadOrder resolves the correct plugin load order based on dependencies.
+//
+// This method can be used before calling DiscoverPlugins() to determine the
+// optimal load order when multiple plugins have dependencies on each other.
+//
+// Returns:
+//   - A slice of plugin names in dependency order (dependencies before dependents)
+//   - An error if there are circular dependencies, missing required dependencies,
+//     or version mismatches
+//
+// Example:
+//
+//	loadOrder, err := manager.ResolveLoadOrder()
+//	if err != nil {
+//	    return fmt.Errorf("dependency resolution failed: %w", err)
+//	}
+//	// Load plugins in the determined order
+func (m *Manager) ResolveLoadOrder() ([]string, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	// Build plugin metadata map
+	pluginMeta := make(map[string]PluginMetadata)
+	for name, loaded := range m.plugins {
+		pluginMeta[name] = convertToPluginMetadata(loaded.Metadata)
+	}
+
+	// Resolve dependencies
+	return m.resolver.Resolve(pluginMeta)
 }

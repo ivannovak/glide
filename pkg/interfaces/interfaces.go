@@ -66,7 +66,14 @@ type ContainerInfo struct {
 	Ports   []string
 }
 
-// ConfigLoader defines the interface for loading configuration
+// ConfigLoader defines the interface for loading configuration.
+//
+// Deprecated: This interface has a single implementation (internal/config.Loader)
+// and is never mocked in tests. Consider using the concrete type directly or
+// converting to a functional options pattern.
+//
+// This interface will be re-evaluated in v3.0.0. It may be removed if it
+// continues to provide no abstraction value.
 type ConfigLoader interface {
 	Load(path string) error
 	LoadDefault() error
@@ -80,7 +87,18 @@ type ContextDetector interface {
 	DetectWithRoot(workingDir, projectRoot string) (ProjectContext, error)
 }
 
-// ProjectContext defines the interface for project context
+// ProjectContext defines the interface for project context.
+//
+// Deprecated: This interface has a single implementation and is never mocked.
+// It will be converted to a struct (*context.ProjectContext) in v3.0.0.
+//
+// This interface exists for historical reasons but adds no abstraction value.
+// The single implementation is in internal/context/context.go and contains
+// all the actual fields. This interface just wraps them with getters.
+//
+// Migration: Code should continue using this for now, but new code should
+// prepare for direct struct usage. In v3.0.0, all GetX() methods will be
+// removed in favor of direct field access.
 type ProjectContext interface {
 	GetWorkingDir() string
 	GetProjectRoot() string
@@ -92,19 +110,86 @@ type ProjectContext interface {
 	GetWorktreeName() string
 }
 
-// OutputManager defines the interface for output management
-type OutputManager interface {
+// StructuredOutput handles semantic output with different severity levels.
+//
+// This interface is for outputting structured messages with semantic meaning
+// (info, success, error, warning). Each method indicates the message type.
+//
+// Example:
+//
+//	func processFile(out StructuredOutput, filename string) error {
+//	    out.Info("Processing %s", filename)
+//	    if err := process(filename); err != nil {
+//	        out.Error("Failed: %v", err)
+//	        return err
+//	    }
+//	    out.Success("Completed successfully")
+//	    return nil
+//	}
+type StructuredOutput interface {
+	// Display outputs structured data (tables, JSON, YAML, etc.)
 	Display(data interface{}) error
+
+	// Info outputs an informational message
 	Info(format string, args ...interface{}) error
+
+	// Success outputs a success message
 	Success(format string, args ...interface{}) error
+
+	// Error outputs an error message
 	Error(format string, args ...interface{}) error
+
+	// Warning outputs a warning message
 	Warning(format string, args ...interface{}) error
+}
+
+// RawOutput handles unformatted text output.
+//
+// This interface is for outputting raw text without semantic meaning.
+// Use this when you need direct control over output formatting.
+//
+// Example:
+//
+//	func printBanner(out RawOutput) error {
+//	    return out.Printf("==== My Application ====\n")
+//	}
+type RawOutput interface {
+	// Raw outputs raw text without formatting
 	Raw(text string) error
+
+	// Printf formats and outputs text
 	Printf(format string, args ...interface{}) error
+
+	// Println outputs text with a newline
 	Println(args ...interface{}) error
 }
 
-// Formatter defines the interface for output formatting
+// OutputManager is the composite interface for all output operations.
+//
+// This interface combines structured and raw output for convenience.
+// Most code should depend on either StructuredOutput or RawOutput
+// specifically, rather than the full OutputManager, to follow the
+// Interface Segregation Principle.
+//
+// Thread Safety: Implementations must be safe for concurrent access.
+type OutputManager interface {
+	StructuredOutput
+	RawOutput
+}
+
+// Formatter defines the interface for output formatting.
+//
+// Deprecated: This is a duplicate of pkg/output.Formatter. Use that instead.
+// This interface will be removed in v3.0.0. The Formatter interface belongs
+// in the output package where it is actually implemented.
+//
+// Migration: Change imports from:
+//
+//	"github.com/ivannovak/glide/v2/pkg/interfaces"
+//
+// To:
+//
+//	"github.com/ivannovak/glide/v2/pkg/output"
 type Formatter interface {
 	Display(data interface{}) error
 	Info(format string, args ...interface{}) error
@@ -115,7 +200,21 @@ type Formatter interface {
 	SetWriter(w io.Writer)
 }
 
-// ProgressIndicator defines the interface for progress indication
+// ProgressIndicator defines the interface for progress indication.
+//
+// Deprecated: This is similar to pkg/progress.Indicator. Use that instead.
+// This interface will be removed in v3.0.0. The progress types belong
+// in the progress package where they are actually implemented.
+//
+// Migration: Change imports from:
+//
+//	"github.com/ivannovak/glide/v2/pkg/interfaces"
+//
+// To:
+//
+//	"github.com/ivannovak/glide/v2/pkg/progress"
+//
+// Note: pkg/progress.Indicator has slightly different method signatures.
 type ProgressIndicator interface {
 	Start()
 	Update(message string)

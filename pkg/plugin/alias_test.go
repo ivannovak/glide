@@ -30,7 +30,7 @@ func (p *MockAliasPlugin) Register(root *cobra.Command) error {
 	return nil
 }
 
-func (p *MockAliasPlugin) Configure(config map[string]interface{}) error {
+func (p *MockAliasPlugin) Configure() error {
 	return nil
 }
 
@@ -227,7 +227,7 @@ func TestRegistry_LoadAllWithAliases(t *testing.T) {
 	root := &cobra.Command{Use: "glid"}
 
 	// Load all plugins
-	err = registry.LoadAll(root)
+	_, err = registry.LoadAll(root)
 	assert.NoError(t, err)
 
 	// Verify command was added

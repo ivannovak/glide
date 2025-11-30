@@ -425,3 +425,63 @@ func TestCommonErrorMatches(t *testing.T) {
 		})
 	}
 }
+
+func TestNewUserError(t *testing.T) {
+	err := NewUserError(
+		"plugin name is required",
+		"Add a 'name' field to your plugin configuration",
+	)
+
+	assert.Equal(t, TypeInvalid, err.Type)
+	assert.Equal(t, "plugin name is required", err.Message)
+	assert.Equal(t, 64, err.Code) // EX_USAGE
+	assert.Contains(t, err.Suggestions, "Add a 'name' field to your plugin configuration")
+}
+
+func TestNewSystemError(t *testing.T) {
+	underlying := fmt.Errorf("database connection failed")
+	err := NewSystemError("failed to initialize database", underlying)
+
+	assert.Equal(t, TypeRuntime, err.Type)
+	assert.Equal(t, "failed to initialize database", err.Message)
+	assert.Equal(t, 71, err.Code) // EX_OSERR
+	assert.Equal(t, underlying, err.Err)
+}
+
+func TestNewPluginError(t *testing.T) {
+	underlying := fmt.Errorf("exit status 1")
+	err := NewPluginError("go", "command execution failed", underlying)
+
+	assert.Equal(t, TypeCommand, err.Type)
+	assert.Contains(t, err.Message, "plugin 'go'")
+	assert.Contains(t, err.Message, "command execution failed")
+	assert.Equal(t, 1, err.Code)
+	assert.Equal(t, underlying, err.Err)
+
+	pluginName, ok := err.GetContext("plugin")
+	assert.True(t, ok)
+	assert.Equal(t, "go", pluginName)
+}
+
+func TestWithSuggestion_GlideError(t *testing.T) {
+	originalErr := NewNetworkError("connection refused")
+	err := WithSuggestion(originalErr, "Check that the server is running")
+
+	assert.Equal(t, TypeNetwork, err.Type)
+	assert.Contains(t, err.Suggestions, "Check that the server is running")
+}
+
+func TestWithSuggestion_StandardError(t *testing.T) {
+	originalErr := fmt.Errorf("failed to connect")
+	err := WithSuggestion(originalErr, "Check your network connection")
+
+	assert.Equal(t, TypeUnknown, err.Type)
+	assert.Equal(t, "failed to connect", err.Message)
+	assert.Contains(t, err.Suggestions, "Check your network connection")
+	assert.Equal(t, originalErr, err.Err)
+}
+
+func TestWithSuggestion_NilError(t *testing.T) {
+	err := WithSuggestion(nil, "some suggestion")
+	assert.Nil(t, err)
+}

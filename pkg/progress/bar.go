@@ -150,6 +150,7 @@ func (b *Bar) Finish() {
 	b.active = false
 
 	if b.options.IsTTY && !b.options.Quiet {
+		// Safe to ignore: Newline after progress bar completion (cosmetic only)
 		_, _ = fmt.Fprintln(b.options.Writer)
 	}
 }
@@ -160,11 +161,13 @@ func (b *Bar) Success(message string) {
 	if !b.options.Quiet {
 		duration := b.getElapsedTime()
 		if b.options.ShowElapsedTime && duration != "" {
+			// Safe to ignore: Success message formatting (informational only)
 			_, _ = fmt.Fprintf(b.options.Writer, "%s %s %s\n",
 				color.GreenString("✓"),
 				message,
 				color.HiBlackString(duration))
 		} else {
+			// Safe to ignore: Success message formatting (informational only)
 			_, _ = fmt.Fprintf(b.options.Writer, "%s %s\n",
 				color.GreenString("✓"),
 				message)
@@ -176,6 +179,7 @@ func (b *Bar) Success(message string) {
 func (b *Bar) Error(message string) {
 	b.Stop()
 	if !b.options.Quiet {
+		// Safe to ignore: Error message formatting (informational only)
 		_, _ = fmt.Fprintf(b.options.Writer, "%s %s\n",
 			color.RedString("✗"),
 			message)
@@ -186,6 +190,7 @@ func (b *Bar) Error(message string) {
 func (b *Bar) Warning(message string) {
 	b.Stop()
 	if !b.options.Quiet {
+		// Safe to ignore: Warning message formatting (informational only)
 		_, _ = fmt.Fprintf(b.options.Writer, "%s %s\n",
 			color.YellowString("⚠"),
 			message)
@@ -204,6 +209,7 @@ func (b *Bar) Stop() {
 	b.active = false
 	if b.options.IsTTY && !b.options.Quiet {
 		b.clearLine()
+		// Safe to ignore: Newline after stopping progress bar (cosmetic only)
 		_, _ = fmt.Fprintln(b.options.Writer)
 	}
 }
@@ -261,6 +267,7 @@ func (b *Bar) render() {
 	line := "\r" + strings.Join(components, " ")
 	b.lastLine = line
 
+	// Safe to ignore: Progress bar rendering (cosmetic display, doesn't affect operation)
 	_, _ = fmt.Fprint(b.options.Writer, line)
 }
 

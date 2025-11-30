@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+
+	"github.com/ivannovak/glide/v2/pkg/logging"
 )
 
 // Detector is a refactored context detector using composition
@@ -14,6 +16,8 @@ type Detector struct {
 	locationIdentifier LocationIdentifier
 	composeResolver    ComposeFileResolver
 	extensionRegistry  ExtensionRegistry
+	skipDockerCheck    bool // Skip expensive Docker daemon check
+	lazyDockerCheck    bool // Check Docker status lazily on first use
 }
 
 // ExtensionRegistry interface for plugin-provided context extensions
@@ -34,6 +38,25 @@ func NewDetector() (*Detector, error) {
 		modeDetector:       NewStandardDevelopmentModeDetector(),
 		locationIdentifier: NewStandardLocationIdentifier(),
 		composeResolver:    NewStandardComposeFileResolver(),
+		lazyDockerCheck:    true, // Default to lazy Docker checks for startup performance
+	}, nil
+}
+
+// NewDetectorFast creates a detector optimized for fast startup
+// Skips expensive Docker daemon checks - use for startup and non-Docker commands
+func NewDetectorFast() (*Detector, error) {
+	wd, err := os.Getwd()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get working directory: %w", err)
+	}
+
+	return &Detector{
+		workingDir:         wd,
+		rootFinder:         NewStandardProjectRootFinder(),
+		modeDetector:       NewStandardDevelopmentModeDetector(),
+		locationIdentifier: NewStandardLocationIdentifier(),
+		composeResolver:    NewStandardComposeFileResolver(),
+		skipDockerCheck:    true,
 	}, nil
 }
 
@@ -85,6 +108,8 @@ func (d *Detector) SetExtensionRegistry(registry ExtensionRegistry) {
 
 // Detect analyzes the current environment and returns project context
 func (d *Detector) Detect() (*ProjectContext, error) {
+	logging.Debug("Detecting project context", "workingDir", d.workingDir)
+
 	ctx := &ProjectContext{
 		WorkingDir: d.workingDir,
 		Extensions: make(map[string]interface{}),
@@ -93,22 +118,27 @@ func (d *Detector) Detect() (*ProjectContext, error) {
 	// Find project root
 	projectRoot, err := d.rootFinder.FindRoot(d.workingDir)
 	if err != nil {
+		logging.Error("Failed to find project root", "workingDir", d.workingDir, "error", err)
 		ctx.Error = err
 		return ctx, err
 	}
 	ctx.ProjectRoot = projectRoot
+	logging.Debug("Found project root", "root", projectRoot)
 
 	// Detect development mode
 	ctx.DevelopmentMode = d.modeDetector.DetectMode(ctx.ProjectRoot)
+	logging.Debug("Detected development mode", "mode", ctx.DevelopmentMode)
 
 	// Identify current location
 	ctx.Location = d.locationIdentifier.IdentifyLocation(ctx, d.workingDir)
+	logging.Debug("Identified location", "location", ctx.Location)
 
 	// Detect plugin-provided context extensions
 	if d.extensionRegistry != nil {
 		extensions, err := d.extensionRegistry.DetectAll(ctx.ProjectRoot)
 		if err == nil && extensions != nil {
 			ctx.Extensions = extensions
+			logging.Debug("Detected context extensions", "count", len(extensions))
 		}
 	}
 
@@ -118,11 +148,20 @@ func (d *Detector) Detect() (*ProjectContext, error) {
 	// Resolve docker-compose files (legacy fallback)
 	if len(ctx.ComposeFiles) == 0 {
 		ctx.ComposeFiles = d.composeResolver.ResolveFiles(ctx)
+		if len(ctx.ComposeFiles) > 0 {
+			logging.Debug("Resolved compose files", "count", len(ctx.ComposeFiles))
+		}
 	}
 
 	// Check Docker daemon status (legacy fallback)
-	if !ctx.DockerRunning {
+	// Skip if explicitly disabled or using lazy check
+	if !ctx.DockerRunning && !d.skipDockerCheck && !d.lazyDockerCheck {
 		d.checkDockerStatus(ctx)
+		logging.Debug("Docker status checked", "running", ctx.DockerRunning)
+	} else if d.lazyDockerCheck {
+		// Mark for lazy checking - Docker status will be checked on first use
+		ctx.Extensions["_dockerCheckDeferred"] = true
+		logging.Debug("Docker status check deferred for lazy loading")
 	}
 
 	// Update extensions from compatibility fields
@@ -143,6 +182,22 @@ func (d *Detector) checkDockerStatus(ctx *ProjectContext) {
 		}
 	} else {
 		ctx.DockerRunning = false
+	}
+}
+
+// EnsureDockerStatus checks Docker status if not already checked
+// Use this method when Docker status is actually needed
+func (d *Detector) EnsureDockerStatus(ctx *ProjectContext) {
+	// Check if already checked
+	if ctx.DockerRunning {
+		return
+	}
+
+	// Check if was marked as deferred
+	if _, ok := ctx.Extensions["_dockerCheckDeferred"]; ok {
+		d.checkDockerStatus(ctx)
+		delete(ctx.Extensions, "_dockerCheckDeferred")
+		logging.Debug("Docker status lazy checked", "running", ctx.DockerRunning)
 	}
 }
 

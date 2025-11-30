@@ -1,5 +1,7 @@
 package plugintest
 
+//lint:file-ignore SA1019 plugin.Plugin is deprecated but still valid for use
+
 import (
 	"bytes"
 	"io"
@@ -40,8 +42,8 @@ func (h *TestHarness) RegisterPlugin(p plugin.Plugin) error {
 		return err
 	}
 
-	// Configure with test config
-	if err := p.Configure(h.Config); err != nil {
+	// Configure plugin (plugins use pkg/config for typed configs)
+	if err := p.Configure(); err != nil {
 		return err
 	}
 
@@ -49,10 +51,17 @@ func (h *TestHarness) RegisterPlugin(p plugin.Plugin) error {
 	return p.Register(h.RootCmd)
 }
 
-// WithConfig sets the configuration for the harness
+// WithConfig is a no-op maintained for backward compatibility.
+// Plugin configuration is now handled via the pkg/config type-safe system.
+//
+// To configure plugins in tests:
+//  1. Register plugin configs: config.Register("plugin-name", PluginConfig{})
+//  2. Update configs: config.Update("plugin-name", rawConfig)
+//  3. Plugins access via: config.Get[PluginConfig]("plugin-name")
+//
+// See pkg/config/MIGRATION.md for details.
 func (h *TestHarness) WithConfig(config map[string]interface{}) *TestHarness {
-	h.Config = config
-	h.Registry.SetConfig(config)
+	// No-op: config is now handled by pkg/config
 	return h
 }
 
@@ -120,7 +129,7 @@ func (h *TestHarness) AssertCommandNotExists(cmdPath ...string) {
 }
 
 // LoadAllPlugins loads all registered plugins
-func (h *TestHarness) LoadAllPlugins() error {
+func (h *TestHarness) LoadAllPlugins() (*plugin.PluginLoadResult, error) {
 	return h.Registry.LoadAll(h.RootCmd)
 }
 

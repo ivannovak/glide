@@ -183,12 +183,17 @@ func (u *Updater) replaceBinary(currentPath, newPath string) error {
 	// Attempt to replace the binary
 	if err := u.atomicReplace(currentPath, newPath); err != nil {
 		// Restore from backup on failure
-		_ = u.copyFile(backupPath, currentPath)
-		return fmt.Errorf("failed to replace binary: %w", err)
+		if restoreErr := u.copyFile(backupPath, currentPath); restoreErr != nil {
+			return fmt.Errorf("failed to replace binary and restore backup: replace error: %w, restore error: %v", err, restoreErr)
+		}
+		return fmt.Errorf("failed to replace binary (backup restored successfully): %w", err)
 	}
 
 	// Remove backup on success
-	_ = os.Remove(backupPath)
+	if err := os.Remove(backupPath); err != nil {
+		// Log but don't fail - cleanup error is non-critical
+		fmt.Fprintf(os.Stderr, "Warning: failed to remove backup file %s: %v\n", backupPath, err)
+	}
 
 	return nil
 }

@@ -1,14 +1,12 @@
 package app
 
 import (
-	"bytes"
 	"testing"
 
-	"github.com/ivannovak/glide/v2/internal/config"
 	"github.com/ivannovak/glide/v2/internal/context"
 	"github.com/ivannovak/glide/v2/pkg/output"
+	"github.com/ivannovak/glide/v2/tests/testutil"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestNewApplication(t *testing.T) {
@@ -22,13 +20,13 @@ func TestNewApplication(t *testing.T) {
 	})
 
 	t.Run("creates application with options", func(t *testing.T) {
-		buf := &bytes.Buffer{}
-		ctx := &context.ProjectContext{
-			ProjectRoot: "/test/project",
-		}
-		cfg := &config.Config{
-			DefaultProject: "test",
-		}
+		buf := testutil.NewTestWriter()
+		ctx := testutil.NewTestContext(
+			testutil.WithProjectRoot("/test/project"),
+		)
+		cfg := testutil.NewTestConfig(
+			testutil.WithDefaultProject("test"),
+		)
 
 		app := NewApplication(
 			WithWriter(buf),
@@ -37,11 +35,11 @@ func TestNewApplication(t *testing.T) {
 			WithOutputFormat(output.FormatJSON, true, true),
 		)
 
-		assert.NotNil(t, app)
+		testutil.AssertNotNil(t, app, "app should be created")
 		assert.Equal(t, buf, app.Writer)
 		assert.Equal(t, ctx, app.ProjectContext)
 		assert.Equal(t, cfg, app.Config)
-		assert.NotNil(t, app.OutputManager)
+		testutil.AssertNotNil(t, app.OutputManager, "output manager should be created")
 		assert.True(t, app.OutputManager.IsQuiet())
 	})
 }
@@ -64,33 +62,28 @@ func TestApplicationOptions(t *testing.T) {
 	})
 
 	t.Run("WithProjectContext", func(t *testing.T) {
-		ctx := &context.ProjectContext{
-			WorkingDir:      "/working",
-			ProjectRoot:     "/project",
-			DevelopmentMode: context.ModeMultiWorktree,
-		}
+		ctx := testutil.NewTestContext(
+			testutil.WithWorkingDir("/working"),
+			testutil.WithProjectRoot("/project"),
+			testutil.WithDevelopmentMode(context.ModeMultiWorktree),
+		)
 		app := NewApplication(WithProjectContext(ctx))
 
 		assert.Equal(t, ctx, app.ProjectContext)
 	})
 
 	t.Run("WithConfig", func(t *testing.T) {
-		cfg := &config.Config{
-			DefaultProject: "myproject",
-			Projects: map[string]config.ProjectConfig{
-				"myproject": {
-					Path: "/path/to/project",
-					Mode: "multi-worktree",
-				},
-			},
-		}
+		cfg := testutil.NewTestConfig(
+			testutil.WithDefaultProject("myproject"),
+			testutil.WithProject("myproject", "/path/to/project", "multi-worktree"),
+		)
 		app := NewApplication(WithConfig(cfg))
 
 		assert.Equal(t, cfg, app.Config)
 	})
 
 	t.Run("WithWriter updates OutputManager", func(t *testing.T) {
-		buf := &bytes.Buffer{}
+		buf := testutil.NewTestWriter()
 		app := NewApplication(
 			WithOutputFormat(output.FormatTable, false, false),
 			WithWriter(buf),
@@ -99,7 +92,7 @@ func TestApplicationOptions(t *testing.T) {
 		assert.Equal(t, buf, app.Writer)
 		// Verify the writer was propagated to OutputManager
 		app.OutputManager.Raw("test")
-		assert.Equal(t, "test", buf.String())
+		testutil.AssertEqual(t, "test", buf.String(), "output should match")
 	})
 }
 
@@ -133,23 +126,18 @@ func TestGetConfigLoader(t *testing.T) {
 
 func TestApplicationIntegration(t *testing.T) {
 	t.Run("full application setup", func(t *testing.T) {
-		// Create a complete application setup
-		buf := &bytes.Buffer{}
-		ctx := &context.ProjectContext{
-			ProjectRoot:     "/test/project",
-			WorkingDir:      "/test/project",
-			DevelopmentMode: context.ModeSingleRepo,
-			Location:        context.LocationProject,
-		}
-		cfg := &config.Config{
-			DefaultProject: "test",
-			Defaults: config.DefaultsConfig{
-				Test: config.TestDefaults{
-					Parallel: true,
-					Coverage: true,
-				},
-			},
-		}
+		// Create a complete application setup using testutil
+		buf := testutil.NewTestWriter()
+		ctx := testutil.NewTestContext(
+			testutil.WithProjectRoot("/test/project"),
+			testutil.WithWorkingDir("/test/project"),
+			testutil.WithDevelopmentMode(context.ModeSingleRepo),
+			testutil.WithLocation(context.LocationProject),
+		)
+		cfg := testutil.NewTestConfig(
+			testutil.WithDefaultProject("test"),
+			testutil.WithTestDefaults(true, true),
+		)
 
 		app := NewApplication(
 			WithProjectContext(ctx),
@@ -159,19 +147,19 @@ func TestApplicationIntegration(t *testing.T) {
 		)
 
 		// Verify all components are properly initialized
-		require.NotNil(t, app)
-		require.NotNil(t, app.OutputManager)
-		require.NotNil(t, app.ProjectContext)
-		require.NotNil(t, app.Config)
-		require.NotNil(t, app.ShellExecutor)
+		testutil.RequireNotNil(t, app, "app must be created")
+		testutil.RequireNotNil(t, app.OutputManager, "output manager must exist")
+		testutil.RequireNotNil(t, app.ProjectContext, "project context must exist")
+		testutil.RequireNotNil(t, app.Config, "config must exist")
+		testutil.RequireNotNil(t, app.ShellExecutor, "shell executor must exist")
 
 		// Test output functionality
 		err := app.OutputManager.Info("Test message")
-		assert.NoError(t, err)
-		assert.Contains(t, buf.String(), "Test message")
+		testutil.AssertNoError(t, err, "output should succeed")
+		testutil.AssertContains(t, buf.String(), "Test message", "should contain message")
 
 		// Test accessor methods
-		assert.NotNil(t, app.GetShellExecutor())
-		assert.NotNil(t, app.GetConfigLoader())
+		testutil.AssertNotNil(t, app.GetShellExecutor(), "should have executor")
+		testutil.AssertNotNil(t, app.GetConfigLoader(), "should have config loader")
 	})
 }

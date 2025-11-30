@@ -210,3 +210,76 @@ func Is(err error, errType ErrorType) bool {
 
 	return glideErr.Type == errType
 }
+
+// NewUserError creates an error caused by user input or configuration.
+// This is a convenience wrapper for common user-facing errors.
+//
+// Example:
+//
+//	return errors.NewUserError(
+//	    "plugin name is required",
+//	    "Add a 'name' field to your plugin configuration",
+//	)
+func NewUserError(message, suggestion string) *GlideError {
+	return New(TypeInvalid, message,
+		WithSuggestions(suggestion),
+		WithExitCode(64), // EX_USAGE from sysexits.h
+	)
+}
+
+// NewSystemError creates an error for internal/infrastructure failures
+// beyond user control.
+//
+// Example:
+//
+//	if err := initializeDatabase(); err != nil {
+//	    return errors.NewSystemError("failed to initialize database", err)
+//	}
+func NewSystemError(message string, cause error) *GlideError {
+	return New(TypeRuntime, message,
+		WithError(cause),
+		WithExitCode(71), // EX_OSERR from sysexits.h
+	)
+}
+
+// NewPluginError creates an error for plugin-specific operations.
+//
+// Example:
+//
+//	if err := plugin.Execute(cmd); err != nil {
+//	    return errors.NewPluginError(plugin.Name(), "command execution failed", err)
+//	}
+func NewPluginError(pluginName, message string, cause error) *GlideError {
+	opts := []ErrorOption{
+		WithContext("plugin", pluginName),
+		WithExitCode(1),
+	}
+	if cause != nil {
+		opts = append(opts, WithError(cause))
+	}
+	return New(TypeCommand, fmt.Sprintf("plugin '%s': %s", pluginName, message), opts...)
+}
+
+// WithSuggestion is a convenience function to add a suggestion to any error.
+//
+// Example:
+//
+//	if err := connectToServer(addr); err != nil {
+//	    return errors.WithSuggestion(
+//	        fmt.Errorf("failed to connect to %s: %w", addr, err),
+//	        "Check that the server is running and the address is correct",
+//	    )
+//	}
+func WithSuggestion(err error, suggestion string) *GlideError {
+	if err == nil {
+		return nil
+	}
+
+	// If it's already a GlideError, add suggestion
+	if glideErr, ok := err.(*GlideError); ok {
+		return glideErr.AddSuggestion(suggestion)
+	}
+
+	// Otherwise wrap it
+	return Wrap(err, err.Error(), WithSuggestions(suggestion))
+}

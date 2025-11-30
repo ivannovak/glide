@@ -80,9 +80,10 @@ func (sv *SecurityValidator) validateFileSystem(pluginPath string) error {
 		return fmt.Errorf("plugin file is writable by group or others (security risk)")
 	}
 
-	// Plugin should be owned by current user or root
-	// This is Unix-specific and would need adaptation for Windows
-	// TODO: Add proper ownership checks
+	// Plugin should be owned by current user or root (Unix-specific)
+	if err := sv.validateOwnership(info); err != nil {
+		return err
+	}
 
 	// Plugin should not be in world-writable directories
 	dir := filepath.Dir(pluginPath)
@@ -97,6 +98,8 @@ func (sv *SecurityValidator) validateFileSystem(pluginPath string) error {
 
 	return nil
 }
+
+// validateOwnership checks file ownership (platform-specific implementation in security_*.go)
 
 // validateChecksum verifies plugin integrity via checksum
 func (sv *SecurityValidator) validateChecksum(pluginPath string, manifest *PluginManifest) error {

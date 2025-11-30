@@ -33,6 +33,11 @@ Each ADR follows this format:
 | [ADR-010](ADR-010-semantic-release-automation.md) | Semantic Release Automation | Accepted | 2025-09-10 |
 | [ADR-011](ADR-011-recursive-configuration-discovery.md) | Recursive Configuration Discovery | Accepted | 2025-09-15 |
 | [ADR-012](ADR-012-yaml-command-definition.md) | YAML Command Definition | Accepted | 2025-09-15 |
+| [ADR-013](ADR-013-dependency-injection.md) | Dependency Injection Architecture | Accepted | 2025-11-26 |
+| [ADR-014](ADR-014-performance-budgets.md) | Performance Budgets | Accepted | 2025-11-29 |
+| [ADR-015](ADR-015-observability.md) | Observability Infrastructure | Accepted | 2025-11-29 |
+| [ADR-016](ADR-016-type-safe-configuration.md) | Type-Safe Configuration | Accepted | 2025-11-28 |
+| [ADR-017](ADR-017-plugin-lifecycle.md) | Plugin Lifecycle Management | Accepted | 2025-11-28 |
 
 ## Creating New ADRs
 

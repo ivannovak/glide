@@ -1,10 +1,12 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
 	"github.com/ivannovak/glide/v2/pkg/branding"
+	"github.com/ivannovak/glide/v2/pkg/validation"
 	"gopkg.in/yaml.v3"
 )
 
@@ -62,13 +64,29 @@ func LoadAndMergeConfigs(configPaths []string) (*Config, error) {
 	merged := &Config{
 		Commands: make(CommandMap),
 		Projects: make(map[string]ProjectConfig),
-		Plugins:  make(map[string]interface{}),
+	}
+
+	// Get current working directory for path validation
+	cwd, err := os.Getwd()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get working directory: %w", err)
 	}
 
 	// Load configs in reverse order (lowest priority first)
 	// so that higher priority configs override
 	for i := len(configPaths) - 1; i >= 0; i-- {
-		data, err := os.ReadFile(configPaths[i])
+		// Validate config path to prevent directory traversal
+		validatedPath, err := validation.ValidatePath(configPaths[i], validation.PathValidationOptions{
+			BaseDir:        cwd,
+			AllowAbsolute:  true, // Config paths can be absolute
+			FollowSymlinks: true, // Follow symlinks but validate they stay within bounds
+			RequireExists:  true, // Config file must exist
+		})
+		if err != nil {
+			continue // Skip invalid paths
+		}
+
+		data, err := os.ReadFile(validatedPath)
 		if err != nil {
 			continue // Skip configs that can't be read
 		}
@@ -92,12 +110,9 @@ func LoadAndMergeConfigs(configPaths []string) (*Config, error) {
 			}
 		}
 
-		// Merge plugins
-		if cfg.Plugins != nil {
-			for name, plugin := range cfg.Plugins {
-				merged.Plugins[name] = plugin
-			}
-		}
+		// NOTE: Plugin configs are now handled by pkg/config type-safe registry.
+		// The config loader extracts plugin configs from raw YAML and syncs them
+		// to the typed registry automatically.
 
 		// Take the first non-empty default project
 		if merged.DefaultProject == "" && cfg.DefaultProject != "" {

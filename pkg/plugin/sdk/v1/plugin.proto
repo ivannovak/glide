@@ -8,22 +8,22 @@ option go_package = "github.com/ivannovak/glide/v2/pkg/plugin/sdk/v1";
 service GlidePlugin {
   // Get plugin metadata
   rpc GetMetadata(Empty) returns (PluginMetadata);
-  
+
   // Configure the plugin
   rpc Configure(ConfigureRequest) returns (ConfigureResponse);
-  
+
   // List available commands
   rpc ListCommands(Empty) returns (CommandList);
-  
+
   // Execute a non-interactive command
   rpc ExecuteCommand(ExecuteRequest) returns (ExecuteResponse);
-  
+
   // Start an interactive session
   rpc StartInteractive(stream StreamMessage) returns (stream StreamMessage);
-  
+
   // Get required capabilities
   rpc GetCapabilities(Empty) returns (Capabilities);
-  
+
   // Get custom categories defined by this plugin
   rpc GetCustomCategories(Empty) returns (CategoryList);
 }
@@ -44,6 +44,13 @@ message PluginMetadata {
   map<string, string> extra = 10;
   repeated string aliases = 11;  // Plugin name aliases (e.g., "db" for "database")
   bool namespaced = 12;  // If true, commands are namespaced under plugin name (default: true)
+  repeated PluginDependency dependencies = 13;  // Plugin dependencies for load order resolution
+}
+
+message PluginDependency {
+  string name = 1;      // Plugin name (e.g., "docker")
+  string version = 2;   // Semver constraint (e.g., "^1.0.0")
+  bool optional = 3;    // If true, dependency is optional (loading continues if missing/incompatible)
 }
 
 message CommandInfo {
@@ -125,7 +132,7 @@ message StreamMessage {
     PING = 7;
     PONG = 8;
   }
-  
+
   Type type = 1;
   bytes data = 2;
   string signal = 3;

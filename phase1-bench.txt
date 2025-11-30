@@ -1,0 +1,237 @@
+?   	github.com/ivannovak/glide/v2/cmd/glide	[no test files]
+› echo "Hello from Glide!"
+› sleep 1
+✓ Test completed
+✗ Cannot self-update development builds
+ℹ Please use the install script or download a release binary
+✗ Cannot self-update development builds
+ℹ Please use the install script or download a release binary
+ℹ glide version v1.0.0
+
+Build Information:
+  Git Commit:    abc123
+  Build Time:    2025-01-01T00:00:00Z
+  Go Version:    go1.24.6
+  OS:            darwin
+  Architecture:  arm64
+  Compiler:      gc
+ℹ glide version dev (development build)
+
+Build Information:
+  Git Commit:    unknown
+  Build Time:    unknown
+  Go Version:    go1.24.6
+  OS:            darwin
+  Architecture:  arm64
+  Compiler:      gc
+
+ℹ Checking for updates...
+
+You are running the latest version (dev)PASS
+ok  	github.com/ivannovak/glide/v2/internal/cli	3.634s
+time=2025-11-27T12:11:51.112-06:00 level=INFO msg="Configuration loaded successfully" path=/private/var/folders/pq/43bb80gj31x7009tmpvfjcy40000gn/T/TestLoader_Load3066794510/001/.glide.yml
+time=2025-11-27T12:11:51.113-06:00 level=ERROR msg="Failed to parse config file" path=/private/var/folders/pq/43bb80gj31x7009tmpvfjcy40000gn/T/TestLoader_LoadInvalidYAML3575372962/001/.glide.yml error="yaml: line 2: did not find expected ',' or ']'"
+time=2025-11-27T12:11:51.114-06:00 level=INFO msg="Configuration loaded successfully" path=/private/var/folders/pq/43bb80gj31x7009tmpvfjcy40000gn/T/TestLoader_Save1527175236/001/.glide.yml
+PASS
+ok  	github.com/ivannovak/glide/v2/internal/config	0.220s
+goos: darwin
+goarch: arm64
+pkg: github.com/ivannovak/glide/v2/internal/context
+cpu: Apple M3 Max
+BenchmarkNewDetector-16                             	  817642	      1492 ns/op	     576 B/op	       6 allocs/op
+BenchmarkDetector_Detect-16                         	      18	  73448289 ns/op	   25808 B/op	     159 allocs/op
+BenchmarkProjectRootFinder_FindRoot-16              	  191430	      6310 ns/op	    3152 B/op	      35 allocs/op
+BenchmarkDevelopmentModeDetector_DetectMode-16      	      40	  30440791 ns/op	     928 B/op	      12 allocs/op
+BenchmarkLocationIdentifier_IdentifyLocation-16     	12423141	        99.68 ns/op	       0 B/op	       0 allocs/op
+BenchmarkComposeFileResolver_ResolveFiles-16        	  316490	      3322 ns/op	    1024 B/op	       8 allocs/op
+BenchmarkProjectContext_Creation-16                 	1000000000	         0.2774 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProjectContext_IsValid-16                  	1000000000	         0.2746 ns/op	       0 B/op	       0 allocs/op
+BenchmarkProjectContext_GetComposeCommand-16        	20639493	        58.04 ns/op	     192 B/op	       2 allocs/op
+BenchmarkProjectContext_CanUseProjectCommands-16    	1000000000	         0.2672 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDetector_DetectWithCaching-16              	      18	  75579773 ns/op	   25810 B/op	     159 allocs/op
+BenchmarkContainerStatus_Creation-16                	1000000000	         0.2692 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDevelopmentMode_String-16                  	1000000000	         0.2800 ns/op	       0 B/op	       0 allocs/op
+BenchmarkLocationType_String-16                     	1000000000	         0.2750 ns/op	       0 B/op	       0 allocs/op
+PASS
+ok  	github.com/ivannovak/glide/v2/internal/context	15.840s
+PASS
+ok  	github.com/ivannovak/glide/v2/internal/detection	0.332s
+?   	github.com/ivannovak/glide/v2/internal/docker	[no test files]
+?   	github.com/ivannovak/glide/v2/internal/mocks	[no test files]
+?   	github.com/ivannovak/glide/v2/internal/plugins/builtin/golang	[no test files]
+?   	github.com/ivannovak/glide/v2/internal/plugins/builtin/node	[no test files]
+PASS
+ok  	github.com/ivannovak/glide/v2/internal/plugins/builtin/php	0.234s
+
+
+
+
+
+
+
+
+
+
+
+
+
+goos: darwin
+goarch: arm64
+pkg: github.com/ivannovak/glide/v2/internal/shell
+cpu: Apple M3 Max
+BenchmarkCommand_Creation-16                	1000000000	         0.2722 ns/op	       0 B/op	       0 allocs/op
+BenchmarkCommand_String-16                  	 5566243	       222.0 ns/op	     208 B/op	       9 allocs/op
+BenchmarkJoinArgs-16                        	 2650909	       475.2 ns/op	     376 B/op	       7 allocs/op
+BenchmarkBasicStrategy_Execute-16           	     699	   1836214 ns/op	   87851 B/op	     139 allocs/op
+BenchmarkTimeoutStrategy_Execute-16         	     758	   1734806 ns/op	   88361 B/op	     146 allocs/op
+BenchmarkStreamingStrategy_Execute-16       	     738	   1925459 ns/op	   22339 B/op	     136 allocs/op
+BenchmarkPipeStrategy_Execute-16            	     676	   1791972 ns/op	   88358 B/op	     148 allocs/op
+BenchmarkStrategySelector_Select-16         	100000000	        10.71 ns/op	      14 B/op	       0 allocs/op
+BenchmarkExecutor_Execute-16                	     736	   2099969 ns/op	   24232 B/op	     139 allocs/op
+BenchmarkExecutor_ExecuteWithStrategy-16    	     573	   1990200 ns/op	   87817 B/op	     139 allocs/op
+BenchmarkCommand_WithMethods-16             	52448601	        22.59 ns/op	      32 B/op	       1 allocs/op
+BenchmarkResult_Creation-16                 	1000000000	         0.2670 ns/op	       0 B/op	       0 allocs/op
+BenchmarkCommandOptions_Creation-16         	1000000000	         0.2626 ns/op	       0 B/op	       0 allocs/op
+BenchmarkValidate_SafeCommand-16            	 1955888	       618.7 ns/op	    1953 B/op	       5 allocs/op
+BenchmarkValidate_DangerousCommand-16       	 2493034	       493.9 ns/op	    1441 B/op	       8 allocs/op
+BenchmarkSanitize_SimpleArgs-16             	 1743146	       684.5 ns/op	    2010 B/op	       8 allocs/op
+BenchmarkEscapeShellArg_Simple-16           	88412716	        13.16 ns/op	       0 B/op	       0 allocs/op
+BenchmarkEscapeShellArg_Complex-16          	14739901	        82.16 ns/op	      96 B/op	       2 allocs/op
+BenchmarkConcurrentExecution-16             	    1593	    843920 ns/op	   87804 B/op	     139 allocs/op
+PASS
+ok  	github.com/ivannovak/glide/v2/internal/shell	28.138s
+time=2025-11-27T12:12:35.972-06:00 level=INFO msg="Configuration loaded successfully" path=/Users/ivannovak/.glide.yml
+time=2025-11-27T12:12:36.041-06:00 level=INFO msg="Configuration loaded successfully" path=/Users/ivannovak/.glide.yml
+time=2025-11-27T12:12:36.109-06:00 level=INFO msg="Configuration loaded successfully" path=/Users/ivannovak/.glide.yml
+time=2025-11-27T12:12:36.188-06:00 level=INFO msg="Configuration loaded successfully" path=/Users/ivannovak/.glide.yml
+PASS
+ok  	github.com/ivannovak/glide/v2/pkg/app	0.523s
+PASS
+ok  	github.com/ivannovak/glide/v2/pkg/branding	0.194s
+time=2025-11-27T12:12:36.599-06:00 level=INFO msg="Starting glide application"
+time=2025-11-27T12:12:36.600-06:00 level=INFO msg="Shutting down glide application"
+time=2025-11-27T12:12:36.600-06:00 level=INFO msg="Starting glide application"
+time=2025-11-27T12:12:36.600-06:00 level=INFO msg="Shutting down glide application"
+time=2025-11-27T12:12:36.601-06:00 level=INFO msg="Starting glide application"
+time=2025-11-27T12:12:36.601-06:00 level=INFO msg="Shutting down glide application"
+time=2025-11-27T12:12:36.601-06:00 level=INFO msg="Configuration loaded successfully" path=/Users/ivannovak/.glide.yml
+time=2025-11-27T12:12:36.667-06:00 level=INFO msg="Starting glide application"
+time=2025-11-27T12:12:36.667-06:00 level=INFO msg="Shutting down glide application"
+time=2025-11-27T12:12:36.668-06:00 level=INFO msg="Starting glide application"
+time=2025-11-27T12:12:36.668-06:00 level=INFO msg="Shutting down glide application"
+time=2025-11-27T12:12:36.668-06:00 level=INFO msg="Starting glide application"
+time=2025-11-27T12:12:36.668-06:00 level=INFO msg="Shutting down glide application"
+PASS
+ok  	github.com/ivannovak/glide/v2/pkg/container	0.283s
+PASS
+ok  	github.com/ivannovak/glide/v2/pkg/errors	0.151s
+?   	github.com/ivannovak/glide/v2/pkg/interfaces	[no test files]
+PASS
+ok  	github.com/ivannovak/glide/v2/pkg/logging	0.150s
+goos: darwin
+goarch: arm64
+pkg: github.com/ivannovak/glide/v2/pkg/output
+cpu: Apple M3 Max
+BenchmarkManager_Creation-16            	 2071443	       562.3 ns/op	     600 B/op	       8 allocs/op
+BenchmarkManager_Display-16             	 1803722	       662.8 ns/op	     273 B/op	      20 allocs/op
+BenchmarkManager_Info-16                	 4477952	       265.5 ns/op	     195 B/op	       8 allocs/op
+BenchmarkManager_Success-16             	 4972761	       245.0 ns/op	     179 B/op	       8 allocs/op
+BenchmarkManager_Error-16               	 4331122	       275.1 ns/op	     211 B/op	       8 allocs/op
+BenchmarkManager_Warning-16             	 4867563	       244.1 ns/op	     179 B/op	       8 allocs/op
+BenchmarkRegistry_CreateFormatter-16    	33102952	        36.85 ns/op	      56 B/op	       2 allocs/op
+BenchmarkJSONFormatter_Display-16       	  646027	      1934 ns/op	    1523 B/op	      22 allocs/op
+BenchmarkYAMLFormatter_Display-16       	  157974	      7631 ns/op	   17892 B/op	      78 allocs/op
+BenchmarkTableFormatter_Display-16      	  651652	      1806 ns/op	    1352 B/op	      55 allocs/op
+BenchmarkPlainFormatter_Display-16      	 2656767	       456.7 ns/op	     216 B/op	      12 allocs/op
+BenchmarkManager_SetFormat-16           	19897183	        59.24 ns/op	      90 B/op	       2 allocs/op
+BenchmarkManager_Printf-16              	 4693935	       255.9 ns/op	      88 B/op	       3 allocs/op
+BenchmarkManager_Println-16             	 9204518	       134.7 ns/op	      72 B/op	       3 allocs/op
+BenchmarkColors_Enable-16               	1000000000	         0.6837 ns/op	       0 B/op	       0 allocs/op
+BenchmarkFormat_String-16               	1000000000	         0.2664 ns/op	       0 B/op	       0 allocs/op
+PASS
+ok  	github.com/ivannovak/glide/v2/pkg/output	21.423s
+time=2025-11-27T12:12:58.616-06:00 level=INFO msg="Plugin loaded successfully" name=example
+time=2025-11-27T12:12:58.616-06:00 level=INFO msg="All plugins loaded" loaded=1 failed=0
+Warning: plugin test-plugin command 'existing' conflicts with existing command, skipping
+time=2025-11-27T12:12:58.617-06:00 level=INFO msg="Plugin loaded successfully" name=test-plugin
+time=2025-11-27T12:12:58.617-06:00 level=INFO msg="All plugins loaded" loaded=1 failed=0
+time=2025-11-27T12:12:58.617-06:00 level=WARN msg="Plugin configuration failed" name=test-plugin error="config error"
+time=2025-11-27T12:12:58.617-06:00 level=INFO msg="All plugins loaded" loaded=0 failed=1
+time=2025-11-27T12:12:58.617-06:00 level=WARN msg="Plugin command registration failed" name=test-plugin error="register error"
+time=2025-11-27T12:12:58.617-06:00 level=INFO msg="All plugins loaded" loaded=0 failed=1
+time=2025-11-27T12:12:58.617-06:00 level=INFO msg="Plugin loaded successfully" name=testing
+time=2025-11-27T12:12:58.617-06:00 level=INFO msg="Plugin loaded successfully" name=global-test-plugin
+time=2025-11-27T12:12:58.617-06:00 level=INFO msg="All plugins loaded" loaded=2 failed=0
+PASS
+ok  	github.com/ivannovak/glide/v2/pkg/plugin	0.221s
+?   	github.com/ivannovak/glide/v2/pkg/plugin/plugintest	[no test files]
+PASS
+ok  	github.com/ivannovak/glide/v2/pkg/plugin/sdk	0.201s
+PASS
+ok  	github.com/ivannovak/glide/v2/pkg/plugin/sdk/v1	0.194s
+?   	github.com/ivannovak/glide/v2/pkg/progress	[no test files]
+PASS
+ok  	github.com/ivannovak/glide/v2/pkg/prompt	0.153s
+PASS
+ok  	github.com/ivannovak/glide/v2/pkg/registry	0.152s
+PASS
+ok  	github.com/ivannovak/glide/v2/pkg/update	0.282s
+goos: darwin
+goarch: arm64
+pkg: github.com/ivannovak/glide/v2/pkg/validation
+cpu: Apple M3 Max
+BenchmarkValidatePath-16                	   29838	     38097 ns/op	   14304 B/op	     164 allocs/op
+BenchmarkValidatePathWithSymlinks-16    	   22446	     61452 ns/op	   20896 B/op	     228 allocs/op
+PASS
+ok  	github.com/ivannovak/glide/v2/pkg/validation	3.621s
+PASS
+ok  	github.com/ivannovak/glide/v2/pkg/version	0.215s
+time=2025-11-27T12:13:03.789-06:00 level=ERROR msg="Failed to find project root" workingDir=/private/var/folders/pq/43bb80gj31x7009tmpvfjcy40000gn/T/TestErrorRecoverygraceful_degradation1239474484/001/no-config-project error="could not find project root"
+time=2025-11-27T12:13:04.193-06:00 level=ERROR msg="Failed to find project root" workingDir=/private/var/folders/pq/43bb80gj31x7009tmpvfjcy40000gn/T/TestErrorRecoveryerror_messages1441758429/001/suggestions-test error="could not find project root"
+PASS
+ok  	github.com/ivannovak/glide/v2/tests/e2e	7.014s
+time=2025-11-27T12:13:25.345-06:00 level=ERROR msg="Failed to find project root" workingDir=/private/var/folders/pq/43bb80gj31x7009tmpvfjcy40000gn/T/TestModeSpecificCommandserror_for_wrong_mode_location3904848748/001 error="could not find project root"
+ℹ 🚀 Welcome to Glide Setup!
+
+ℹ 📋 Checking prerequisites...
+✓   ✓ Git found
+✓   ✓ Docker found
+✓   ✓ Docker Compose found
+
+time=2025-11-27T12:13:27.002-06:00 level=ERROR msg="Failed to find project root" workingDir=/private/var/folders/pq/43bb80gj31x7009tmpvfjcy40000gn/T/TestSetupCommandsetup_in_non_project_directory2374962989/001 error="could not find project root"
+
+📂 Creating project structure in /var/folders/pq/43bb80gj31x7009tmpvfjcy40000gn/T/TestSetupCommandsetup_in_non_project_directory2374962989/001...
+✓   ✓ Using existing directory structure
+ℹ
+⚙️  Updating configuration...
+✓   ✓ Updated ~/.glide.yml
+
+ℹ Installing shell completions...
+ℹ Installing zsh completion...
+✓ Installed zsh completion: /Users/ivannovak/.zsh/completions/_glide
+ℹ Add to your ~/.zshrc: fpath=(~/.zsh/completions $fpath)
+
+✓ ✅ Setup complete!
+
+ℹ Your project is configured at:%!(EXTRA string=/var/folders/pq/43bb80gj31x7009tmpvfjcy40000gn/T/TestSetupCommandsetup_in_non_project_directory2374962989/001)
+Development mode: single-repo
+
+ℹ Next steps:
+ℹ 1. Navigate to your project:
+   cd /var/folders/pq/43bb80gj31x7009tmpvfjcy40000gn/T/TestSetupCommandsetup_in_non_project_directory2374962989/001
+
+ℹ 2. Start Docker:
+ℹ    glideup
+
+ℹ 3. Run tests:
+ℹ    glidetest
+
+ℹ 💡 Pro tip: Tab completion is now available! Restart your shell to enable it.
+ℹ Run 'glide--help' to see available commands
+time=2025-11-27T12:13:27.211-06:00 level=ERROR msg="Failed to parse config file" path=/private/var/folders/pq/43bb80gj31x7009tmpvfjcy40000gn/T/TestConfigurationCreationconfig_validation2984824836/001/.glide.yml error="yaml: unmarshal errors:\n  line 1: cannot unmarshal !!str `not val...` into config.Config"
+PASS
+ok  	github.com/ivannovak/glide/v2/tests/integration	18.729s
+PASS
+ok  	github.com/ivannovak/glide/v2/tests/testutil	0.200s
+PASS
+ok  	github.com/ivannovak/glide/v2/tests/testutil/mocks	0.160s

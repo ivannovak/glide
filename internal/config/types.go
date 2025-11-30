@@ -20,8 +20,12 @@ type Config struct {
 	Projects       map[string]ProjectConfig `yaml:"projects"`
 	DefaultProject string                   `yaml:"default_project"`
 	Defaults       DefaultsConfig           `yaml:"defaults"`
-	Plugins        map[string]interface{}   `yaml:"plugins"`
 	Commands       CommandMap               `yaml:"commands,omitempty"`
+
+	// NOTE: Plugin configuration has been migrated to the type-safe pkg/config system.
+	// Plugins register their typed configs using config.Register() in their init() functions,
+	// and the config loader automatically updates them from YAML via the raw plugin configs map.
+	// See pkg/config/MIGRATION.md for details.
 }
 
 // ProjectConfig represents a single project configuration

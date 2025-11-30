@@ -14,6 +14,11 @@ import (
 
 // TestWorktreeManagement tests git worktree operations
 func TestWorktreeManagement(t *testing.T) {
+	// Skip in short mode (pre-commit hooks)
+	if testing.Short() {
+		t.Skip("Skipping worktree tests in short mode")
+	}
+
 	// Check if git is available
 	if err := exec.Command("git", "--version").Run(); err != nil {
 		t.Skip("Git is not available")
@@ -156,6 +161,11 @@ func TestWorktreeManagement(t *testing.T) {
 
 // TestWorktreeOperations tests worktree-specific operations
 func TestWorktreeOperations(t *testing.T) {
+	// Skip in short mode (pre-commit hooks)
+	if testing.Short() {
+		t.Skip("Skipping worktree tests in short mode")
+	}
+
 	// Check if git supports worktrees
 	cmd := exec.Command("git", "worktree", "list")
 	if err := cmd.Run(); err != nil {
@@ -284,6 +294,11 @@ func TestWorktreeOperations(t *testing.T) {
 
 // TestWorktreeWithDocker tests worktree operations with Docker context
 func TestWorktreeWithDocker(t *testing.T) {
+	// Skip in short mode (pre-commit hooks)
+	if testing.Short() {
+		t.Skip("Skipping worktree tests in short mode")
+	}
+
 	// Skip if Docker is not available
 	if err := exec.Command("docker", "info").Run(); err != nil {
 		t.Skip("Docker is not available")

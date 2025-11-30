@@ -1,17 +1,19 @@
 # Runtime Plugin SDK Implementation Status
 
-**Last Updated:** 2025-09-03
+**Last Updated:** 2025-11-29
+
+> **⚠️ SDK v2 is now the only supported SDK.** SDK v1 is deprecated and retained only for reference. See the [Migration Guide](../../../docs/guides/PLUGIN-SDK-V2-MIGRATION.md) for details.
 
 ## ✅ COMPLETED - System is Fully Functional
 
-The runtime plugin system has been successfully implemented and is working in production. All core features are complete and tested.
+The runtime plugin system has been successfully implemented and is working in production. All core features are complete and tested with SDK v2.
 
 ## ✅ Phase 1: Core SDK (Complete)
 - ✅ **Protocol Buffer Definition** (`pkg/plugin/sdk/v1/plugin.proto`)
   - gRPC service definition with all RPC methods
   - Message types for all operations
   - Streaming support for interactive commands
-  
+
 - ✅ **Generated gRPC Code**
   - `pkg/plugin/sdk/v1/plugin.pb.go` - Generated protobuf code
   - `pkg/plugin/sdk/v1/plugin_grpc.pb.go` - Generated gRPC service code
@@ -135,10 +137,10 @@ mkdir my-plugin && cd my-plugin
 
 # 2. Initialize module
 go mod init my-plugin
-go get github.com/ivannovak/glide/pkg/plugin/sdk/v1
+go get github.com/ivannovak/glide/v2/pkg/plugin/sdk/v2
 go get github.com/hashicorp/go-plugin
 
-# 3. Implement plugin
+# 3. Implement plugin (see PLUGIN_DEVELOPMENT.md for v2 examples)
 
 # 4. Build plugin
 go build -o glide-plugin-myname
@@ -181,9 +183,9 @@ glide plugins list
 - [ ] Hot reload support
 
 ### API Evolution
-- **v1** (Current): Basic plugin support with gRPC
-- **v2**: Enhanced streaming and performance
-- **v3**: WebAssembly support
+- **v1** (Deprecated): Legacy plugin support, retained for reference only
+- **v2** (Current): Type-safe generics, declarative commands, unified lifecycle
+- **v3** (Future): WebAssembly support
 
 ## 📝 Notes
 

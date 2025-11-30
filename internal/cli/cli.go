@@ -5,26 +5,35 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ivannovak/glide/v2/internal/config"
 	"github.com/ivannovak/glide/v2/internal/context"
 	"github.com/ivannovak/glide/v2/internal/docker"
 	"github.com/ivannovak/glide/v2/internal/shell"
-	"github.com/ivannovak/glide/v2/pkg/app"
 	glideErrors "github.com/ivannovak/glide/v2/pkg/errors"
+	"github.com/ivannovak/glide/v2/pkg/output"
 	"github.com/ivannovak/glide/v2/pkg/progress"
 	"github.com/spf13/cobra"
 )
 
 // CLI represents the main CLI application
 type CLI struct {
-	app     *app.Application
-	builder *Builder
+	outputManager  *output.Manager
+	projectContext *context.ProjectContext
+	config         *config.Config
+	builder        *Builder
 }
 
-// New creates a new CLI instance with an Application
-func New(application *app.Application) *CLI {
+// New creates a new CLI instance with dependencies
+func New(
+	outputManager *output.Manager,
+	projectContext *context.ProjectContext,
+	cfg *config.Config,
+) *CLI {
 	return &CLI{
-		app:     application,
-		builder: NewBuilder(application),
+		outputManager:  outputManager,
+		projectContext: projectContext,
+		config:         cfg,
+		builder:        NewBuilder(projectContext, cfg, outputManager),
 	}
 }
 
@@ -35,28 +44,28 @@ func (c *CLI) BuildRootCommand() *cobra.Command {
 
 // NewSetupCommand creates the setup command
 func (c *CLI) NewSetupCommand() *cobra.Command {
-	return NewSetupCommand(c.app.ProjectContext, c.app.Config)
+	return NewSetupCommand(c.projectContext, c.config)
 }
 
 // NewConfigCommand creates the config command
 func (c *CLI) NewConfigCommand() *cobra.Command {
-	return NewConfigCommand(c.app.Config)
+	return NewConfigCommand(c.config)
 }
 
 // NewCompletionCommand creates the completion command
 func (c *CLI) NewCompletionCommand() *cobra.Command {
-	return NewCompletionCommand(c.app.ProjectContext, c.app.Config)
+	return NewCompletionCommand(c.projectContext, c.config)
 }
 
 // NewProjectCommand creates the global command
 func (c *CLI) NewProjectCommand() *cobra.Command {
-	return NewProjectCommand(c.app.ProjectContext, c.app.Config)
+	return NewProjectCommand(c.projectContext, c.config)
 }
 
 // AddProjectCommands adds global commands to the provided command
 func (c *CLI) AddProjectCommands(cmd *cobra.Command) {
 	// Add all project subcommands to the parent project command
-	globalCmd := NewProjectCommand(c.app.ProjectContext, c.app.Config)
+	globalCmd := NewProjectCommand(c.projectContext, c.config)
 
 	// Add each subcommand directly to the provided command
 	for _, subCmd := range globalCmd.Commands() {
@@ -66,7 +75,7 @@ func (c *CLI) AddProjectCommands(cmd *cobra.Command) {
 
 // RegisterCompletions registers completion functions for all commands
 func (c *CLI) RegisterCompletions(rootCmd *cobra.Command) {
-	completionManager := NewCompletionManager(c.app.ProjectContext, c.app.Config)
+	completionManager := NewCompletionManager(c.projectContext, c.config)
 	completionManager.RegisterCommandCompletions(rootCmd)
 }
 
@@ -93,8 +102,8 @@ func (c *CLI) addDebugCommands(cmd *cobra.Command) {
 		Short:        "Show detected project context (debug)",
 		SilenceUsage: true,
 		Hidden:       true, // Hide debug commands
-		Run: func(cmd *cobra.Command, args []string) {
-			c.showContext(cmd)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return c.showContext(cmd)
 		},
 	})
 
@@ -104,8 +113,8 @@ func (c *CLI) addDebugCommands(cmd *cobra.Command) {
 		Short:        "Test shell execution (debug)",
 		SilenceUsage: true,
 		Hidden:       true,
-		Run: func(cmd *cobra.Command, args []string) {
-			c.testShell(cmd, args)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return c.testShell(cmd, args)
 		},
 	})
 
@@ -115,8 +124,8 @@ func (c *CLI) addDebugCommands(cmd *cobra.Command) {
 		Short:        "Test Docker compose resolution (debug)",
 		SilenceUsage: true,
 		Hidden:       true,
-		Run: func(cmd *cobra.Command, args []string) {
-			c.testDockerResolution(cmd, args)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return c.testDockerResolution(cmd, args)
 		},
 	})
 
@@ -126,19 +135,19 @@ func (c *CLI) addDebugCommands(cmd *cobra.Command) {
 		Short:        "Test Docker container management (debug)",
 		SilenceUsage: true,
 		Hidden:       true,
-		Run: func(cmd *cobra.Command, args []string) {
-			c.testContainerManagement(cmd, args)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return c.testContainerManagement(cmd, args)
 		},
 	})
 }
 
 // showContext displays the detected project context
-func (c *CLI) showContext(cmd *cobra.Command) {
-	ctx := c.app.ProjectContext
-	if ctx == nil {
+func (c *CLI) showContext(cmd *cobra.Command) error {
+	if c.projectContext == nil {
 		cmd.Println("No project context available")
-		return
+		return nil
 	}
+	ctx := c.projectContext
 
 	cmd.Println("=== Project Context ===")
 	cmd.Printf("Working Directory: %s\n", ctx.WorkingDir)
@@ -192,18 +201,20 @@ func (c *CLI) showContext(cmd *cobra.Command) {
 	if ctx.Error != nil {
 		cmd.Printf("\nContext Error: %v\n", ctx.Error)
 	}
+
+	return nil
 }
 
 // showConfig displays the loaded configuration
 func (c *CLI) showConfig(cmd *cobra.Command) {
 	cmd.Println("=== Configuration ===")
 
-	if c.app.Config == nil {
+	if c.config == nil {
 		cmd.Println("No configuration loaded")
 		return
 	}
 
-	cfg := c.app.Config
+	cfg := c.config
 
 	cmd.Println("\nProjects:")
 	for name, project := range cfg.Projects {
@@ -238,7 +249,7 @@ func (c *CLI) showConfig(cmd *cobra.Command) {
 }
 
 // testShell tests the shell execution framework
-func (c *CLI) testShell(cmd *cobra.Command, args []string) {
+func (c *CLI) testShell(cmd *cobra.Command, args []string) error {
 	cmd.Println("=== Shell Execution Test ===")
 
 	executor := shell.NewExecutor(shell.Options{
@@ -249,19 +260,19 @@ func (c *CLI) testShell(cmd *cobra.Command, args []string) {
 	cmd.Println("Test 1: Capture output")
 	capturedOutput, err := executor.RunCapture("echo", "Hello from Glide!")
 	if err != nil {
-		c.app.OutputManager.Error("Failed: %v", err)
-	} else {
-		c.app.OutputManager.Success("Success: %s", capturedOutput)
+		_ = c.outputManager.Error("Failed: %v", err)
+		return fmt.Errorf("test 1 failed: %w", err)
 	}
+	_ = c.outputManager.Success("Success: %s", capturedOutput)
 
 	// Test 2: Command with timeout
 	cmd.Println("\nTest 2: Command with timeout")
 	err = executor.RunWithTimeout(2*time.Second, "sleep", "1")
 	if err != nil {
-		c.app.OutputManager.Error("Failed: %v", err)
-	} else {
-		c.app.OutputManager.Success("Success: Command completed within timeout")
+		_ = c.outputManager.Error("Failed: %v", err)
+		return fmt.Errorf("test 2 failed: %w", err)
 	}
+	_ = c.outputManager.Success("Success: Command completed within timeout")
 
 	// Test 3: Progress indicator
 	cmd.Println("\nTest 3: Progress indicator")
@@ -271,12 +282,11 @@ func (c *CLI) testShell(cmd *cobra.Command, args []string) {
 	spinner.Success("Test completed")
 
 	// Test 4: Docker check
-	ctx := c.app.ProjectContext
-	if ctx != nil && len(ctx.ComposeFiles) > 0 {
+	if c.projectContext != nil && len(c.projectContext.ComposeFiles) > 0 {
 		cmd.Println("\nTest 4: Docker integration")
-		docker := shell.NewDockerExecutor(ctx)
+		docker := shell.NewDockerExecutor(c.projectContext)
 		if docker.IsRunning() {
-			c.app.OutputManager.Success("Docker is running")
+			_ = c.outputManager.Success("Docker is running")
 
 			status, err := docker.GetContainerStatus()
 			if err == nil && len(status) > 0 {
@@ -286,7 +296,7 @@ func (c *CLI) testShell(cmd *cobra.Command, args []string) {
 				}
 			}
 		} else {
-			c.app.OutputManager.Warning("Docker is not running")
+			_ = c.outputManager.Warning("Docker is not running")
 		}
 	}
 
@@ -298,42 +308,44 @@ func (c *CLI) testShell(cmd *cobra.Command, args []string) {
 		shellCmd := shell.NewPassthroughCommand(args[0], args[1:]...)
 		result, err := executor.Execute(shellCmd)
 		if err != nil {
-			c.app.OutputManager.Error("Failed: %v", err)
-		} else if result.ExitCode != 0 {
-			c.app.OutputManager.Error("Command exited with code %d", result.ExitCode)
-		} else {
-			c.app.OutputManager.Success("Command succeeded")
+			_ = c.outputManager.Error("Failed: %v", err)
+			return fmt.Errorf("test 5 failed: %w", err)
 		}
+		if result.ExitCode != 0 {
+			_ = c.outputManager.Error("Command exited with code %d", result.ExitCode)
+			return fmt.Errorf("test 5 command exited with code %d", result.ExitCode)
+		}
+		_ = c.outputManager.Success("Command succeeded")
 	}
+
+	return nil
 }
 
 // testDockerResolution tests the Docker compose file resolution
-func (c *CLI) testDockerResolution(cmd *cobra.Command, args []string) {
+func (c *CLI) testDockerResolution(cmd *cobra.Command, args []string) error {
 	cmd.Println("=== Docker Compose Resolution Test ===")
 
-	ctx := c.app.ProjectContext
-	if ctx == nil {
-		c.app.OutputManager.Warning("No project context available")
-		return
+	if c.projectContext == nil {
+		return fmt.Errorf("no project context available")
 	}
 
 	// Create Docker resolver
-	resolver := docker.NewResolver(ctx)
+	resolver := docker.NewResolver(c.projectContext)
 
 	// Perform resolution
 	err := resolver.Resolve()
 	if err != nil {
-		c.app.OutputManager.Error("Resolution failed: %v", err)
-		return
+		_ = c.outputManager.Error("Resolution failed: %v", err)
+		return fmt.Errorf("failed to resolve Docker compose files: %w", err)
 	}
 
 	// Display resolved compose files
 	cmd.Println("Resolved Compose Files:")
-	if len(ctx.ComposeFiles) == 0 {
-		c.app.OutputManager.Warning("  No compose files found")
+	if len(c.projectContext.ComposeFiles) == 0 {
+		_ = c.outputManager.Warning("  No compose files found")
 	} else {
-		for i, file := range ctx.ComposeFiles {
-			c.app.OutputManager.Success("  [%d] %s", i+1, file)
+		for i, file := range c.projectContext.ComposeFiles {
+			_ = c.outputManager.Success("  [%d] %s", i+1, file)
 		}
 	}
 
@@ -345,7 +357,7 @@ func (c *CLI) testDockerResolution(cmd *cobra.Command, args []string) {
 	}
 
 	// Show Docker status
-	cmd.Printf("\nDocker Daemon Running: %v\n", ctx.DockerRunning)
+	cmd.Printf("\nDocker Daemon Running: %v\n", c.projectContext.DockerRunning)
 
 	// Show project name
 	cmd.Printf("Compose Project Name: %s\n", resolver.GetComposeProjectName())
@@ -359,9 +371,9 @@ func (c *CLI) testDockerResolution(cmd *cobra.Command, args []string) {
 	// Validate setup
 	cmd.Println("\nValidating Docker Setup:")
 	if err := resolver.ValidateSetup(); err != nil {
-		c.app.OutputManager.Warning("  Validation warning: %v", err)
+		_ = c.outputManager.Warning("  Validation warning: %v", err)
 	} else {
-		c.app.OutputManager.Success("  Docker setup validated successfully")
+		_ = c.outputManager.Success("  Docker setup validated successfully")
 	}
 
 	// Show override file if present
@@ -370,11 +382,11 @@ func (c *CLI) testDockerResolution(cmd *cobra.Command, args []string) {
 	}
 
 	// Test different modes
-	if ctx.DevelopmentMode == context.ModeMultiWorktree {
+	if c.projectContext.DevelopmentMode == context.ModeMultiWorktree {
 		cmd.Println("\nTesting Single-Repo Mode Resolution:")
 		tempResolver := docker.NewResolver(&context.ProjectContext{
-			ProjectRoot:     ctx.ProjectRoot,
-			WorkingDir:      ctx.WorkingDir,
+			ProjectRoot:     c.projectContext.ProjectRoot,
+			WorkingDir:      c.projectContext.WorkingDir,
 			DevelopmentMode: context.ModeSingleRepo,
 			Location:        context.LocationProject,
 		})
@@ -382,28 +394,28 @@ func (c *CLI) testDockerResolution(cmd *cobra.Command, args []string) {
 			cmd.Printf("  Would use files: %v\n", tempResolver.GetRelativeComposeFiles())
 		}
 	}
+
+	return nil
 }
 
 // testContainerManagement tests Docker container management functionality
-func (c *CLI) testContainerManagement(cmd *cobra.Command, args []string) {
+func (c *CLI) testContainerManagement(cmd *cobra.Command, args []string) error {
 	cmd.Println("=== Docker Container Management Test ===")
 
-	ctx := c.app.ProjectContext
-	if ctx == nil || len(ctx.ComposeFiles) == 0 {
-		c.app.OutputManager.Warning("No Docker compose files found in this project")
-		return
+	if c.projectContext == nil || len(c.projectContext.ComposeFiles) == 0 {
+		return fmt.Errorf("no Docker compose files found in this project")
 	}
 
 	// Create container manager and health monitor
-	manager := docker.NewContainerManager(ctx)
-	health := docker.NewHealthMonitor(ctx)
+	manager := docker.NewContainerManager(c.projectContext)
+	health := docker.NewHealthMonitor(c.projectContext)
 	errorHandler := docker.NewErrorHandler(true)
 
 	// Test 1: Get container status
 	cmd.Println("Test 1: Container Status")
 	containers, err := manager.GetStatus()
 	if err != nil {
-		c.app.OutputManager.Error("  Error: %s", errorHandler.Handle(err))
+		_ = c.outputManager.Error("  Error: %s", errorHandler.Handle(err))
 
 		// Show suggestions
 		suggestions := errorHandler.SuggestFix(err)
@@ -413,11 +425,11 @@ func (c *CLI) testContainerManagement(cmd *cobra.Command, args []string) {
 				cmd.Printf("    - %s\n", s)
 			}
 		}
-		return
+		return fmt.Errorf("failed to get container status: %w", err)
 	}
 
 	if len(containers) == 0 {
-		c.app.OutputManager.Warning("  No containers found (containers may not be running)")
+		_ = c.outputManager.Warning("  No containers found (containers may not be running)")
 	} else {
 		for _, container := range containers {
 			status := "🔴"
@@ -432,14 +444,15 @@ func (c *CLI) testContainerManagement(cmd *cobra.Command, args []string) {
 	cmd.Println("\nTest 2: Health Checks")
 	healthStatus, err := health.CheckHealth()
 	if err != nil {
-		c.app.OutputManager.Error("  Error checking health: %v", err)
-	} else {
-		for _, service := range healthStatus {
-			if service.Healthy {
-				c.app.OutputManager.Success("  ✓ %s: %s", service.Service, service.Summary)
-			} else {
-				c.app.OutputManager.Warning("  ⚠ %s: %s", service.Service, service.Summary)
-			}
+		_ = c.outputManager.Error("  Error checking health: %v", err)
+		return fmt.Errorf("failed to check container health: %w", err)
+	}
+
+	for _, service := range healthStatus {
+		if service.Healthy {
+			_ = c.outputManager.Success("  ✓ %s: %s", service.Service, service.Summary)
+		} else {
+			_ = c.outputManager.Warning("  ⚠ %s: %s", service.Service, service.Summary)
 		}
 	}
 
@@ -447,11 +460,14 @@ func (c *CLI) testContainerManagement(cmd *cobra.Command, args []string) {
 	cmd.Println("\nTest 3: Orphaned Containers")
 	orphaned, err := manager.GetOrphanedContainers()
 	if err != nil {
-		c.app.OutputManager.Error("  Error checking orphaned containers: %v", err)
-	} else if len(orphaned) == 0 {
-		c.app.OutputManager.Success("  No orphaned containers found")
+		_ = c.outputManager.Error("  Error checking orphaned containers: %v", err)
+		return fmt.Errorf("failed to check orphaned containers: %w", err)
+	}
+
+	if len(orphaned) == 0 {
+		_ = c.outputManager.Success("  No orphaned containers found")
 	} else {
-		c.app.OutputManager.Warning("  Found %d orphaned container(s):", len(orphaned))
+		_ = c.outputManager.Warning("  Found %d orphaned container(s):", len(orphaned))
 		for _, container := range orphaned {
 			cmd.Printf("    - %s (%s)\n", container.Name, container.Service)
 		}
@@ -461,10 +477,11 @@ func (c *CLI) testContainerManagement(cmd *cobra.Command, args []string) {
 	cmd.Println("\nTest 4: Compose Services")
 	services, err := manager.GetComposeServices()
 	if err != nil {
-		c.app.OutputManager.Error("  Error getting services: %v", err)
-	} else {
-		cmd.Printf("  Defined services: %s\n", strings.Join(services, ", "))
+		_ = c.outputManager.Error("  Error getting services: %v", err)
+		return fmt.Errorf("failed to get compose services: %w", err)
 	}
+
+	cmd.Printf("  Defined services: %s\n", strings.Join(services, ", "))
 
 	// Test 5: Error handling
 	cmd.Println("\nTest 5: Error Handling")
@@ -478,8 +495,10 @@ func (c *CLI) testContainerManagement(cmd *cobra.Command, args []string) {
 	cmd.Printf("  Parsed error: %s\n", errorHandler.Handle(testErr))
 
 	if docker.IsRetryable(testErr) {
-		c.app.OutputManager.Success("  This error is retryable")
+		_ = c.outputManager.Success("  This error is retryable")
 	} else {
-		c.app.OutputManager.Error("  This error is not retryable")
+		_ = c.outputManager.Error("  This error is not retryable")
 	}
+
+	return nil
 }

@@ -1,5 +1,7 @@
 package mocks
 
+//lint:file-ignore SA1019 interfaces.ProjectContext is deprecated but still in use until v3.0.0
+
 import (
 	"github.com/ivannovak/glide/v2/pkg/interfaces"
 	"github.com/stretchr/testify/mock"

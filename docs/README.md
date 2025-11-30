@@ -4,25 +4,38 @@ Welcome to the Glide CLI documentation. This directory contains user-facing docu
 
 ## 📚 Documentation Structure
 
+### Getting Started
+- **[Getting Started](getting-started/)** - Installation and first steps
+- **[Core Concepts](core-concepts/)** - Understanding how Glide works
+- **[Tutorials](tutorials/)** - Progressive learning path from beginner to advanced
+
 ### User Documentation
 Essential guides for users and contributors:
 
 - **[Command Reference](command-reference.md)** - Complete list of all Glide commands and their usage
 - **[Framework Detection](framework-detection.md)** - Automatic framework and language detection system
-- **[Plugin Development](plugin-development.md)** - Guide for creating Glide plugins
+- **[Plugin Development](plugin-development.md)** - Guide for creating Glide plugins (SDK v2)
 - **[Troubleshooting Guide](troubleshooting.md)** - Common issues and their solutions
 - **[Contributing Guide](CONTRIBUTING.md)** - How to contribute to the Glide project
 
+### Developer Guides
+- **[Architecture Overview](architecture/)** - System architecture and design
+- **[Error Handling](guides/error-handling.md)** - Best practices for error handling
+- **[Performance](guides/performance.md)** - Performance optimization guide
+- **[SDK v2 Migration](guides/PLUGIN-SDK-V2-MIGRATION.md)** - Migrate legacy v1 plugins to v2 (v1 deprecated)
+
 ### Architecture Decision Records (ADRs)
-Formal documentation of architectural decisions:
+Formal documentation of architectural decisions (17 total):
 
 - **[ADR Index](adr/README.md)** - Complete list of all architectural decisions
 - **[Context-Aware Architecture](adr/ADR-001-context-aware-architecture.md)** - Core architectural principles
 - **[Plugin System Design](adr/ADR-002-plugin-system-design.md)** - Plugin architecture decisions
 - **[Configuration Management](adr/ADR-003-configuration-management.md)** - Configuration strategy
-- **[Error Handling](adr/ADR-004-error-handling-approach.md)** - Error handling principles
-- **[Testing Strategy](adr/ADR-005-testing-strategy.md)** - Testing approach and standards
-- **[Branding Customization](adr/ADR-006-branding-customization.md)** - Build-time branding approach
+- **[Dependency Injection](adr/ADR-013-dependency-injection.md)** - DI architecture
+- **[Performance Budgets](adr/ADR-014-performance-budgets.md)** - Performance targets
+- **[Observability](adr/ADR-015-observability.md)** - Monitoring infrastructure
+- **[Type-Safe Configuration](adr/ADR-016-type-safe-configuration.md)** - Generic config system
+- **[Plugin Lifecycle](adr/ADR-017-plugin-lifecycle.md)** - Lifecycle management
 
 ## 📋 Specifications
 
