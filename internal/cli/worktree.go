@@ -324,12 +324,3 @@ func (c *WorktreeCommand) showSummary(worktreePath, branchName, remoteBranch str
 	output.Println()
 	output.Info("Happy coding! 🚀")
 }
-
-// ExecuteWorktreeCommand is called from global.go
-func ExecuteWorktreeCommand(ctx *context.ProjectContext, cfg *config.Config, cmd *cobra.Command, args []string) error {
-	wc := &WorktreeCommand{
-		ctx: ctx,
-		cfg: cfg,
-	}
-	return wc.Execute(cmd, args)
-}
