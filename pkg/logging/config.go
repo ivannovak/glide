@@ -30,9 +30,10 @@ type Config struct {
 }
 
 // DefaultConfig returns a Config with sensible defaults
+// Default level is Warn to keep CLI output clean - use GLIDE_LOG_LEVEL=info or debug for more verbosity
 func DefaultConfig() *Config {
 	return &Config{
-		Level:     slog.LevelInfo,
+		Level:     slog.LevelWarn,
 		Format:    FormatText,
 		Output:    os.Stderr,
 		AddSource: false,
@@ -40,7 +41,7 @@ func DefaultConfig() *Config {
 }
 
 // FromEnv creates a Config from environment variables
-// GLIDE_LOG_LEVEL: debug, info, warn, error (default: info)
+// GLIDE_LOG_LEVEL: debug, info, warn, error (default: warn)
 // GLIDE_LOG_FORMAT: text, json (default: text)
 // GLIDE_LOG_SOURCE: true, false (default: false)
 // GLIDE_DEBUG: true, false (default: false) - shorthand for GLIDE_LOG_LEVEL=debug

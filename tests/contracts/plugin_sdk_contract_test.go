@@ -290,7 +290,7 @@ go 1.23
 
 replace github.com/ivannovak/glide/v3 => ` + glideRoot + `
 
-require github.com/ivannovak/glide/v3 v2.0.0
+require github.com/ivannovak/glide/v3 v3.0.0
 `
 
 	// Write files

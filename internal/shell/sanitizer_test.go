@@ -462,6 +462,137 @@ func TestIsSimpleArg(t *testing.T) {
 	}
 }
 
+func TestScriptSanitizer_Validate(t *testing.T) {
+	tests := []struct {
+		name    string
+		command string
+		args    []string
+		wantErr bool
+		errMsg  string
+	}{
+		// Script mode allows shell constructs in command
+		{
+			name:    "allows semicolon in command",
+			command: "echo test; echo done",
+			args:    []string{},
+			wantErr: false,
+		},
+		{
+			name:    "allows pipes in command",
+			command: "echo test | grep test",
+			args:    []string{},
+			wantErr: false,
+		},
+		{
+			name:    "allows command substitution in command",
+			command: "echo $(date)",
+			args:    []string{},
+			wantErr: false,
+		},
+		{
+			name:    "allows newlines in command",
+			command: "echo line1\necho line2",
+			args:    []string{},
+			wantErr: false,
+		},
+		{
+			name:    "allows redirects in command",
+			command: "echo test > /dev/null",
+			args:    []string{},
+			wantErr: false,
+		},
+		{
+			name:    "allows variable expansion in command",
+			command: "echo ${HOME}",
+			args:    []string{},
+			wantErr: false,
+		},
+		{
+			name:    "allows if statement",
+			command: "if [ -f test ]; then echo exists; fi",
+			args:    []string{},
+			wantErr: false,
+		},
+		{
+			name:    "allows AND chaining in command",
+			command: "mkdir -p dir && cd dir",
+			args:    []string{},
+			wantErr: false,
+		},
+		{
+			name:    "allows OR chaining in command",
+			command: "cat file || echo 'file not found'",
+			args:    []string{},
+			wantErr: false,
+		},
+		// Script mode still validates arguments
+		{
+			name:    "blocks command substitution in args",
+			command: "echo",
+			args:    []string{"$(whoami)"},
+			wantErr: true,
+			errMsg:  "command substitution",
+		},
+		{
+			name:    "blocks backtick in args",
+			command: "echo",
+			args:    []string{"`whoami`"},
+			wantErr: true,
+			errMsg:  "command substitution (backtick)",
+		},
+		{
+			name:    "blocks null byte in args",
+			command: "echo",
+			args:    []string{"test\x00malicious"},
+			wantErr: true,
+			errMsg:  "null byte",
+		},
+		// Arguments that are safe in script mode
+		{
+			name:    "allows semicolons in args",
+			command: "echo",
+			args:    []string{"test; more text"},
+			wantErr: false,
+		},
+		{
+			name:    "allows pipes in args",
+			command: "echo",
+			args:    []string{"test | more"},
+			wantErr: false,
+		},
+		{
+			name:    "allows path traversal in args",
+			command: "cat",
+			args:    []string{"../file.txt"},
+			wantErr: false,
+		},
+		{
+			name:    "allows simple args",
+			command: "echo",
+			args:    []string{"hello", "world"},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sanitizer := NewSanitizer(ScriptConfig())
+
+			err := sanitizer.Validate(tt.command, tt.args)
+
+			if tt.wantErr && err == nil {
+				t.Errorf("Validate() expected error containing '%s', got nil", tt.errMsg)
+			}
+			if !tt.wantErr && err != nil {
+				t.Errorf("Validate() unexpected error: %v", err)
+			}
+			if tt.wantErr && err != nil && !strings.Contains(err.Error(), tt.errMsg) {
+				t.Errorf("Validate() error = %v, want error containing '%s'", err, tt.errMsg)
+			}
+		})
+	}
+}
+
 func TestSanitizerMode(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -477,6 +608,11 @@ func TestSanitizerMode(t *testing.T) {
 			name:     "allowlist config",
 			config:   AllowlistConfig("echo", "docker"),
 			wantMode: ModeAllowlist,
+		},
+		{
+			name:     "script config",
+			config:   ScriptConfig(),
+			wantMode: ModeScript,
 		},
 		{
 			name: "custom strict config",

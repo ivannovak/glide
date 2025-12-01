@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 
@@ -66,18 +65,17 @@ func LoadAndMergeConfigs(configPaths []string) (*Config, error) {
 		Projects: make(map[string]ProjectConfig),
 	}
 
-	// Get current working directory for path validation
-	cwd, err := os.Getwd()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get working directory: %w", err)
-	}
-
 	// Load configs in reverse order (lowest priority first)
 	// so that higher priority configs override
 	for i := len(configPaths) - 1; i >= 0; i-- {
+		configPath := configPaths[i]
+
 		// Validate config path to prevent directory traversal
-		validatedPath, err := validation.ValidatePath(configPaths[i], validation.PathValidationOptions{
-			BaseDir:        cwd,
+		// Use the config file's own directory as the base for validation
+		// This allows configs in parent directories to be loaded safely
+		configDir := filepath.Dir(configPath)
+		validatedPath, err := validation.ValidatePath(configPath, validation.PathValidationOptions{
+			BaseDir:        configDir,
 			AllowAbsolute:  true, // Config paths can be absolute
 			FollowSymlinks: true, // Follow symlinks but validate they stay within bounds
 			RequireExists:  true, // Config file must exist

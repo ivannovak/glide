@@ -9,8 +9,8 @@ import (
 func TestDefaultConfig(t *testing.T) {
 	config := DefaultConfig()
 
-	if config.Level != slog.LevelInfo {
-		t.Errorf("Level = %v, want %v", config.Level, slog.LevelInfo)
+	if config.Level != slog.LevelWarn {
+		t.Errorf("Level = %v, want %v", config.Level, slog.LevelWarn)
 	}
 	if config.Format != FormatText {
 		t.Errorf("Format = %v, want %v", config.Format, FormatText)
@@ -34,7 +34,7 @@ func TestFromEnv(t *testing.T) {
 		{
 			name:       "default values",
 			envVars:    map[string]string{},
-			wantLevel:  slog.LevelInfo,
+			wantLevel:  slog.LevelWarn,
 			wantFormat: FormatText,
 			wantSource: false,
 		},
@@ -70,7 +70,7 @@ func TestFromEnv(t *testing.T) {
 			envVars: map[string]string{
 				"GLIDE_LOG_FORMAT": "json",
 			},
-			wantLevel:  slog.LevelInfo,
+			wantLevel:  slog.LevelWarn,
 			wantFormat: FormatJSON,
 			wantSource: false,
 		},
@@ -79,7 +79,7 @@ func TestFromEnv(t *testing.T) {
 			envVars: map[string]string{
 				"GLIDE_LOG_SOURCE": "true",
 			},
-			wantLevel:  slog.LevelInfo,
+			wantLevel:  slog.LevelWarn,
 			wantFormat: FormatText,
 			wantSource: true,
 		},
