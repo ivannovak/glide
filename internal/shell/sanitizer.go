@@ -18,6 +18,9 @@ const (
 	ModeStrict SanitizationMode = "strict"
 	// ModeAllowlist only allows specifically whitelisted commands
 	ModeAllowlist SanitizationMode = "allowlist"
+	// ModeScript allows shell scripting constructs but validates arguments
+	// This is appropriate for user-authored YAML commands that contain shell scripts
+	ModeScript SanitizationMode = "script"
 )
 
 // CommandSanitizer validates and sanitizes shell commands to prevent injection attacks
@@ -70,6 +73,19 @@ func AllowlistConfig(allowedCommands ...string) *SanitizerConfig {
 	}
 }
 
+// ScriptConfig returns a configuration for script mode
+// This allows shell scripting constructs but still validates arguments
+func ScriptConfig() *SanitizerConfig {
+	return &SanitizerConfig{
+		Mode:                ModeScript,
+		AllowedCommands:     []string{},
+		AllowedPatterns:     []*regexp.Regexp{},
+		BlockDangerousChars: false, // Allow shell metacharacters in scripts
+		AllowPipes:          true,  // Allow pipes in scripts
+		AllowRedirects:      true,  // Allow redirects in scripts
+	}
+}
+
 // StrictSanitizer implements strict command validation
 type StrictSanitizer struct {
 	config *SanitizerConfig
@@ -98,6 +114,17 @@ func (s *StrictSanitizer) Mode() SanitizationMode {
 // Validate checks if a command and its arguments are safe to execute
 func (s *StrictSanitizer) Validate(command string, args []string) error {
 	if s.config.Mode == ModeDisabled {
+		return nil
+	}
+
+	// In script mode, we trust the command (user-authored YAML) but validate arguments
+	if s.config.Mode == ModeScript {
+		// Only validate arguments to prevent injection through user input
+		for i, arg := range args {
+			if err := s.validateArgument(arg, fmt.Sprintf("argument %d", i+1)); err != nil {
+				return err
+			}
+		}
 		return nil
 	}
 
@@ -176,6 +203,34 @@ func (s *StrictSanitizer) validateString(str, context string) error {
 	// Check for path traversal
 	if strings.Contains(str, "../") {
 		return fmt.Errorf("path traversal detected in %s: ../", context)
+	}
+
+	return nil
+}
+
+// validateArgument checks an argument for injection patterns in script mode
+// This is more permissive than validateString - it allows shell constructs that
+// appear in the command itself, but still blocks injection through arguments
+func (s *StrictSanitizer) validateArgument(arg, context string) error {
+	// Check for null bytes (always dangerous)
+	if strings.Contains(arg, "\x00") {
+		return fmt.Errorf("null byte detected in %s", context)
+	}
+
+	// In script mode, arguments are passed to ${1}, ${2}, etc.
+	// We need to prevent injection that could break out of the argument context
+	dangerousPatterns := []struct {
+		pattern string
+		desc    string
+	}{
+		{"`", "command substitution (backtick)"},
+		{"$(", "command substitution"},
+	}
+
+	for _, p := range dangerousPatterns {
+		if strings.Contains(arg, p.pattern) {
+			return fmt.Errorf("dangerous pattern detected in %s: %s (%s)", context, p.desc, p.pattern)
+		}
 	}
 
 	return nil

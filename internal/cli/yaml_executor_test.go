@@ -375,6 +375,111 @@ func TestExecuteYAMLCommand_CommandValidationStages(t *testing.T) {
 	})
 }
 
+// TestExecuteYAMLCommand_ScriptMode tests the script sanitization mode
+func TestExecuteYAMLCommand_ScriptMode(t *testing.T) {
+	originalSanitizer := yamlCommandSanitizer
+	defer SetYAMLCommandSanitizer(originalSanitizer)
+
+	// Set up script mode sanitizer
+	SetYAMLCommandSanitizer(shell.NewSanitizer(shell.ScriptConfig()))
+
+	tests := []struct {
+		name    string
+		command string
+		args    []string
+		wantErr bool
+		errMsg  string
+	}{
+		// Script mode allows shell constructs in command
+		{
+			name:    "allows semicolons in command",
+			command: "echo test; echo done",
+			args:    []string{},
+			wantErr: false,
+		},
+		{
+			name:    "allows pipes in command",
+			command: "echo test | grep test",
+			args:    []string{},
+			wantErr: false,
+		},
+		{
+			name:    "allows command substitution in command",
+			command: "echo $(date)",
+			args:    []string{},
+			wantErr: false,
+		},
+		{
+			name:    "allows newlines in command",
+			command: "echo line1\necho line2",
+			args:    []string{},
+			wantErr: false,
+		},
+		{
+			name:    "allows redirects in command",
+			command: "echo test > /dev/null",
+			args:    []string{},
+			wantErr: false,
+		},
+		{
+			name:    "allows variable expansion in command",
+			command: "echo ${HOME}",
+			args:    []string{},
+			wantErr: false,
+		},
+		{
+			name:    "allows complex shell script",
+			command: "if [ -f test ]; then echo exists; else echo missing; fi",
+			args:    []string{},
+			wantErr: false,
+		},
+		// Script mode still validates arguments
+		{
+			name:    "blocks command substitution in args",
+			command: "echo",
+			args:    []string{"$(whoami)"},
+			wantErr: true,
+			errMsg:  "command substitution",
+		},
+		{
+			name:    "blocks backtick substitution in args",
+			command: "echo",
+			args:    []string{"`whoami`"},
+			wantErr: true,
+			errMsg:  "command substitution",
+		},
+		// But allows other patterns in args that were blocked in strict mode
+		{
+			name:    "allows semicolons in args (user input)",
+			command: "echo",
+			args:    []string{"test; more text"},
+			wantErr: false, // User might legitimately pass this as a string
+		},
+		{
+			name:    "allows safe arguments",
+			command: "echo",
+			args:    []string{"hello", "world"},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := yamlCommandSanitizer.Validate(tt.command, tt.args)
+
+			if tt.wantErr && err == nil {
+				t.Errorf("Expected error containing '%s', got nil", tt.errMsg)
+			}
+			if !tt.wantErr && err != nil {
+				t.Errorf("Unexpected error: %v", err)
+			}
+			if tt.wantErr && err != nil && !strings.Contains(err.Error(), tt.errMsg) {
+				t.Errorf("Error = %v, want error containing '%s'", err, tt.errMsg)
+			}
+		})
+	}
+}
+
 // TestExecuteShellCommand tests the shell command execution
 func TestExecuteShellCommand(t *testing.T) {
 	tests := []struct {

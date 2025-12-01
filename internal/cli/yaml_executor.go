@@ -29,13 +29,17 @@ func init() {
 		yamlCommandSanitizer = shell.NewSanitizer(&shell.SanitizerConfig{
 			Mode: shell.ModeWarn,
 		})
-	case "strict", "":
-		// Default to strict mode for security
+	case "strict":
+		// Strict mode blocks shell constructs - use for untrusted commands
 		yamlCommandSanitizer = shell.NewSanitizer(shell.DefaultConfig())
+	case "script", "":
+		// Default to script mode - trusts user-authored YAML commands but validates arguments
+		// This allows shell scripting constructs (;, |, &&, etc.) in the command itself
+		yamlCommandSanitizer = shell.NewSanitizer(shell.ScriptConfig())
 	default:
-		// Unknown mode, default to strict
-		fmt.Fprintf(os.Stderr, "Warning: Unknown GLIDE_YAML_SANITIZE_MODE '%s', using 'strict'\n", mode)
-		yamlCommandSanitizer = shell.NewSanitizer(shell.DefaultConfig())
+		// Unknown mode, default to script
+		fmt.Fprintf(os.Stderr, "Warning: Unknown GLIDE_YAML_SANITIZE_MODE '%s', using 'script'\n", mode)
+		yamlCommandSanitizer = shell.NewSanitizer(shell.ScriptConfig())
 	}
 }
 
