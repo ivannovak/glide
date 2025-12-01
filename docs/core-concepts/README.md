@@ -35,7 +35,7 @@ commands:
 
 Then use the same command across all projects:
 ```bash
-glidetest  # Runs the appropriate test command
+glide test  # Runs the appropriate test command
 ```
 
 ## Extensibility
@@ -104,7 +104,7 @@ The default mode for standard Git repository workflows:
 ```bash
 # All commands operate on your current branch
 git checkout feature-branch
-glidehelp  # Shows "Single-repo mode"
+glide help  # Shows "Single-repo mode"
 ```
 
 **Characteristics:**
@@ -119,12 +119,12 @@ Advanced mode for parallel development across multiple features:
 
 ```bash
 # Enable multi-worktree mode
-glidesetup
+glide setup
 
 # Now you have access to project commands
-glideproject worktree feature-a
-glideproject worktree feature-b
-glideproject status  # See all worktrees
+glide project worktree feature-a
+glide project worktree feature-b
+glide project status  # See all worktrees
 ```
 
 **Characteristics:**
@@ -140,7 +140,7 @@ For directories without Git repositories:
 ```bash
 # Create a .glide.yml in any directory
 echo 'commands: { hello: "echo Hello!" }' > .glide.yml
-glidehelp  # Shows "📄 Standalone mode"
+glide help  # Shows "📄 Standalone mode"
 glidehello # Your commands work immediately
 ```
 
@@ -153,7 +153,7 @@ glidehello # Your commands work immediately
 
 ### Switching Between Modes
 
-Use `glidesetup` to configure your development mode:
+Use `glide setup` to configure your development mode:
 - Converts project structure when switching
 - Preserves your work and configuration
 - Can switch back at any time
@@ -184,7 +184,7 @@ cd ../worktrees/feature-b  # Different environment running
 
 ### How Worktrees Work
 
-When you run `glidesetup` and choose multi-worktree mode, Glide automatically creates this structure:
+When you run `glide setup` and choose multi-worktree mode, Glide automatically creates this structure:
 
 ```
 project-root/
@@ -202,7 +202,7 @@ project-root/
         └── ...          # All project files
 ```
 
-**Note**: You don't create this structure manually. The `glidesetup` command handles the conversion from a standard Git repository to this multi-worktree layout automatically.
+**Note**: You don't create this structure manually. The `glide setup` command handles the conversion from a standard Git repository to this multi-worktree layout automatically.
 
 Key architecture points:
 - **vcs/**: Contains the main Git repository, kept on the default branch (main/master) as a clean reference for creating new worktrees
@@ -261,7 +261,7 @@ commands:
 **Parameter Expansion**: Pass arguments to commands
 ```bash
 glidedeploy staging  # $1 = staging
-glidetest unit integration  # $1 = unit, $2 = integration
+glide test unit integration  # $1 = unit, $2 = integration
 ```
 
 **Shell Script Support**: Full shell capabilities
@@ -310,7 +310,7 @@ commands:
 
 **Grouped in help output**:
 ```bash
-glidehelp
+glide help
 # Commands appear grouped by category
 ```
 

@@ -111,14 +111,14 @@ glideplugins install golang-plugin
 
 # Plugin automatically activates on Go projects
 cd my-go-project
-glidehelp
+glide help
 # Shows Go-specific commands
 ```
 
 ### Framework Detection Display
 
 ```bash
-glidecontext
+glide context
 # Output:
 Project: my-app
 Mode: single-repo

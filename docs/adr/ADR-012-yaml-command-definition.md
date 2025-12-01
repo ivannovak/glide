@@ -183,7 +183,7 @@ commands:
   db-reset: glidedb drop && glidedb create && glidedb migrate && glidedb seed
 
   # Docker shortcuts
-  rebuild: glidedown && docker build --no-cache . && glideup
+  rebuild: glide down && docker build --no-cache . && glideup
 
   # Git workflows
   sync: git pull --rebase && git push

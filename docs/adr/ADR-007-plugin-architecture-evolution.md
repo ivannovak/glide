@@ -21,7 +21,7 @@ Key issues identified:
 ### 1. Separate Framework from Implementation
 - **Core Glide** provides only universal commands:
   - `setup` - Configure Glide for a project
-  - `plugins` - Manage plugins  
+  - `plugins` - Manage plugins
   - `version` - Version information
   - `help` - Help system
   - `project` - Multi-worktree management (when in that mode)
@@ -35,7 +35,7 @@ Key issues identified:
 ### 2. Category Priority System
 Use magnitude-based spacing (10, 20, 30...) instead of sequential (1, 2, 3...):
 - Core Commands: 10
-- Global Commands: 20  
+- Global Commands: 20
 - Setup & Configuration: 30
 - [Available space: 40-70 for project/plugin categories]
 - Plugin Commands: 80
@@ -62,7 +62,7 @@ type PluginMetadata struct {
 
 Examples:
 - **Namespaced**: `glideacme mysql` (safe, no conflicts)
-- **Global**: `glidemysql` (convenient, requires conflict resolution)
+- **Global**: `glide mysql` (convenient, requires conflict resolution)
 
 ### 5. Categories as First-Class Objects
 Categories become richer objects:

@@ -87,7 +87,7 @@ Support complex command sequences:
 ```yaml
 commands:
   reset: |
-    glidedown
+    glide down
     docker system prune -f
     glideup --build
 
@@ -303,7 +303,7 @@ commands:
       git pull
       glideup
       glidedb migrate
-      glidestatus
+      glide status
     alias: m
     description: "Start the day"
 ```

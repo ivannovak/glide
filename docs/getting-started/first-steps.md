@@ -8,7 +8,7 @@ Glide adapts to your project structure automatically:
 
 ```bash
 cd your-project
-glidehelp
+glide help
 ```
 
 The header shows your current mode:
@@ -23,13 +23,13 @@ The header shows your current mode:
 See all available commands:
 
 ```bash
-glidehelp
+glide help
 ```
 
 Get help for a specific command:
 
 ```bash
-glidehelp worktree
+glide help worktree
 ```
 
 ### Extending with Custom Commands
@@ -51,7 +51,7 @@ commands:
 These become available immediately:
 ```bash
 glidebuild
-glidetest
+glide test
 glidedeploy staging
 ```
 
@@ -69,7 +69,7 @@ glideplugins install /path/to/plugin
 glideplugins info [plugin-name]
 ```
 
-**Getting Plugins**: 
+**Getting Plugins**:
 - Build your own using the [Plugin Development Guide](../plugin-development.md)
 - Check community repositories and examples
 - Currently no centralized marketplace (coming in future releases)
@@ -93,15 +93,15 @@ Advanced mode for parallel development:
 
 ```bash
 # Check your current mode
-glidehelp  # Shows mode in the header
+glide help  # Shows mode in the header
 
 # Switch to multi-worktree mode
-glidesetup
+glide setup
 
 # Once in multi-worktree mode
-glideproject worktree feature/new    # Create a worktree
-glideproject list                     # List all worktrees
-glideproject status                   # Status across all worktrees
+glide project worktree feature/new    # Create a worktree
+glide project list                     # List all worktrees
+glide project status                   # Status across all worktrees
 ```
 
 ### Standalone Mode
@@ -125,10 +125,10 @@ For advanced workflows, Glide supports multi-worktree development:
 
 ```bash
 # First, set up multi-worktree mode
-glidesetup
+glide setup
 
 # Once enabled, use project commands:
-glideproject worktree feature/awesome-feature
+glide project worktree feature/awesome-feature
 # Or use the short alias:
 glidep worktree feature/awesome-feature
 
@@ -198,14 +198,14 @@ glidedeploy staging
 glided production
 
 # Commands appear in help
-glidehelp
+glide help
 ```
 
 
 ## Tips for Success
 
 ### 1. Let Context Guide You
-Don't memorize commands. Use `glidehelp` in different projects to see what's available.
+Don't memorize commands. Use `glide help` in different projects to see what's available.
 
 ### 2. Use Tab Completion
 If you set up shell completion, double-tab shows available options:
@@ -231,7 +231,7 @@ commands:
 ### Morning Routine
 ```bash
 # Update Glide
-glideself-update
+glide self-update
 
 # Pull latest code and run your custom setup
 # (assuming you've defined these in .glide.yml)
@@ -241,13 +241,13 @@ glidefresh  # Runs: git pull && make build
 ### Working with Multiple Features (Multi-Worktree Mode)
 ```bash
 # Create a new worktree for a feature
-glideproject worktree feature/new-thing
+glide project worktree feature/new-thing
 
 # Switch to it
 cd ~/project/worktrees/feature-new-thing
 
 # List all worktrees
-glideproject list
+glide project list
 ```
 
 ### Creating Your Own Workflows
@@ -281,6 +281,6 @@ commands:
 
 ## Getting Help
 
-- Run `glidehelp` for command reference
+- Run `glide help` for command reference
 - Check the [guides](../guides/) for specific scenarios
 - Visit [GitHub Issues](https://github.com/ivannovak/glide/issues) for support

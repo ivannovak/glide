@@ -49,7 +49,7 @@ brew install ivannovak/tap/glide
 After installation, verify Glide is working:
 
 ```bash
-glideversion
+glide version
 ```
 
 You should see output like:
@@ -79,7 +79,7 @@ glide completion fish > ~/.config/fish/completions/glide.fish
 Glide can update itself:
 
 ```bash
-glideself-update
+glide self-update
 ```
 
 ## Troubleshooting

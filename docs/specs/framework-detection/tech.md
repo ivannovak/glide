@@ -384,7 +384,7 @@ func TestFrameworkDetection(t *testing.T) {
 ### For Users
 
 1. Install framework plugins: `glideplugins install [plugin]`
-2. Verify detection: `glidecontext`
+2. Verify detection: `glide context`
 3. Override if needed in `.glide.yml`
 
 ## Future Enhancements

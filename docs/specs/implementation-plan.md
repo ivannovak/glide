@@ -115,32 +115,32 @@ This document outlines the complete implementation plan for the Glide CLI, trans
 
 ### 5.1 Container Lifecycle Commands ✅
 **Files**: `internal/cli/up.go`, `internal/cli/down.go`
-- [x] `glideup` - Start containers with compose
-- [x] `glidedown` - Stop containers
+- [x] `glide up` - Start containers with compose
+- [x] `glide down` - Stop containers
 - [x] Health check after startup
 - [x] Graceful shutdown handling
 
 ### 5.2 Interactive Commands ✅
 **Files**: `internal/cli/shell.go`, `internal/cli/mysql.go`, `internal/cli/logs.go`
-- [x] `glideshell` - Attach to PHP container
-- [x] `glidemysql` - MySQL CLI access
-- [x] `glidelogs` - Container log viewing
+- [x] `glide shell` - Attach to PHP container
+- [x] `glide mysql` - MySQL CLI access
+- [x] `glide logs` - Container log viewing
 - [x] Handle TTY allocation
 - [x] Support log following (-f)
 
 ### 5.3 Utility Commands ✅
 **Files**: `internal/cli/status.go`, `internal/cli/lint.go`, `internal/cli/ecr_login.go`, `internal/cli/db_tunnel.go`, `internal/cli/ssl_certs.go`
-- [x] `glidestatus` - Show container status
-- [x] `glidelint` - Run PHP CS Fixer
-- [x] `glideecr-login` - AWS ECR authentication
-- [x] `glidedb-tunnel` - SSH tunnel setup
-- [x] `glidessl-certs` - Certificate generation
+- [x] `glide status` - Show container status
+- [x] `glide lint` - Run PHP CS Fixer
+- [x] `glide ecr-login` - AWS ECR authentication
+- [x] `glide db-tunnel` - SSH tunnel setup
+- [x] `glide ssl-certs` - Certificate generation
 
 ## Phase 6: Multi-Worktree Features
 
 ### 6.1 Global Command Structure ✅
 **Files**: `internal/cli/global.go`, `internal/cli/mode_helpers.go`
-- [x] Implement `glideglobal` command group
+- [x] Implement `glide global` command group
 - [x] Add `g` alias support
 - [x] Command availability based on mode
 - [x] Error messages for wrong mode
@@ -154,7 +154,7 @@ This document outlines the complete implementation plan for the Glide CLI, trans
 - [x] Conflict detection and messaging
 - [x] Auto-setup flag support
 - [x] Migration options
-- [x] `glidemysql-fix-permissions` - Fix MySQL permission issues
+- [x] `glide mysql-fix-permissions` - Fix MySQL permission issues
 
 ### 6.3 Global Operations ✅
 **Files**: `internal/cli/global_status.go`, `internal/cli/global_down.go`, `internal/cli/global_list.go`, `internal/cli/global_clean.go`
@@ -177,19 +177,19 @@ This document outlines the complete implementation plan for the Glide CLI, trans
   - [x] Elapsed time display (e.g., "Building... (12.3s)")
   - [x] Success/error/warning final states
   - [x] Automatic cleanup on interrupt
-  
+
 - [x] **Progress Bar** (`bar.go`) - For determinate operations
   - [x] Visual progress bar with percentage
   - [x] Current/total item display
   - [x] ETA calculation and display
   - [x] Throughput metrics (items/sec)
   - [x] Customizable width and format
-  
+
 - [x] **Multi-Progress** (`multi.go`) - For concurrent operations
   - [x] Multiple progress bars/spinners simultaneously
   - [x] Proper terminal handling for multiple lines
   - [x] Aggregated progress reporting
-  
+
 - [x] **Quiet Mode** (`quiet.go`) - Global progress suppression
   - [x] Respect `--quiet` flag globally
   - [x] Provide non-visual progress tracking
@@ -253,13 +253,13 @@ progress.SetQuiet(true)  // All progress indicators become no-ops
   - [x] ConfigurationError (invalid settings)
   - [x] NetworkError (connection failures)
   - [x] ModeError (wrong development mode)
-  
+
 - [x] **Error Handler** (`handler.go`) - Central error processing
   - [x] Format errors consistently with colors
   - [x] Add context about what was being attempted
   - [x] Include error codes for scripting
   - [x] Log errors for debugging (when verbose)
-  
+
 - [x] **Suggestions Engine** (`suggestions.go`) - Smart fix recommendations
   - [x] Pattern matching for common errors
   - [x] Mode-aware suggestions (single vs multi-worktree)
@@ -278,7 +278,7 @@ if !c.ctx.DockerRunning {
     return errors.NewDockerError("Docker daemon not running",
         errors.WithSuggestions(
             "Start Docker Desktop application",
-            "Run: glideup",
+            "Run: glide up",
             "Check: docker ps",
         ),
         errors.WithContext("container", "php"),
@@ -288,7 +288,7 @@ if !c.ctx.DockerRunning {
 
 **Common Error Patterns to Standardize**:
 - Docker not running → Start Docker suggestions
-- Container not found → Run `glideup` first
+- Container not found → Run `glide up` first
 - Permission denied → Fix file permissions guide
 - Database connection → Check credentials, container status
 - Missing dependencies → Installation commands
@@ -365,25 +365,25 @@ if !c.ctx.DockerRunning {
   - [x] Consistent formatting rules across all commands
   - [x] Context-aware output (TTY detection, color support)
   - [x] Thread-safe global output manager
-  
+
 - [x] **Table Formatting** (`table.go`)
   - [x] Professional tabular output with proper formatting
   - [x] Header and content row support
   - [x] Consistent table structure across commands
   - [x] Integrated with status and data-display commands
-  
+
 - [x] **JSON/YAML Output Options** (`json.go`, `yaml.go`)
   - [x] Structured data output for all data-displaying commands
   - [x] Pretty-print JSON with proper indentation
   - [x] YAML output support with proper formatting
   - [x] Consistent schema across commands
-  
+
 - [x] **Global Quiet Mode**
   - [x] Single --quiet/-q flag respected by all commands
   - [x] Suppress all non-essential output
   - [x] Only show errors and explicitly requested data
   - [x] Progress indicators automatically disabled in quiet mode
-  
+
 - [x] **Centralized Color Management** (`color.go`)
   - [x] Abstraction layer over fatih/color
   - [x] Respect NO_COLOR environment variable
@@ -450,7 +450,7 @@ out.Display(StatusData{Container: name, State: "running"})
 
 **Core Impact Areas**:
 - **Developer Productivity**: Command discovery, argument completion, reduced typing, error prevention
-- **User Experience**: Modern CLI feel, discoverability, context awareness, cross-shell consistency  
+- **User Experience**: Modern CLI feel, discoverability, context awareness, cross-shell consistency
 - **Professional Polish**: Brings Glide up to standards expected of enterprise CLI tools
 
 **Implementation Components**:
@@ -460,14 +460,14 @@ out.Display(StatusData{Container: name, State: "running"})
   - [x] Dynamic container/service name completion
   - [x] File path completion for relevant commands
   - [x] Integration with system bash completion directories
-  
+
 - [x] **Zsh Completion** - Rich completion with descriptions and advanced features
   - [x] Comprehensive command completion with help text
   - [x] Grouped completions (commands vs flags vs arguments)
   - [x] Custom completion functions for context-aware suggestions
   - [x] Oh My Zsh and fraglidork integration
   - [x] Advanced Zsh completion features (menu select, descriptions)
-  
+
 - [x] **Fish Completion** - Fish-native completion syntax
   - [x] Fish-specific completion file generation
   - [x] Description support for all commands and options
@@ -499,19 +499,19 @@ out.Display(StatusData{Container: name, State: "running"})
 *Before Shell Completion*:
 ```bash
 # Manual memorization required
-glideglobal worktree feature/api-endpoint --auto-setup --migrate=fresh-seed
+glide global worktree feature/api-endpoint --auto-setup --migrate=fresh-seed
 
 # Trial and error for discovery
 glide--help | grep format
-glidelogs php  # Error: container not found
+glide logs php  # Error: container not found
 ```
 
 *After Shell Completion*:
 ```bash
 # Natural discovery workflow
 glideg<TAB>           # → global
-glideglobal <TAB>     # → clean, down, list, status, worktree
-glidelogs <TAB>       # → php, mysql, nginx (actual containers)
+glide global <TAB>     # → clean, down, list, status, worktree
+glide logs <TAB>       # → php, mysql, nginx (actual containers)
 glide--<TAB>          # → --format, --quiet, --no-color (with descriptions)
 ```
 
@@ -535,7 +535,7 @@ glide--<TAB>          # → --format, --quiet, --no-color (with descriptions)
 - Clear installation documentation and error handling provided
 
 **Installation Integration** ✅ **IMPLEMENTED**:
-- [x] Automatic completion script installation during `glidesetup`
+- [x] Automatic completion script installation during `glide setup`
 - [x] Manual installation instructions for advanced users
 - [x] Shell detection and appropriate script generation
 - [x] System-wide vs user-specific installation options
@@ -543,7 +543,7 @@ glide--<TAB>          # → --format, --quiet, --no-color (with descriptions)
 **Implementation Achievements**:
 - **Complete Infrastructure**: Full completion system in `internal/cli/completion.go` (520+ lines)
 - **All Shell Support**: Bash, Zsh, and Fish completion generation working
-- **Automatic Setup**: Integrated into `glidesetup` command with user feedback
+- **Automatic Setup**: Integrated into `glide setup` command with user feedback
 - **Manual Override**: `glide completion [shell]` command for advanced installation
 - **Smart Completions**: Dynamic container, branch, config key, and format completions
 - **Error Handling**: Graceful fallbacks with helpful error messages and suggestions
@@ -558,7 +558,7 @@ glide--<TAB>          # → --format, --quiet, --no-color (with descriptions)
 #### 8.2a - Basic Version Command ✅ **COMPLETED**
 **Files**: `pkg/version/version.go`, `internal/cli/version.go`
 **Implementation completed after Phase 8.1**
-- [x] Basic version command implementation (`glideversion`)
+- [x] Basic version command implementation (`glide version`)
 - [x] Display current version from existing infrastructure
 - [x] Show system information (OS, architecture)
 - [x] Display basic build information
@@ -592,7 +592,7 @@ glide--<TAB>          # → --format, --quiet, --no-color (with descriptions)
   - Semantic version comparison using semver library
   - Platform-specific binary detection
   - Network timeout handling and error recovery
-  
+
 - **Auto-Update System** (`pkg/update/updater.go`):
   - Self-update command with confirmation prompt
   - Binary download with progress indication
@@ -630,7 +630,7 @@ glide--<TAB>          # → --format, --quiet, --no-color (with descriptions)
   - [x] Show relevant commands for current project state
   - [x] Provide mode-appropriate examples and workflows
 
-- [x] **Intelligent Error Enhancement** 
+- [x] **Intelligent Error Enhancement**
   - [x] Context-aware "did you mean?" functionality (via Cobra built-in suggestions)
   - [x] Command suggestion when misused (e.g., "global" outside multi-worktree)
   - [x] Recovery guidance with specific next steps
@@ -651,7 +651,7 @@ glide--<TAB>          # → --format, --quiet, --no-color (with descriptions)
 #### **Medium-Priority Enhancement** (Nice-to-have):
 - [ ] Interactive help mode with guided workflows
 - [ ] Advanced troubleshooting guides with diagnostic commands
-- [ ] Integration with `glidesetup` for onboarding improvements
+- [ ] Integration with `glide setup` for onboarding improvements
 
 #### **Success Metrics**:
 - **Discoverability**: Users find right command within 2 tries (vs current 5+ tries)
@@ -662,33 +662,33 @@ glide--<TAB>          # → --format, --quiet, --no-color (with descriptions)
 
 **Before (Current State)**:
 ```bash
-$ glideglobal
+$ glide global
 ✗ Error: unknown command "global" for "glid"
 # User stuck - no guidance provided
 ```
 
 **After (Phase 8.3 Target)**:
 ```bash
-$ glideglobal  
+$ glide global
 ✗ Error: Global commands are only available in multi-worktree mode
 
 💡 Quick fixes:
-  • Run 'glidesetup' to configure a project
-  • Navigate to an existing multi-worktree project  
-  • Use 'glidehelp getting-started' for setup guidance
+  • Run 'glide setup' to configure a project
+  • Navigate to an existing multi-worktree project
+  • Use 'glide help getting-started' for setup guidance
 
-$ glidehelp
+$ glide help
 🏠 You're in a multi-worktree project root
 
 Quick Start:
-  glideglobal status     # Check all worktree statuses
-  glideglobal list       # List active worktrees
-  glideglobal worktree   # Create new feature branch
+  glide global status     # Check all worktree statuses
+  glide global list       # List active worktrees
+  glide global worktree   # Create new feature branch
 
 Common Workflows:
-  • Starting work: glideglobal worktree feature/name
-  • Daily status: glideglobal status  
-  • Cleanup: glideglobal down && glideglobal clean
+  • Starting work: glide global worktree feature/name
+  • Daily status: glide global status
+  • Cleanup: glide global down && glide global clean
 ```
 
 **Implementation Strategy**: Build context-aware help infrastructure first, then layer on workflow guidance and error intelligence.
@@ -706,10 +706,10 @@ Common Workflows:
 - **Mode-Specific Help** - Different help content for single-repo vs multi-worktree modes
 
 **User Guidance Systems**:
-- **Getting Started Guide** (`glidehelp getting-started`) - Complete onboarding workflow
-- **Workflow Examples** (`glidehelp workflows`) - Task-oriented command patterns
-- **Mode Explanations** (`glidehelp modes`) - Clear explanation of development mode differences
-- **Troubleshooting Guide** (`glidehelp troubleshooting`) - Solutions for common issues
+- **Getting Started Guide** (`glide help getting-started`) - Complete onboarding workflow
+- **Workflow Examples** (`glide help workflows`) - Task-oriented command patterns
+- **Mode Explanations** (`glide help modes`) - Clear explanation of development mode differences
+- **Troubleshooting Guide** (`glide help troubleshooting`) - Solutions for common issues
 
 **Smart Error Handling**:
 - **Typo Suggestions** - Cobra built-in fuzzy matching for command corrections
@@ -717,7 +717,7 @@ Common Workflows:
 - **Command Discovery** - Help users find what they need when lost
 
 **Professional User Experience**:
-- **Contextual Icons** - Visual indicators (🏠, 📍, 💡, ✓, ⚠️) for better readability  
+- **Contextual Icons** - Visual indicators (🏠, 📍, 💡, ✓, ⚠️) for better readability
 - **Progressive Disclosure** - Information layered from basic to advanced
 - **Copy-Pasteable Commands** - All examples are ready-to-use command sequences
 
@@ -733,27 +733,27 @@ Common Workflows:
 **Context-Aware Help**:
 ```bash
 # Multi-worktree project root
-$ glidehelp
+$ glide help
 ✓ 🏠 You're in a multi-worktree project
 📍 Current location: Project root (management directory)
 Quick Start - Global Operations:
-  glideglobal status       # Check all worktree statuses
+  glide global status       # Check all worktree statuses
 
-# No project context  
-$ glidehelp
+# No project context
+$ glide help
 ⚠️ You're not in a Glide project directory
 🚀 Getting Started:
-  glidesetup               # Interactive project setup
+  glide setup               # Interactive project setup
 ```
 
 **Smart Command Discovery**:
 ```bash
-$ glidehelp workflows
+$ glide help workflows
 ✓ 🔄 Common Development Workflows
 🌟 Starting a New Feature:
-  glideglobal worktree feature/user-dashboard
+  glide global worktree feature/user-dashboard
   cd worktrees/feature-user-dashboard
-  glideup && glidetest
+  glide up && glide test
 ```
 
 ## Phase 9: Testing & Quality
@@ -946,7 +946,7 @@ $ glidehelp workflows
 **Testing Strategy Decision**:
 - **Decision**: Do NOT mock external dependencies
 - **Rationale**: For a CLI tool, verifying real dependencies is more valuable than achieving artificial coverage through mocks
-- **Approach**: 
+- **Approach**:
   1. Unit tests focus on internal logic and error handling (completed)
   2. Integration tests (Phase 9.2) will verify external dependencies exist and meet version requirements
   3. Coverage levels above are acceptable given this constraint
@@ -1004,7 +1004,7 @@ $ glidehelp workflows
   - Non-interactive mode support
 - [x] Test project detection
   - Single-repo mode detection
-  - Multi-worktree mode detection  
+  - Multi-worktree mode detection
   - Project root detection
 - [x] Test environment validation
   - Git repository detection
@@ -1246,7 +1246,7 @@ go test ./tests/integration/...
 - ✅ **Complete CI/CD Pipeline**: GitHub Actions workflows for testing, building, and releasing
 - ✅ **Cross-Platform Builds**: 6 platform/architecture combinations (Linux/macOS/Windows, AMD64/ARM64)
 - ✅ **Automated Testing**: Unit, integration, and E2E tests with 70% coverage minimum
-- ✅ **Security Integration**: Gosec scanning, golangci-lint, and vulnerability detection  
+- ✅ **Security Integration**: Gosec scanning, golangci-lint, and vulnerability detection
 - ✅ **Release Automation**: GitHub Releases with auto-generated notes and checksums
 - ✅ **Docker Support**: Multi-architecture container builds with proper versioning
 - ✅ **Version Management**: Enhanced build information injection and display
@@ -1320,7 +1320,7 @@ go test ./tests/integration/...
 
 **Dependency Inversion Principle (DIP)**:
 - [x] Define DockerResolver interface
-- [x] Create CommandExecutor interface  
+- [x] Create CommandExecutor interface
 - [x] Abstract ConfigLoader interface
 - [x] Inject interfaces instead of concrete types
   - Created `pkg/interfaces/interfaces.go` with all major interfaces
@@ -1337,7 +1337,7 @@ go test ./tests/integration/...
 - [x] `ShellExecutor` interface for command execution
 - [x] `DockerResolver` interface for Docker operations
 - [x] `ConfigLoader` interface for configuration loading
-- [x] `ContextDetector` interface for context detection  
+- [x] `ContextDetector` interface for context detection
 - [x] `FormatterRegistry` interface for formatter management
 - [x] `ProjectRootFinder`, `DevelopmentModeDetector`, `LocationIdentifier` for context strategies
 - [x] `ExecutionStrategy` interface for shell command strategies
@@ -1396,7 +1396,7 @@ go test ./tests/integration/...
   - gRPC/Protocol Buffers communication design
   - Plugin lifecycle management
   - Performance metrics and benchmarks
-  
+
 - **Runtime Plugin SDK Guide** (`docs/runtime-plugin-sdk.md`)
   - Step-by-step plugin development guide
   - SDK API reference with examples

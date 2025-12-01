@@ -126,7 +126,7 @@ func ShowCommandSuggestion(attemptedCommand string, suggestions []string, ctx *c
 	}
 
 	output.Raw("\n")
-	output.Raw("For all available commands: glidehelp\n")
+	output.Raw("For all available commands: glide help\n")
 
 	return glideErrors.NewConfigError("unknown command",
 		glideErrors.WithSuggestions(append(suggestions, "help")...),
@@ -143,32 +143,32 @@ func ShowUnknownCommandError(command string, ctx *context.ProjectContext, cfg *c
 	case context.ModeMultiWorktree:
 		output.Info("💡 Available commands in multi-worktree mode:")
 		if ctx.Location == context.LocationRoot {
-			output.Raw("  glideglobal status       # Check all worktrees\n")
-			output.Raw("  glideglobal list         # List worktrees\n")
-			output.Raw("  glideglobal worktree     # Create new worktree\n")
+			output.Raw("  glide global status       # Check all worktrees\n")
+			output.Raw("  glide global list         # List worktrees\n")
+			output.Raw("  glide global worktree     # Create new worktree\n")
 		} else {
-			output.Raw("  glideup                  # Start containers\n")
-			output.Raw("  glidetest                # Run tests\n")
-			output.Raw("  glideshell               # Access container\n")
+			output.Raw("  glide up                  # Start containers\n")
+			output.Raw("  glide test                # Run tests\n")
+			output.Raw("  glide shell               # Access container\n")
 		}
 
 	case context.ModeSingleRepo:
 		output.Info("💡 Available commands in single-repo mode:")
-		output.Raw("  glideup                  # Start containers\n")
-		output.Raw("  glidetest                # Run tests\n")
-		output.Raw("  glidedocker              # Docker commands\n")
-		output.Raw("  glidecomposer            # Package management\n")
+		output.Raw("  glide up                  # Start containers\n")
+		output.Raw("  glide test                # Run tests\n")
+		output.Raw("  glide docker              # Docker commands\n")
+		output.Raw("  glide composer            # Package management\n")
 
 	default:
 		output.Info("💡 To get started:")
-		output.Raw("  glidesetup               # Configure project\n")
-		output.Raw("  glidehelp getting-started # Complete guide\n")
+		output.Raw("  glide setup               # Configure project\n")
+		output.Raw("  glide help getting-started # Complete guide\n")
 	}
 
 	output.Raw("\n")
 	output.Raw("📚 Get help:\n")
-	output.Raw("  glidehelp                # Context-aware help\n")
-	output.Raw("  glidehelp workflows      # Common patterns\n")
+	output.Raw("  glide help                # Context-aware help\n")
+	output.Raw("  glide help workflows      # Common patterns\n")
 
 	// Check for common typos
 	commonCommands := []string{"up", "down", "test", "shell", "mysql", "status", "logs"}

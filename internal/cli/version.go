@@ -53,10 +53,10 @@ This command shows the current version of Glide along with:
 The output format can be controlled using the global --format flag.
 
 Examples:
-  glideversion                    # Show version information
-  glideversion --check-update     # Check for available updates
-  glideversion --format json      # Output as JSON
-  glideversion --format yaml      # Output as YAML`,
+  glide version                    # Show version information
+  glide version --check-update     # Check for available updates
+  glide version --format json      # Output as JSON
+  glide version --format yaml      # Output as YAML`,
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, args []string) error {

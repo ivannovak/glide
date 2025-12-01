@@ -5,9 +5,9 @@
 Check your Glide installation and context:
 
 ```bash
-glideversion          # Verify Glide is installed
-glidecontext          # Show detected project context
-glidehelp            # See available commands
+glide version          # Verify Glide is installed
+glide context          # Show detected project context
+glide help             # See available commands
 ```
 
 ## Common Issues and Solutions
@@ -82,17 +82,17 @@ chmod +x /usr/local/bin/glid
 
 #### "Command only available in multi-worktree mode"
 
-**Problem:** Trying to use `glideproject` commands in single-repo mode.
+**Problem:** Trying to use `glide project` commands in single-repo mode.
 
 **Solutions:**
 1. Check current mode:
    ```bash
-   glidecontext
+   glide context
    ```
 
 2. Convert to multi-worktree mode:
    ```bash
-   glidesetup --mode multi
+   glide setup --mode multi
    ```
 
 3. Or stay in single-repo mode and avoid `project` commands.
@@ -123,7 +123,7 @@ chmod +x /usr/local/bin/glid
 3. **Check for typos:**
    ```bash
    # List available commands
-   glidehelp
+   glide help
    # Your YAML commands should appear in the list
    ```
 
@@ -216,15 +216,15 @@ chmod +x /usr/local/bin/glid
 
 #### "Cannot create worktree"
 
-**Problem:** `glideproject worktree` fails.
+**Problem:** `glide project worktree` fails.
 
 **Solutions:**
 
 1. **Ensure you're in multi-worktree mode:**
    ```bash
-   glidecontext  # Should show "multi-worktree"
+   glide context  # Should show "multi-worktree"
    # If not:
-   glidesetup --mode multi
+   glide setup --mode multi
    ```
 
 2. **Check if worktree already exists:**
@@ -242,8 +242,8 @@ chmod +x /usr/local/bin/glid
 4. **Ensure branch name is valid:**
    ```bash
    # Use valid Git branch names
-   glideproject worktree feature/my-feature  # Good
-   glideproject worktree "my feature"        # Bad (spaces)
+   glide project worktree feature/my-feature  # Good
+   glide project worktree "my feature"        # Bad (spaces)
    ```
 
 #### Wrong directory structure after setup
@@ -338,7 +338,7 @@ project/
 
 #### Self-update fails
 
-**Problem:** `glideself-update` doesn't work.
+**Problem:** `glide self-update` doesn't work.
 
 **Solutions:**
 
@@ -358,7 +358,7 @@ project/
 
 3. **Check current version:**
    ```bash
-   glideversion
+   glide version
    ```
 
 ## Debug Mode
@@ -367,10 +367,10 @@ Get more information about issues:
 
 ```bash
 # Show detailed context information
-glidecontext --json
+glide context --json
 
 # Check what commands are available
-glidehelp
+glide help
 
 # See if YAML commands are loaded
 grep -A 10 "^commands:" .glide.yml
@@ -382,8 +382,8 @@ If issues persist:
 
 1. **Gather debug information:**
    ```bash
-   glideversion > debug.txt
-   glidecontext >> debug.txt
+   glide version > debug.txt
+   glide context >> debug.txt
    cat .glide.yml >> debug.txt
    ```
 
@@ -392,7 +392,7 @@ If issues persist:
 
 3. **Report new issue with:**
    - OS and version (`uname -a`)
-   - Glide version (`glideversion`)
+   - Glide version (`glide version`)
    - Project structure (`ls -la`)
    - Debug output from above
 
@@ -408,7 +408,7 @@ mv ~/.glide ~/.glide.backup
 mv .glide.yml .glide.yml.backup
 
 # Start fresh
-glidesetup
+glide setup
 ```
 
 ### Manual Fallback
@@ -445,13 +445,13 @@ Keep Glide running smoothly:
 
 ```bash
 # Check for updates
-glideself-update --check
+glide self-update --check
 
 # Clean old plugins
 ls -la ~/.glide/plugins/
 # Remove unused plugins manually
 
 # Verify setup
-glidecontext
-glidehelp
+glide context
+glide help
 ```
