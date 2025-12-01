@@ -41,6 +41,17 @@ type DefaultsConfig struct {
 	Docker   DockerDefaults   `yaml:"docker"`
 	Colors   ColorDefaults    `yaml:"colors"`
 	Worktree WorktreeDefaults `yaml:"worktree"`
+	Update   UpdateDefaults   `yaml:"update"`
+}
+
+// UpdateDefaults contains update notification settings
+type UpdateDefaults struct {
+	// CheckEnabled controls whether automatic update checks are performed
+	CheckEnabled bool `yaml:"check_enabled"`
+	// CheckIntervalHours is the number of hours between update checks (default: 24)
+	CheckIntervalHours int `yaml:"check_interval_hours"`
+	// NotifyEnabled controls whether update notifications are shown
+	NotifyEnabled bool `yaml:"notify_enabled"`
 }
 
 // TestDefaults contains default test settings
@@ -134,6 +145,11 @@ func GetDefaults() Config {
 				AutoSetup:     false,
 				CopyEnv:       true,
 				RunMigrations: false,
+			},
+			Update: UpdateDefaults{
+				CheckEnabled:       true,
+				CheckIntervalHours: 24,
+				NotifyEnabled:      true,
 			},
 		},
 	}

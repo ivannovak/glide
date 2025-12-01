@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"time"
 
 	cliPkg "github.com/ivannovak/glide/v3/internal/cli"
 	"github.com/ivannovak/glide/v3/internal/config"
@@ -14,6 +15,7 @@ import (
 	"github.com/ivannovak/glide/v3/pkg/logging"
 	"github.com/ivannovak/glide/v3/pkg/output"
 	"github.com/ivannovak/glide/v3/pkg/plugin"
+	"github.com/ivannovak/glide/v3/pkg/update"
 	"github.com/ivannovak/glide/v3/pkg/version"
 	"github.com/spf13/cobra"
 )
@@ -27,6 +29,10 @@ var (
 	outputFormat string
 	quietMode    bool
 	noColor      bool
+
+	// Update notification
+	updateNotificationManager *update.NotificationManager
+	updateCheckResult         <-chan *update.UpdateInfo
 )
 
 func main() {
@@ -50,6 +56,9 @@ func Execute() error {
 		logging.Error("Failed to load configuration", "error", err)
 		return fmt.Errorf("failed to load config: %w", err)
 	}
+
+	// Start background update check if enabled
+	startUpdateCheck(cfg)
 
 	// Get list of registered plugins for context detection
 	// We pass them as interface{} to avoid import cycles
@@ -188,5 +197,84 @@ func Execute() error {
 	rootCmd.SuggestionsMinimumDistance = 1
 
 	// Execute root command
-	return rootCmd.Execute()
+	cmdErr := rootCmd.Execute()
+
+	// Show update notification after command completes (if not in quiet mode)
+	if !quietMode {
+		showUpdateNotification(cfg)
+	}
+
+	return cmdErr
+}
+
+// startUpdateCheck initializes the update notification manager and starts background check
+func startUpdateCheck(cfg *config.Config) {
+	// Check if updates are disabled via config
+	if cfg != nil && !cfg.Defaults.Update.CheckEnabled {
+		logging.Debug("Update checks disabled in configuration")
+		return
+	}
+
+	// Check if disabled via environment variable
+	if os.Getenv("GLIDE_NO_UPDATE_CHECK") != "" {
+		logging.Debug("Update checks disabled via GLIDE_NO_UPDATE_CHECK")
+		return
+	}
+
+	// Get check interval from config (default to 24 hours)
+	checkInterval := update.DefaultCheckInterval
+	if cfg != nil && cfg.Defaults.Update.CheckIntervalHours > 0 {
+		checkInterval = time.Duration(cfg.Defaults.Update.CheckIntervalHours) * time.Hour
+	}
+
+	// Create notification config
+	notifyConfig := &update.NotificationConfig{
+		Enabled:       true,
+		CheckInterval: checkInterval,
+	}
+
+	// Initialize notification manager
+	updateNotificationManager = update.NewNotificationManager(version.Get(), notifyConfig)
+
+	// Only check if enough time has passed
+	if updateNotificationManager.ShouldCheck() {
+		logging.Debug("Starting background update check")
+		updateCheckResult = updateNotificationManager.CheckForUpdateAsync(stdcontext.Background())
+	} else {
+		logging.Debug("Skipping update check, checked recently")
+	}
+}
+
+// showUpdateNotification displays update notification if an update is available
+func showUpdateNotification(cfg *config.Config) {
+	// Check if notifications are disabled
+	if cfg != nil && !cfg.Defaults.Update.NotifyEnabled {
+		return
+	}
+
+	if updateNotificationManager == nil {
+		return
+	}
+
+	var info *update.UpdateInfo
+
+	// Wait for async check to complete (channel closes when done)
+	// The check has its own 3s timeout, so this won't block long
+	if updateCheckResult != nil {
+		result, ok := <-updateCheckResult
+		if ok && result != nil {
+			info = result
+		}
+	}
+
+	// Fall back to cached info
+	if info == nil {
+		info = updateNotificationManager.GetCachedUpdateInfo()
+	}
+
+	// Display notification if update available
+	if info != nil && info.Available {
+		fmt.Fprint(os.Stderr, update.FormatNotification(info))
+		updateNotificationManager.MarkNotified(info.LatestVersion)
+	}
 }

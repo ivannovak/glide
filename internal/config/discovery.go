@@ -166,4 +166,16 @@ func mergeDefaults(target, source *DefaultsConfig) {
 	if !target.Worktree.RunMigrations && source.Worktree.RunMigrations {
 		target.Worktree.RunMigrations = source.Worktree.RunMigrations
 	}
+
+	// Update defaults - note: we use explicit false checks since defaults are true
+	// This means user must explicitly set to false to override
+	if !target.Update.CheckEnabled && source.Update.CheckEnabled {
+		target.Update.CheckEnabled = source.Update.CheckEnabled
+	}
+	if target.Update.CheckIntervalHours == 0 && source.Update.CheckIntervalHours != 0 {
+		target.Update.CheckIntervalHours = source.Update.CheckIntervalHours
+	}
+	if !target.Update.NotifyEnabled && source.Update.NotifyEnabled {
+		target.Update.NotifyEnabled = source.Update.NotifyEnabled
+	}
 }
