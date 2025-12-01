@@ -210,12 +210,11 @@ func (nm *NotificationManager) CheckForUpdateAsync(ctx context.Context) <-chan *
 		}
 		nm.mu.Unlock()
 
-		// Save state (non-blocking, ignore errors)
-		go func() {
-			if err := nm.saveState(); err != nil {
-				logging.Debug("Failed to save update state", "error", err)
-			}
-		}()
+		// Save state synchronously within this goroutine
+		// (must complete before process exits for state to persist)
+		if err := nm.saveState(); err != nil {
+			logging.Debug("Failed to save update state", "error", err)
+		}
 
 		if info.Available {
 			resultChan <- info
@@ -249,12 +248,10 @@ func (nm *NotificationManager) MarkNotified(version string) {
 	nm.state.LastNotifiedVersion = version
 	nm.mu.Unlock()
 
-	// Save state asynchronously
-	go func() {
-		if err := nm.saveState(); err != nil {
-			logging.Debug("Failed to save notification state", "error", err)
-		}
-	}()
+	// Save state synchronously to ensure it persists before process exits
+	if err := nm.saveState(); err != nil {
+		logging.Debug("Failed to save notification state", "error", err)
+	}
 }
 
 // FormatNotification creates a concise update notification message

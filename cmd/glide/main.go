@@ -258,15 +258,12 @@ func showUpdateNotification(cfg *config.Config) {
 
 	var info *update.UpdateInfo
 
-	// First check for async result (if we started a check)
+	// Wait for async check to complete (channel closes when done)
+	// The check has its own 3s timeout, so this won't block long
 	if updateCheckResult != nil {
-		select {
-		case result := <-updateCheckResult:
-			if result != nil {
-				info = result
-			}
-		default:
-			// Check didn't complete in time, use cached info
+		result, ok := <-updateCheckResult
+		if ok && result != nil {
+			info = result
 		}
 	}
 
