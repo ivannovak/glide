@@ -378,9 +378,9 @@ commands:
 		assert.Contains(t, outputStr, "This is safe", "Should execute safe command")
 	})
 
-	t.Run("block_multiline_commands_by_default", func(t *testing.T) {
-		// Security test: Multi-line commands contain newlines which are blocked
-		// by default sanitization as potential injection vectors
+	t.Run("allow_multiline_commands_in_script_mode", func(t *testing.T) {
+		// Script mode (default) allows multi-line shell scripts in YAML commands
+		// This is safe because the command string is user-authored, not user-input
 		tmpDir := t.TempDir()
 		gitDir := filepath.Join(tmpDir, ".git")
 		require.NoError(t, os.MkdirAll(gitDir, 0755))
@@ -396,13 +396,43 @@ commands:
 `
 		require.NoError(t, os.WriteFile(configPath, []byte(configContent), 0644))
 
-		// Test: Execute without disabling sanitization
+		// Test: Execute with default script mode
 		cmd := exec.Command(glideBinary, "multi")
 		cmd.Dir = tmpDir
 		output, err := cmd.CombinedOutput()
 
-		// Assert: Command is blocked due to newline injection protection
-		assert.Error(t, err, "Multi-line commands should be blocked by default sanitization")
+		// Assert: Multi-line commands work in script mode (default)
+		require.NoError(t, err, "Multi-line commands should work in default script mode")
+		outputStr := string(output)
+		assert.Contains(t, outputStr, "Line 1", "Should execute first line")
+		assert.Contains(t, outputStr, "Line 2", "Should execute second line")
+	})
+
+	t.Run("block_multiline_commands_in_strict_mode", func(t *testing.T) {
+		// Strict mode blocks multi-line commands as potential injection vectors
+		tmpDir := t.TempDir()
+		gitDir := filepath.Join(tmpDir, ".git")
+		require.NoError(t, os.MkdirAll(gitDir, 0755))
+
+		configPath := filepath.Join(tmpDir, ".glide.yml")
+		configContent := `version: 1
+commands:
+  multi:
+    cmd: |
+      echo "Line 1"
+      echo "Line 2"
+    description: "Multi-line command"
+`
+		require.NoError(t, os.WriteFile(configPath, []byte(configContent), 0644))
+
+		// Test: Execute with strict sanitization mode
+		cmd := exec.Command(glideBinary, "multi")
+		cmd.Dir = tmpDir
+		cmd.Env = append(os.Environ(), "GLIDE_YAML_SANITIZE_MODE=strict")
+		output, err := cmd.CombinedOutput()
+
+		// Assert: Command is blocked in strict mode
+		assert.Error(t, err, "Multi-line commands should be blocked in strict mode")
 		outputStr := string(output)
 		assert.Contains(t, outputStr, "newline", "Error should mention newline as the issue")
 	})
