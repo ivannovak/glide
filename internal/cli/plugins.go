@@ -264,23 +264,20 @@ func installFromGitHub(ctx context.Context, repo string) error {
 	}
 	defer os.Remove(tempFile)
 
-	// Install from temporary file
-	return installFromFile(tempFile)
+	// Install from temporary file with proper plugin name
+	pluginName := filepath.Base(repo) // e.g., "glide-plugin-go"
+	return installFromFileWithName(tempFile, pluginName)
 }
 
 // installFromFile installs a plugin from a local file
+// It derives the plugin name from the file path
 func installFromFile(pluginPath string) error {
-	// Verify plugin exists
-	if _, err := os.Stat(pluginPath); err != nil {
-		return fmt.Errorf("plugin file not found: %w", err)
-	}
-
 	// Get plugin name from path (remove platform suffix if present)
 	pluginName := filepath.Base(pluginPath)
 	// Remove -darwin-arm64, -linux-amd64, etc. suffixes
-	for _, os := range []string{"darwin", "linux", "windows"} {
+	for _, osName := range []string{"darwin", "linux", "windows"} {
 		for _, arch := range []string{"amd64", "arm64", "386"} {
-			suffix := "-" + os + "-" + arch
+			suffix := "-" + osName + "-" + arch
 			if len(pluginName) > len(suffix) && pluginName[len(pluginName)-len(suffix):] == suffix {
 				pluginName = pluginName[:len(pluginName)-len(suffix)]
 			}
@@ -291,6 +288,16 @@ func installFromFile(pluginPath string) error {
 		}
 	}
 
+	return installFromFileWithName(pluginPath, pluginName)
+}
+
+// installFromFileWithName installs a plugin from a local file with an explicit name
+func installFromFileWithName(pluginPath, pluginName string) error {
+	// Verify plugin exists
+	if _, err := os.Stat(pluginPath); err != nil {
+		return fmt.Errorf("plugin file not found: %w", err)
+	}
+
 	// Determine installation directory
 	installDir := branding.GetGlobalPluginDir()
 	if err := os.MkdirAll(installDir, 0755); err != nil {
@@ -299,6 +306,13 @@ func installFromFile(pluginPath string) error {
 
 	// Copy plugin to installation directory
 	destPath := filepath.Join(installDir, pluginName)
+
+	// Check if plugin already exists and remove it first (allows updates/reinstalls)
+	if _, err := os.Stat(destPath); err == nil {
+		if err := os.Remove(destPath); err != nil {
+			return fmt.Errorf("failed to remove existing plugin: %w", err)
+		}
+	}
 
 	// Copy file
 	src, err := os.Open(pluginPath)
