@@ -10,7 +10,6 @@ on:
   workflow_call:  # Called by semantic-release and release workflows
 
 env:
-  GO_VERSION: '1.24'
   CACHE_VERSION: v1
 
 jobs:
@@ -23,12 +22,12 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v6
         with:
-          go-version: ${{ env.GO_VERSION }}
+          go-version-file: 'go.mod'
           cache: true
       - run: go mod download
       - run: go mod verify
       - id: cache
-        run: echo "key=${{ runner.os }}-go-${{ env.GO_VERSION }}-${{ hashFiles('**/go.sum') }}" >> $GITHUB_OUTPUT
+        run: echo "key=${{ runner.os }}-go-${{ hashFiles('go.mod') }}-${{ hashFiles('**/go.sum') }}" >> $GITHUB_OUTPUT
 
   lint:
     needs: validate
@@ -37,7 +36,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v6
         with:
-          go-version: ${{ env.GO_VERSION }}
+          go-version-file: 'go.mod'
           cache: true
       - name: Install golangci-lint
         run: |
@@ -67,7 +66,7 @@ jobs:
           fetch-depth: 0  # Needed for coverage diff
       - uses: actions/setup-go@v6
         with:
-          go-version: ${{ env.GO_VERSION }}
+          go-version-file: 'go.mod'
           cache: true
       - name: Run tests with coverage
         run: go test -race -coverprofile=coverage.out -covermode=atomic ./...
@@ -100,7 +99,7 @@ jobs:
           echo "|---------|----------|--------|" >> coverage-report.md
 
           for pkg in "pkg/plugin/sdk/v1" "pkg/plugin/sdk" "internal/cli" "pkg/prompt"; do
-            COV=$(go tool cover -func=coverage.out | grep "github.com/ivannovak/glide/v2/${pkg}/" | \
+            COV=$(go tool cover -func=coverage.out | grep "github.com/glide-cli/glide/v3/${pkg}/" | \
               awk '{sum += $3; count++} END {if (count > 0) printf "%.1f%%", sum/count; else print "N/A"}')
 
             if [[ "$COV" == "N/A" ]]; then
@@ -121,7 +120,7 @@ jobs:
           echo "|---------|----------|--------|" >> coverage-report.md
 
           for pkg in "internal/config" "pkg/errors" "pkg/output"; do
-            COV=$(go tool cover -func=coverage.out | grep "github.com/ivannovak/glide/v2/${pkg}/" | \
+            COV=$(go tool cover -func=coverage.out | grep "github.com/glide-cli/glide/v3/${pkg}/" | \
               awk '{sum += $3; count++} END {if (count > 0) printf "%.1f%%", sum/count; else print "N/A"}')
 
             if [[ "$COV" == "N/A" ]]; then
@@ -156,7 +155,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v6
         with:
-          go-version: ${{ env.GO_VERSION }}
+          go-version-file: 'go.mod'
           cache: true
       - run: go test -tags=integration -timeout=60s ./tests/integration/...
       - run: go test -v -timeout=10m ./tests/e2e/...
@@ -176,7 +175,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v6
         with:
-          go-version: ${{ env.GO_VERSION }}
+          go-version-file: 'go.mod'
           cache: true
       - run: |
           CGO_ENABLED=0 GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} \
@@ -192,7 +191,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v6
         with:
-          go-version: ${{ env.GO_VERSION }}
+          go-version-file: 'go.mod'
       - name: Run govulncheck
         run: |
           go install golang.org/x/vuln/cmd/govulncheck@latest

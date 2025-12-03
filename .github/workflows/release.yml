@@ -15,7 +15,6 @@ on:
     types: [published]
 
 env:
-  GO_VERSION: '1.24'
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
@@ -57,7 +56,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v6
       with:
-        go-version: ${{ env.GO_VERSION }}
+        go-version-file: 'go.mod'
 
     - name: Cache Go modules
       uses: actions/cache@v3
@@ -85,9 +84,9 @@ jobs:
       run: |
         CGO_ENABLED=0 GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} \
         go build -ldflags="-s -w \
-        -X github.com/ivannovak/glide/pkg/version.Version=${{ steps.version.outputs.version }} \
-        -X github.com/ivannovak/glide/pkg/version.BuildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ) \
-        -X github.com/ivannovak/glide/pkg/version.GitCommit=$(git rev-parse --short HEAD)" \
+        -X github.com/glide-cli/glide/v3/pkg/version.Version=${{ steps.version.outputs.version }} \
+        -X github.com/glide-cli/glide/v3/pkg/version.BuildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ) \
+        -X github.com/glide-cli/glide/v3/pkg/version.GitCommit=$(git rev-parse --short HEAD)" \
         -o glide-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.ext }} ./cmd/glide
 
     - name: Generate checksum
@@ -156,17 +155,17 @@ jobs:
             echo "" >> RELEASE_NOTES.md
           fi
         fi
-        
+
         # Add installation instructions
         cat << 'EOF' >> RELEASE_NOTES.md
-        
+
         ## Installation
-        
+
         ### Quick Install (Recommended)
         ```bash
-        curl -fsSL https://raw.githubusercontent.com/ivannovak/glide/main/install.sh | bash
+        curl -fsSL https://raw.githubusercontent.com/glide-cli/glide/main/scripts/install.sh | bash
         ```
-        
+
         ### Manual Installation
 
         1. Download the appropriate binary for your system from the assets below
@@ -177,9 +176,9 @@ jobs:
         ```bash
         glide version
         ```
-        
+
         ## Checksums
-        
+
         All binaries include SHA256 checksums for verification:
         ```bash
         sha256sum -c glide-*.sha256
