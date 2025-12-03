@@ -1,3 +1,20 @@
+## [4.0.0](https://github.com/ivannovak/glide/compare/v3.1.1...v4.0.0) (2025-12-03)
+
+
+### ⚠ BREAKING CHANGES
+
+* Module path changed from github.com/ivannovak/glide/v3
+to github.com/glide-cli/glide/v3. Update your imports accordingly.
+
+* chore: update Go toolchain to 1.24.11
+
+Fixes GO-2025-4155 vulnerability in crypto/x509 (excessive resource
+consumption when printing error string for host certificate validation).
+
+### Miscellaneous Chores
+
+* migrate to glide-cli GitHub organization ([#23](https://github.com/ivannovak/glide/issues/23)) ([650b3ff](https://github.com/ivannovak/glide/commit/650b3ffef3b2a3a3ce76c3f7d0c03a1f8b37c1b1))
+
 ## [3.1.1](https://github.com/ivannovak/glide/compare/v3.1.0...v3.1.1) (2025-12-01)
 
 
