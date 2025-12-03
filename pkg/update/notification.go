@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ivannovak/glide/v3/pkg/logging"
+	"github.com/glide-cli/glide/v3/pkg/logging"
 )
 
 const (

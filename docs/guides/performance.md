@@ -28,7 +28,7 @@ Glide is designed for fast startup and responsive execution. Key performance tar
 ### Using Performance Budgets
 
 ```go
-import "github.com/ivannovak/glide/v3/pkg/performance"
+import "github.com/glide-cli/glide/v3/pkg/performance"
 
 // List all budgets
 budgets := performance.ListBudgets()
@@ -124,7 +124,7 @@ detector.EnsureDockerStatus(ctx)
 ### Recording Metrics
 
 ```go
-import "github.com/ivannovak/glide/v3/pkg/observability"
+import "github.com/glide-cli/glide/v3/pkg/observability"
 
 // Counters
 observability.IncrementCounter("commands_executed")
@@ -434,7 +434,7 @@ func (d *Detector) EnsureDockerStatus(ctx *Context) {
 ### Health Checks
 
 ```go
-import "github.com/ivannovak/glide/v3/pkg/observability"
+import "github.com/glide-cli/glide/v3/pkg/observability"
 
 monitor := observability.NewHealthMonitor("1.0.0")
 report := monitor.Check(ctx)

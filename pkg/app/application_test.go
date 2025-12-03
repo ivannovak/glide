@@ -3,9 +3,9 @@ package app
 import (
 	"testing"
 
-	"github.com/ivannovak/glide/v3/internal/context"
-	"github.com/ivannovak/glide/v3/pkg/output"
-	"github.com/ivannovak/glide/v3/tests/testutil"
+	"github.com/glide-cli/glide/v3/internal/context"
+	"github.com/glide-cli/glide/v3/pkg/output"
+	"github.com/glide-cli/glide/v3/tests/testutil"
 	"github.com/stretchr/testify/assert"
 )
 

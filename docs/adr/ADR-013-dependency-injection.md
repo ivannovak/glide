@@ -569,7 +569,7 @@ go test ./pkg/app/... -v
 grep -r "app\.Application" internal/ cmd/ --include="*.go" | grep -v "_test.go" | grep -v "// Deprecated"
 # ✅ Only comment references (old code examples)
 
-grep -r '"github.com/ivannovak/glide/v3/pkg/app"' internal/ cmd/ --include="*.go" | grep -v "_test.go"
+grep -r '"github.com/glide-cli/glide/v3/pkg/app"' internal/ cmd/ --include="*.go" | grep -v "_test.go"
 # ✅ No imports found
 ```
 

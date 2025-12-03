@@ -1,8 +1,8 @@
-module github.com/ivannovak/glide/v3
+module github.com/glide-cli/glide/v3
 
 go 1.24.0
 
-toolchain go1.24.6
+toolchain go1.24.11
 
 require (
 	github.com/Masterminds/semver/v3 v3.4.0

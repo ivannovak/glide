@@ -3,9 +3,9 @@ package container
 import (
 	"io"
 
-	"github.com/ivannovak/glide/v3/internal/config"
-	"github.com/ivannovak/glide/v3/internal/context"
-	"github.com/ivannovak/glide/v3/pkg/logging"
+	"github.com/glide-cli/glide/v3/internal/config"
+	"github.com/glide-cli/glide/v3/internal/context"
+	"github.com/glide-cli/glide/v3/pkg/logging"
 	"go.uber.org/fx"
 )
 

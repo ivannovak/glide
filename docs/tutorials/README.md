@@ -82,4 +82,4 @@ glide build
 
 ## Feedback
 
-Found an issue with a tutorial? [Open an issue](https://github.com/ivannovak/glide/issues) to help us improve.
+Found an issue with a tutorial? [Open an issue](https://github.com/glide-cli/glide/issues) to help us improve.

@@ -17,7 +17,7 @@ func TestDefaultValues(t *testing.T) {
 	assert.Equal(t, "context-aware development CLI", Description)
 	assert.Contains(t, LongDescription, "modern")
 	assert.Equal(t, "glide", CompletionDir)
-	assert.Equal(t, "https://github.com/ivannovak/glide", RepositoryURL)
+	assert.Equal(t, "https://github.com/glide-cli/glide", RepositoryURL)
 }
 
 func TestGetConfigPath(t *testing.T) {

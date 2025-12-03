@@ -31,7 +31,7 @@
 //
 // Build a plugin using SDK v2:
 //
-//	import "github.com/ivannovak/glide/v3/pkg/plugin/sdk/v2"
+//	import "github.com/glide-cli/glide/v3/pkg/plugin/sdk/v2"
 //
 //	type MyPlugin struct {
 //	    v2.BasePlugin[MyConfig]

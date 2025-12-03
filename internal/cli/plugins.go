@@ -12,9 +12,9 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/ivannovak/glide/v3/pkg/branding"
-	"github.com/ivannovak/glide/v3/pkg/plugin/sdk"
-	v1 "github.com/ivannovak/glide/v3/pkg/plugin/sdk/v1"
+	"github.com/glide-cli/glide/v3/pkg/branding"
+	"github.com/glide-cli/glide/v3/pkg/plugin/sdk"
+	v1 "github.com/glide-cli/glide/v3/pkg/plugin/sdk/v1"
 	"github.com/spf13/cobra"
 )
 
@@ -191,7 +191,7 @@ func newPluginInstallCommand() *cobra.Command {
 
 Examples:
   # Install from GitHub (downloads latest release)
-  glide plugins install github.com/ivannovak/glide-plugin-go
+  glide plugins install github.com/glide-cli/glide-plugin-go
 
   # Install from local file
   glide plugins install ./glide-plugin-go

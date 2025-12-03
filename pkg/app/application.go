@@ -4,12 +4,12 @@ import (
 	"io"
 	"os"
 
-	"github.com/ivannovak/glide/v3/internal/config"
-	"github.com/ivannovak/glide/v3/internal/context"
-	"github.com/ivannovak/glide/v3/internal/shell"
-	"github.com/ivannovak/glide/v3/pkg/container"
-	"github.com/ivannovak/glide/v3/pkg/logging"
-	"github.com/ivannovak/glide/v3/pkg/output"
+	"github.com/glide-cli/glide/v3/internal/config"
+	"github.com/glide-cli/glide/v3/internal/context"
+	"github.com/glide-cli/glide/v3/internal/shell"
+	"github.com/glide-cli/glide/v3/pkg/container"
+	"github.com/glide-cli/glide/v3/pkg/logging"
+	"github.com/glide-cli/glide/v3/pkg/output"
 	"go.uber.org/fx"
 )
 

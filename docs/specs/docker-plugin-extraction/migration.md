@@ -92,7 +92,7 @@ Transform copied code to use plugin interfaces:
 // plugins/docker/plugin.go
 package docker
 
-import "github.com/ivannovak/glide/pkg/plugin/sdk"
+import "github.com/glide-cli/glide/pkg/plugin/sdk"
 
 type DockerPlugin struct {
     *sdk.BasePlugin
@@ -134,8 +134,8 @@ func (c *ProjectContext) PopulateCompatibilityFields() {
 package main
 
 import (
-    dockerplugin "github.com/ivannovak/glide/plugins/docker"
-    "github.com/ivannovak/glide/pkg/plugin"
+    dockerplugin "github.com/glide-cli/glide/plugins/docker"
+    "github.com/glide-cli/glide/pkg/plugin"
 )
 
 func init() {

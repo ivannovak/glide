@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/ivannovak/glide/v3/pkg/plugin/sdk"
-	v1 "github.com/ivannovak/glide/v3/pkg/plugin/sdk/v1"
+	"github.com/glide-cli/glide/v3/pkg/plugin/sdk"
+	v1 "github.com/glide-cli/glide/v3/pkg/plugin/sdk/v1"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

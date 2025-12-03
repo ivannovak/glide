@@ -1090,7 +1090,7 @@ go build ./internal/cli/...
 # ✅ Compiles successfully
 
 # Verify no pkg/app imports in production code
-grep -r '"github.com/ivannovak/glide/v3/pkg/app"' internal/cli/*.go | grep -v "_test.go"
+grep -r '"github.com/glide-cli/glide/v3/pkg/app"' internal/cli/*.go | grep -v "_test.go"
 # ✅ No imports found
 ```
 
@@ -1342,7 +1342,7 @@ golangci-lint run          # Linting
 grep -r "app\.Application" cmd/ internal/ pkg/ --include="*.go" | grep -v "// Deprecated" | grep -v "_test.go"
 
 # Verify no imports of pkg/app outside of tests and deprecated code
-grep -r '"github.com/ivannovak/glide/v3/pkg/app"' cmd/ internal/ --include="*.go"
+grep -r '"github.com/glide-cli/glide/v3/pkg/app"' cmd/ internal/ --include="*.go"
 ```
 
 **Acceptance Criteria:**
@@ -2841,7 +2841,7 @@ Further coverage gains require integration test infrastructure (Task 2.6).
 ```bash
 go test ./tests/contracts/... -v
 # PASS
-# ok github.com/ivannovak/glide/v3/tests/contracts 1.178s
+# ok github.com/glide-cli/glide/v3/tests/contracts 1.178s
 ```
 
 **Acceptance Criteria:**
@@ -3853,7 +3853,7 @@ package [name]
 
 **Validation:**
 ```bash
-go doc github.com/ivannovak/glide/v3/pkg/plugin
+go doc github.com/glide-cli/glide/v3/pkg/plugin
 # Should show comprehensive package documentation
 ```
 
@@ -3902,7 +3902,7 @@ go doc github.com/ivannovak/glide/v3/pkg/plugin
 **Validation:**
 ```bash
 # Check for undocumented exports
-go doc -all github.com/ivannovak/glide/v3/pkg/... | grep -E "^func|^type" | head -50
+go doc -all github.com/glide-cli/glide/v3/pkg/... | grep -E "^func|^type" | head -50
 ```
 
 **Acceptance Criteria:**

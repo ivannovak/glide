@@ -185,11 +185,11 @@ type OutputManager interface {
 //
 // Migration: Change imports from:
 //
-//	"github.com/ivannovak/glide/v3/pkg/interfaces"
+//	"github.com/glide-cli/glide/v3/pkg/interfaces"
 //
 // To:
 //
-//	"github.com/ivannovak/glide/v3/pkg/output"
+//	"github.com/glide-cli/glide/v3/pkg/output"
 type Formatter interface {
 	Display(data interface{}) error
 	Info(format string, args ...interface{}) error
@@ -208,11 +208,11 @@ type Formatter interface {
 //
 // Migration: Change imports from:
 //
-//	"github.com/ivannovak/glide/v3/pkg/interfaces"
+//	"github.com/glide-cli/glide/v3/pkg/interfaces"
 //
 // To:
 //
-//	"github.com/ivannovak/glide/v3/pkg/progress"
+//	"github.com/glide-cli/glide/v3/pkg/progress"
 //
 // Note: pkg/progress.Indicator has slightly different method signatures.
 type ProgressIndicator interface {

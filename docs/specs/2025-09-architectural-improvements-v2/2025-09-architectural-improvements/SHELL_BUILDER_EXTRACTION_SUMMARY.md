@@ -1,6 +1,6 @@
 # Shell Command Builder Extraction Summary
 
-**Date**: January 9, 2025  
+**Date**: January 9, 2025
 **Objective**: Extract shell command builder to eliminate duplication in execution strategies
 
 ## 🎯 Goal Achieved
@@ -52,7 +52,7 @@ func (s *BasicStrategy) Execute(ctx context.Context, cmd *Command) (*Result, err
 }
 ```
 
-**Total lines in builder**: 196 lines  
+**Total lines in builder**: 196 lines
 **Strategy implementations reduced**: From ~300 lines to ~100 lines
 
 ## 🏗️ Implementation Details
@@ -108,9 +108,9 @@ func (s *PipeStrategy) Execute(ctx context.Context, cmd *Command) (*Result, erro
     if s.inputReader != nil && cmd.Stdin == nil {
         cmd.Stdin = s.inputReader
     }
-    
+
     builder := NewCommandBuilder(cmd).WithContext(ctx)
-    
+
     if cmd.Options.CaptureOutput || cmd.CaptureOutput {
         execCmd, stdout, stderr := builder.BuildWithCapture()
         result := builder.ExecuteAndCollectResult(execCmd, stdout, stderr)
@@ -197,7 +197,7 @@ We exceeded the recommendation by:
 ```bash
 go test ./internal/shell/... -short
 # PASS
-# ok  github.com/ivannovak/glide/internal/shell  0.442s
+# ok  github.com/glide-cli/glide/internal/shell  0.442s
 ```
 
 ### Build Status

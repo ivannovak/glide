@@ -1,7 +1,7 @@
 package plugin
 
 import (
-	"github.com/ivannovak/glide/v3/pkg/plugin/sdk"
+	"github.com/glide-cli/glide/v3/pkg/plugin/sdk"
 	"github.com/spf13/cobra"
 )
 

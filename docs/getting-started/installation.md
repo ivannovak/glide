@@ -26,7 +26,7 @@ This script will:
 
 ### Manual Installation
 
-1. Download the appropriate binary from the [releases page](https://github.com/ivannovak/glide/releases)
+1. Download the appropriate binary from the [releases page](https://github.com/glide-cli/glide/releases)
 2. Extract the archive
 3. Move the binary to your PATH:
 

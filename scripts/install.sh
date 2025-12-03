@@ -2,7 +2,7 @@
 
 set -e
 
-REPO="ivannovak/glide"
+REPO="glide-cli/glide"
 INSTALL_DIR="/usr/local/bin"
 BINARY_NAME="glide"
 
@@ -16,7 +16,7 @@ NC='\033[0m' # No Color
 detect_platform() {
     OS=$(uname -s | tr '[:upper:]' '[:lower:]')
     ARCH=$(uname -m)
-    
+
     case "$OS" in
         darwin)
             PLATFORM="darwin"
@@ -29,7 +29,7 @@ detect_platform() {
             exit 1
             ;;
     esac
-    
+
     case "$ARCH" in
         x86_64|amd64)
             ARCH="amd64"
@@ -42,7 +42,7 @@ detect_platform() {
             exit 1
             ;;
     esac
-    
+
     BINARY_SUFFIX="${PLATFORM}-${ARCH}"
 }
 
@@ -50,12 +50,12 @@ detect_platform() {
 get_latest_version() {
     echo -e "${YELLOW}Fetching latest version...${NC}"
     VERSION=$(curl -s "https://api.github.com/repos/${REPO}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-    
+
     if [ -z "$VERSION" ]; then
         echo -e "${RED}Failed to fetch latest version${NC}"
         exit 1
     fi
-    
+
     echo -e "${GREEN}Latest version: $VERSION${NC}"
 }
 
@@ -63,21 +63,21 @@ get_latest_version() {
 download_binary() {
     DOWNLOAD_URL="https://github.com/${REPO}/releases/download/${VERSION}/${BINARY_NAME}-${BINARY_SUFFIX}"
     TEMP_FILE="/tmp/${BINARY_NAME}-${BINARY_SUFFIX}"
-    
+
     echo -e "${YELLOW}Downloading ${BINARY_NAME} for ${PLATFORM}/${ARCH}...${NC}"
-    
+
     if ! curl -L -o "$TEMP_FILE" "$DOWNLOAD_URL" --progress-bar; then
         echo -e "${RED}Failed to download binary${NC}"
         exit 1
     fi
-    
+
     chmod +x "$TEMP_FILE"
 }
 
 # Install binary
 install_binary() {
     echo -e "${YELLOW}Installing to ${INSTALL_DIR}/${BINARY_NAME}...${NC}"
-    
+
     # Check if we need sudo
     if [ -w "$INSTALL_DIR" ]; then
         mv "$TEMP_FILE" "${INSTALL_DIR}/${BINARY_NAME}"
@@ -85,7 +85,7 @@ install_binary() {
         echo -e "${YELLOW}Sudo required to install to ${INSTALL_DIR}${NC}"
         sudo mv "$TEMP_FILE" "${INSTALL_DIR}/${BINARY_NAME}"
     fi
-    
+
     echo -e "${GREEN}Installation complete!${NC}"
 }
 
@@ -107,13 +107,13 @@ verify_installation() {
 main() {
     echo -e "${GREEN}Installing Glide CLI${NC}"
     echo "===================="
-    
+
     detect_platform
     get_latest_version
     download_binary
     install_binary
     verify_installation
-    
+
     echo ""
     echo -e "${GREEN}Get started with: glide help${NC}"
 }

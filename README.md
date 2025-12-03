@@ -5,9 +5,9 @@
 <h3 align="center">Streamline your development workflow with context-aware command orchestration</h3>
 
 <p align="center">
-  <a href="https://github.com/ivannovak/glide/releases"><img src="https://img.shields.io/github/v/release/ivannovak/glide?style=flat-square" alt="Release"></a>
-  <a href="https://github.com/ivannovak/glide/actions"><img src="https://img.shields.io/github/actions/workflow/status/ivannovak/glide/ci.yml?branch=main&style=flat-square" alt="Build Status"></a>
-  <a href="https://codecov.io/gh/ivannovak/glide"><img src="https://img.shields.io/codecov/c/github/ivannovak/glide?style=flat-square" alt="Code Coverage"></a>
+  <a href="https://github.com/glide-cli/glide/releases"><img src="https://img.shields.io/github/v/release/glide-cli/glide?style=flat-square" alt="Release"></a>
+  <a href="https://github.com/glide-cli/glide/actions"><img src="https://img.shields.io/github/actions/workflow/status/glide-cli/glide/ci.yml?branch=main&style=flat-square" alt="Build Status"></a>
+  <a href="https://codecov.io/gh/glide-cli/glide"><img src="https://img.shields.io/codecov/c/github/glide-cli/glide?style=flat-square" alt="Code Coverage"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="License"></a>
 </p>
 
@@ -31,10 +31,10 @@ Glide is a context-aware command orchestrator that adapts to your project enviro
 
 ```bash
 # macOS/Linux
-curl -sSL https://raw.githubusercontent.com/ivannovak/glide/main/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/glide-cli/glide/main/install.sh | bash
 
 # Or download directly from releases
-# https://github.com/ivannovak/glide/releases
+# https://github.com/glide-cli/glide/releases
 ```
 
 ### Your First Commands
@@ -218,8 +218,8 @@ We welcome contributions! See our [Contributing Guide](CONTRIBUTING.md) for deta
 
 ## Support
 
-- **Issues**: [GitHub Issues](https://github.com/ivannovak/glide/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/ivannovak/glide/discussions)
+- **Issues**: [GitHub Issues](https://github.com/glide-cli/glide/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/glide-cli/glide/discussions)
 
 ## License
 

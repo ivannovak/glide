@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ivannovak/glide/v3/pkg/interfaces"
+	"github.com/glide-cli/glide/v3/pkg/interfaces"
 	"github.com/stretchr/testify/assert"
 )
 

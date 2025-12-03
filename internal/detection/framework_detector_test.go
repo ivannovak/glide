@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ivannovak/glide/v3/pkg/plugin/sdk"
+	"github.com/glide-cli/glide/v3/pkg/plugin/sdk"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

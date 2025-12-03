@@ -36,7 +36,7 @@ import (
     "fmt"
     "os"
 
-    "github.com/ivannovak/glide/v3/pkg/plugin/sdk/v2"
+    "github.com/glide-cli/glide/v3/pkg/plugin/sdk/v2"
 )
 
 // Define your type-safe configuration
@@ -197,7 +197,7 @@ glide-plugin-myname/
 mkdir glide-plugin-myname
 cd glide-plugin-myname
 go mod init github.com/yourusername/glide-plugin-myname
-go get github.com/ivannovak/glide/v3@latest
+go get github.com/glide-cli/glide/v3@latest
 ```
 
 ## Type-Safe Configuration
@@ -436,7 +436,7 @@ Users can combine aliases:
 ### 1. Error Handling
 
 ```go
-import "github.com/ivannovak/glide/v3/pkg/errors"
+import "github.com/glide-cli/glide/v3/pkg/errors"
 
 func (p *MyPlugin) executeCommand(ctx context.Context, req *v2.ExecuteRequest) (*v2.ExecuteResponse, error) {
     if err := p.doSomething(); err != nil {
@@ -457,7 +457,7 @@ func (p *MyPlugin) executeCommand(ctx context.Context, req *v2.ExecuteRequest) (
 ### 2. Output Management
 
 ```go
-import "github.com/ivannovak/glide/v3/pkg/output"
+import "github.com/glide-cli/glide/v3/pkg/output"
 
 func (p *MyPlugin) executeCommand(ctx context.Context, req *v2.ExecuteRequest) (*v2.ExecuteResponse, error) {
     // For structured output
@@ -531,7 +531,7 @@ import (
     "fmt"
     "os"
 
-    "github.com/ivannovak/glide/v3/pkg/plugin/sdk/v2"
+    "github.com/glide-cli/glide/v3/pkg/plugin/sdk/v2"
 )
 
 type Config struct {

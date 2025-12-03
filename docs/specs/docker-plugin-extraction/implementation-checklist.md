@@ -345,7 +345,7 @@ Based on analysis of the codebase, Docker functionality is integrated in:
 - [ ] Create new repository `glide-plugin-docker`
   ```
   glide-plugin-docker/
-  ├── go.mod              # Module: github.com/ivannovak/glide-plugin-docker
+  ├── go.mod              # Module: github.com/glide-cli/glide-plugin-docker
   ├── go.sum
   ├── Makefile
   ├── README.md
@@ -381,7 +381,7 @@ Based on analysis of the codebase, Docker functionality is integrated in:
 - [ ] Copy plugin code from `plugins/docker/` to new repository
 - [ ] Update import paths to new module
 - [ ] Update go.mod dependencies
-  - [ ] Add dependency on `github.com/ivannovak/glide/pkg/plugin/sdk`
+  - [ ] Add dependency on `github.com/glide-cli/glide/pkg/plugin/sdk`
   - [ ] Add other required dependencies
 - [ ] Ensure plugin compiles independently
 
@@ -414,8 +414,8 @@ Based on analysis of the codebase, Docker functionality is integrated in:
   package main
 
   import (
-      "github.com/ivannovak/glide-plugin-docker/internal/plugin"
-      sdk "github.com/ivannovak/glide/pkg/plugin/sdk"
+      "github.com/glide-cli/glide-plugin-docker/internal/plugin"
+      sdk "github.com/glide-cli/glide/pkg/plugin/sdk"
   )
 
   func main() {
@@ -460,14 +460,14 @@ Based on analysis of the codebase, Docker functionality is integrated in:
 
 - [ ] Method 2: Go Install
   ```bash
-  go install github.com/ivannovak/glide-plugin-docker/cmd/glide-plugin-docker@latest
+  go install github.com/glide-cli/glide-plugin-docker/cmd/glide-plugin-docker@latest
   ```
 
 - [ ] Method 3: Glide Plugin Manager (future)
   ```bash
   glide plugins install docker
   # OR
-  glide plugins install github.com/ivannovak/glide-plugin-docker
+  glide plugins install github.com/glide-cli/glide-plugin-docker
   ```
 
 ### Configure Glide to Load External Plugin

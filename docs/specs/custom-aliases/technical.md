@@ -199,7 +199,7 @@ import (
     "os/exec"
     "strings"
 
-    "github.com/ivannovak/glide/internal/config"
+    "github.com/glide-cli/glide/internal/config"
 )
 
 // executeYAMLCommand runs a YAML-defined command
@@ -296,7 +296,7 @@ package config
 import (
     "os"
     "path/filepath"
-    "github.com/ivannovak/glide/pkg/branding"
+    "github.com/glide-cli/glide/pkg/branding"
     "gopkg.in/yaml.v3"
 )
 

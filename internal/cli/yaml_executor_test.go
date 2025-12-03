@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ivannovak/glide/v3/internal/shell"
+	"github.com/glide-cli/glide/v3/internal/shell"
 )
 
 func TestExecuteYAMLCommand_Sanitization(t *testing.T) {
