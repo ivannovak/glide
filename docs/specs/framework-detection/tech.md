@@ -108,7 +108,7 @@ message DetectionResult {
 package context
 
 import (
-    "github.com/ivannovak/glide/pkg/plugin"
+    "github.com/glide-cli/glide/pkg/plugin"
 )
 
 // FrameworkDetector aggregates all plugin detections
@@ -240,7 +240,7 @@ func InjectFrameworkCommands(
 package main
 
 import (
-    "github.com/ivannovak/glide/pkg/plugin/sdk"
+    "github.com/glide-cli/glide/pkg/plugin/sdk"
 )
 
 type RustPlugin struct {

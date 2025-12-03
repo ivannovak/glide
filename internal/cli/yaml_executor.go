@@ -6,8 +6,8 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/ivannovak/glide/v3/internal/config"
-	"github.com/ivannovak/glide/v3/internal/shell"
+	"github.com/glide-cli/glide/v3/internal/config"
+	"github.com/glide-cli/glide/v3/internal/shell"
 )
 
 var (

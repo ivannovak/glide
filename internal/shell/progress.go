@@ -4,7 +4,7 @@ package shell
 // has been moved to the pkg/progress package.
 //
 // Please use:
-//   import "github.com/ivannovak/glide/v3/pkg/progress"
+//   import "github.com/glide-cli/glide/v3/pkg/progress"
 //
 // Examples:
 //   spinner := progress.NewSpinner("Loading...")

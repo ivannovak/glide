@@ -1,8 +1,8 @@
 package cli
 
 import (
-	"github.com/ivannovak/glide/v3/internal/config"
-	"github.com/ivannovak/glide/v3/internal/context"
+	"github.com/glide-cli/glide/v3/internal/config"
+	"github.com/glide-cli/glide/v3/internal/context"
 	"github.com/spf13/cobra"
 )
 

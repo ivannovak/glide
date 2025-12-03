@@ -12,10 +12,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ivannovak/glide/v3/internal/plugins/builtin/golang"
-	"github.com/ivannovak/glide/v3/internal/plugins/builtin/node"
-	"github.com/ivannovak/glide/v3/internal/plugins/builtin/php"
-	"github.com/ivannovak/glide/v3/pkg/plugin/sdk"
+	"github.com/glide-cli/glide/v3/internal/plugins/builtin/golang"
+	"github.com/glide-cli/glide/v3/internal/plugins/builtin/node"
+	"github.com/glide-cli/glide/v3/internal/plugins/builtin/php"
+	"github.com/glide-cli/glide/v3/pkg/plugin/sdk"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

@@ -6,11 +6,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/ivannovak/glide/v3/internal/context"
-	"github.com/ivannovak/glide/v3/pkg/branding"
-	pkgconfig "github.com/ivannovak/glide/v3/pkg/config"
-	"github.com/ivannovak/glide/v3/pkg/logging"
-	"github.com/ivannovak/glide/v3/pkg/validation"
+	"github.com/glide-cli/glide/v3/internal/context"
+	"github.com/glide-cli/glide/v3/pkg/branding"
+	pkgconfig "github.com/glide-cli/glide/v3/pkg/config"
+	"github.com/glide-cli/glide/v3/pkg/logging"
+	"github.com/glide-cli/glide/v3/pkg/validation"
 	"gopkg.in/yaml.v3"
 )
 

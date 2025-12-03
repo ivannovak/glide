@@ -114,7 +114,7 @@ go tool trace trace.out
 ```go
 import (
     "time"
-    "github.com/ivannovak/glide/v3/pkg/performance"
+    "github.com/glide-cli/glide/v3/pkg/performance"
 )
 
 func someOperation() {

@@ -7,12 +7,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/ivannovak/glide/v3/internal/config"
-	"github.com/ivannovak/glide/v3/internal/context"
-	"github.com/ivannovak/glide/v3/internal/docker"
-	glideErrors "github.com/ivannovak/glide/v3/pkg/errors"
-	"github.com/ivannovak/glide/v3/pkg/output"
-	"github.com/ivannovak/glide/v3/pkg/prompt"
+	"github.com/glide-cli/glide/v3/internal/config"
+	"github.com/glide-cli/glide/v3/internal/context"
+	"github.com/glide-cli/glide/v3/internal/docker"
+	glideErrors "github.com/glide-cli/glide/v3/pkg/errors"
+	"github.com/glide-cli/glide/v3/pkg/output"
+	"github.com/glide-cli/glide/v3/pkg/prompt"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )

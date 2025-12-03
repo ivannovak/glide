@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ivannovak/glide/v3/pkg/branding"
+	"github.com/glide-cli/glide/v3/pkg/branding"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

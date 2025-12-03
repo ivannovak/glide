@@ -164,7 +164,7 @@ type ConfigProvider interface {
 package docker
 
 import (
-    "github.com/ivannovak/glide/pkg/plugin/sdk"
+    "github.com/glide-cli/glide/pkg/plugin/sdk"
 )
 
 type DockerPlugin struct {
@@ -315,7 +315,7 @@ package commands
 
 import (
     "github.com/spf13/cobra"
-    "github.com/ivannovak/glide/pkg/plugin/sdk"
+    "github.com/glide-cli/glide/pkg/plugin/sdk"
 )
 
 func NewDockerCommand(ctx sdk.PluginContext) *cobra.Command {
@@ -401,7 +401,7 @@ build-minimal:
 package main
 
 import (
-    _ "github.com/ivannovak/glide/plugins/docker"
+    _ "github.com/glide-cli/glide/plugins/docker"
 )
 
 func init() {

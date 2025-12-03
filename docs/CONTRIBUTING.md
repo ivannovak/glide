@@ -77,7 +77,7 @@ git clone https://github.com/YOUR_USERNAME/glide.git
 cd glide
 
 # Add upstream remote
-git remote add upstream https://github.com/ivannovak/glide.git
+git remote add upstream https://github.com/glide-cli/glide.git
 ```
 
 ### 2. Install Dependencies
@@ -244,7 +244,7 @@ glide/
    if err != nil {
        return fmt.Errorf("failed to execute command: %w", err)
    }
-   
+
    // Bad
    if err != nil {
        return err
@@ -283,10 +283,10 @@ glide/
        // Arrange
        input := "test"
        expected := "TEST"
-       
+
        // Act
        result := strings.ToUpper(input)
-       
+
        // Assert
        if result != expected {
            t.Errorf("got %s, want %s", result, expected)
@@ -305,7 +305,7 @@ glide/
            {"empty", "", ""},
            {"lowercase", "test", "TEST"},
        }
-       
+
        for _, tt := range tests {
            t.Run(tt.name, func(t *testing.T) {
                result := strings.ToUpper(tt.input)
@@ -340,7 +340,7 @@ open coverage.html
 Use the plugintest package:
 
 ```go
-import "github.com/ivannovak/glide/pkg/plugin/plugintest"
+import "github.com/glide-cli/glide/pkg/plugin/plugintest"
 
 func TestPlugin(t *testing.T) {
     harness := plugintest.NewTestHarness(t)
@@ -393,9 +393,9 @@ If you're creating a branded version for your organization:
    ```go
    // internal/branding/brands/yourbrand.go
    //go:build brand_yourbrand
-   
+
    package brands
-   
+
    func init() {
        Current = Brand{
            Name:        "yourbrand",
@@ -444,7 +444,7 @@ If you're creating a branded version for your organization:
    type MyPlugin struct {
        sdk.UnimplementedGlidePluginServer
    }
-   
+
    func (p *MyPlugin) GetMetadata(...) {...}
    func (p *MyPlugin) ListCommands(...) {...}
    func (p *MyPlugin) ExecuteCommand(...) {...}
@@ -532,18 +532,18 @@ See the [Framework Detection Guide](framework-detection.md) for detailed informa
    ```markdown
    ## Description
    Brief description of changes
-   
+
    ## Type of Change
    - [ ] Bug fix
    - [ ] New feature
    - [ ] Breaking change
    - [ ] Documentation update
-   
+
    ## Testing
    - [ ] Unit tests pass
    - [ ] Integration tests pass
    - [ ] Manual testing completed
-   
+
    ## Checklist
    - [ ] Code follows style guidelines
    - [ ] Self-review completed

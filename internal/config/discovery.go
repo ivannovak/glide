@@ -4,8 +4,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ivannovak/glide/v3/pkg/branding"
-	"github.com/ivannovak/glide/v3/pkg/validation"
+	"github.com/glide-cli/glide/v3/pkg/branding"
+	"github.com/glide-cli/glide/v3/pkg/validation"
 	"gopkg.in/yaml.v3"
 )
 

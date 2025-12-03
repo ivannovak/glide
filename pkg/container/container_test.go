@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ivannovak/glide/v3/internal/config"
-	"github.com/ivannovak/glide/v3/pkg/logging"
+	"github.com/glide-cli/glide/v3/internal/config"
+	"github.com/glide-cli/glide/v3/pkg/logging"
 	"github.com/stretchr/testify/require"
 )
 

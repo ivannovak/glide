@@ -329,7 +329,7 @@ func (s *UserService) CreateUser(ctx context.Context, user *User) error {
 
 ```go
 // Use pkg/container for automatic wiring
-import "github.com/ivannovak/glide/v3/pkg/container"
+import "github.com/glide-cli/glide/v3/pkg/container"
 
 func main() {
     c, err := container.New()

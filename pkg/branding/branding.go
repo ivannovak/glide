@@ -7,7 +7,7 @@ import (
 )
 
 // These variables can be overridden at build time using ldflags
-// Example: go build -ldflags "-X github.com/ivannovak/glide/v3/pkg/branding.CommandName=mycli"
+// Example: go build -ldflags "-X github.com/glide-cli/glide/v3/pkg/branding.CommandName=mycli"
 var (
 	// CommandName is the name of the CLI command (e.g., "glide", "mycli")
 	CommandName = "glide"
@@ -30,7 +30,7 @@ both single-repository and multi-worktree development modes.`
 	CompletionDir = "glide"
 
 	// RepositoryURL is the URL of the source repository (for updates, documentation, etc.)
-	RepositoryURL = "https://github.com/ivannovak/glide"
+	RepositoryURL = "https://github.com/glide-cli/glide"
 )
 
 // GetConfigPath returns the full path to the configuration file

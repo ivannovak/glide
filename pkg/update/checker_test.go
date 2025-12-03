@@ -50,16 +50,16 @@ func TestCheckForUpdate_NewVersionAvailable(t *testing.T) {
 		Name:        "v2.0.0",
 		Body:        "New features and bug fixes",
 		PublishedAt: time.Now(),
-		HTMLURL:     "https://github.com/ivannovak/glide/v3/releases/tag/v2.0.0",
+		HTMLURL:     "https://github.com/glide-cli/glide/v3/releases/tag/v2.0.0",
 		Assets: []Asset{
 			{
 				Name:               "glide-darwin-arm64",
-				BrowserDownloadURL: "https://github.com/ivannovak/glide/v3/releases/download/v2.0.0/glide-darwin-arm64",
+				BrowserDownloadURL: "https://github.com/glide-cli/glide/v3/releases/download/v2.0.0/glide-darwin-arm64",
 				Size:               10485760,
 			},
 			{
 				Name:               "glide-linux-amd64",
-				BrowserDownloadURL: "https://github.com/ivannovak/glide/v3/releases/download/v2.0.0/glide-linux-amd64",
+				BrowserDownloadURL: "https://github.com/glide-cli/glide/v3/releases/download/v2.0.0/glide-linux-amd64",
 				Size:               10485760,
 			},
 		},
@@ -94,7 +94,7 @@ func TestCheckForUpdate_SameVersion(t *testing.T) {
 		TagName:     "v1.0.0",
 		Name:        "v1.0.0",
 		PublishedAt: time.Now(),
-		HTMLURL:     "https://github.com/ivannovak/glide/v3/releases/tag/v1.0.0",
+		HTMLURL:     "https://github.com/glide-cli/glide/v3/releases/tag/v1.0.0",
 	}
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -124,7 +124,7 @@ func TestCheckForUpdate_OlderVersionAvailable(t *testing.T) {
 		TagName:     "v0.9.0",
 		Name:        "v0.9.0",
 		PublishedAt: time.Now(),
-		HTMLURL:     "https://github.com/ivannovak/glide/v3/releases/tag/v0.9.0",
+		HTMLURL:     "https://github.com/glide-cli/glide/v3/releases/tag/v0.9.0",
 	}
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -241,7 +241,7 @@ func TestGetDownloadURL(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			release := &Release{
-				HTMLURL: "https://github.com/ivannovak/glide/v3/releases/tag/v1.0.0",
+				HTMLURL: "https://github.com/glide-cli/glide/v3/releases/tag/v1.0.0",
 				Assets: []Asset{
 					{
 						Name:               "glide-darwin-arm64",
@@ -274,7 +274,7 @@ func TestIsUpdateAvailable(t *testing.T) {
 		TagName:     "v2.0.0",
 		Name:        "v2.0.0",
 		PublishedAt: time.Now(),
-		HTMLURL:     "https://github.com/ivannovak/glide/v3/releases/tag/v2.0.0",
+		HTMLURL:     "https://github.com/glide-cli/glide/v3/releases/tag/v2.0.0",
 	}
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -307,9 +307,9 @@ func TestFormatUpdateMessage(t *testing.T) {
 				Available:      true,
 				CurrentVersion: "v1.0.0",
 				LatestVersion:  "v2.0.0",
-				ReleaseURL:     "https://github.com/ivannovak/glide/v3/releases/tag/v2.0.0",
+				ReleaseURL:     "https://github.com/glide-cli/glide/v3/releases/tag/v2.0.0",
 				PublishedAt:    time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC),
-				DownloadURL:    "https://github.com/ivannovak/glide/v3/releases/download/v2.0.0/glide-darwin-arm64",
+				DownloadURL:    "https://github.com/glide-cli/glide/v3/releases/download/v2.0.0/glide-darwin-arm64",
 			},
 			expected: []string{
 				"A new version of Glide is available: v1.0.0 → v2.0.0",

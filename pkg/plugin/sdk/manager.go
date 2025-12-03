@@ -15,10 +15,10 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/glide-cli/glide/v3/pkg/branding"
+	v1 "github.com/glide-cli/glide/v3/pkg/plugin/sdk/v1"
 	"github.com/hashicorp/go-hclog"
 	goplugin "github.com/hashicorp/go-plugin"
-	"github.com/ivannovak/glide/v3/pkg/branding"
-	v1 "github.com/ivannovak/glide/v3/pkg/plugin/sdk/v1"
 )
 
 // Cache is a simple plugin cache

@@ -21,7 +21,7 @@ Welcome to the Glide contributor community! This tutorial guides you through set
 
 ### Fork the Repository
 
-1. Go to https://github.com/ivannovak/glide
+1. Go to https://github.com/glide-cli/glide
 2. Click "Fork" to create your copy
 3. Clone your fork:
 
@@ -34,14 +34,14 @@ cd glide
 
 ```bash
 # Add upstream remote
-git remote add upstream https://github.com/ivannovak/glide.git
+git remote add upstream https://github.com/glide-cli/glide.git
 
 # Verify remotes
 git remote -v
 # origin    https://github.com/YOUR_USERNAME/glide.git (fetch)
 # origin    https://github.com/YOUR_USERNAME/glide.git (push)
-# upstream  https://github.com/ivannovak/glide.git (fetch)
-# upstream  https://github.com/ivannovak/glide.git (push)
+# upstream  https://github.com/glide-cli/glide.git (fetch)
+# upstream  https://github.com/glide-cli/glide.git (push)
 ```
 
 ## Step 2: Development Environment
@@ -178,7 +178,7 @@ func DoSomething(input string) error {
 Use the structured error package:
 
 ```go
-import "github.com/ivannovak/glide/v3/pkg/errors"
+import "github.com/glide-cli/glide/v3/pkg/errors"
 
 func LoadConfig(path string) error {
     data, err := os.ReadFile(path)
@@ -436,9 +436,9 @@ Begin with documentation fixes or small bugs to learn the codebase.
 
 ## Getting Help
 
-- **Issues**: https://github.com/ivannovak/glide/issues
-- **Discussions**: https://github.com/ivannovak/glide/discussions
-- **Documentation**: https://github.com/ivannovak/glide/docs
+- **Issues**: https://github.com/glide-cli/glide/issues
+- **Discussions**: https://github.com/glide-cli/glide/discussions
+- **Documentation**: https://github.com/glide-cli/glide/docs
 
 ## Summary
 
@@ -453,6 +453,6 @@ Thank you for contributing to Glide!
 
 ## What's Next?
 
-- Browse [open issues](https://github.com/ivannovak/glide/issues)
+- Browse [open issues](https://github.com/glide-cli/glide/issues)
 - Read the [Architecture Overview](../architecture/README.md)
 - Check [ADR Index](../adr/README.md) for design decisions

@@ -67,7 +67,7 @@ Detectors can look for:
 package myplugin
 
 import (
-    "github.com/ivannovak/glide/pkg/plugin/sdk"
+    "github.com/glide-cli/glide/pkg/plugin/sdk"
 )
 
 type MyDetector struct {

@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ivannovak/glide/v3/internal/config"
-	internalContext "github.com/ivannovak/glide/v3/internal/context"
-	"github.com/ivannovak/glide/v3/pkg/output"
-	"github.com/ivannovak/glide/v3/pkg/update"
-	"github.com/ivannovak/glide/v3/pkg/version"
+	"github.com/glide-cli/glide/v3/internal/config"
+	internalContext "github.com/glide-cli/glide/v3/internal/context"
+	"github.com/glide-cli/glide/v3/pkg/output"
+	"github.com/glide-cli/glide/v3/pkg/update"
+	"github.com/glide-cli/glide/v3/pkg/version"
 	"github.com/spf13/cobra"
 )
 

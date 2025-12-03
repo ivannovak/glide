@@ -123,10 +123,10 @@ func (p *MyPlugin) Commands() []v2.Command {
 
 ```go
 // Remove
-import "github.com/ivannovak/glide/v3/pkg/plugin/sdk/v1"
+import "github.com/glide-cli/glide/v3/pkg/plugin/sdk/v1"
 
 // Add
-import "github.com/ivannovak/glide/v3/pkg/plugin/sdk/v2"
+import "github.com/glide-cli/glide/v3/pkg/plugin/sdk/v2"
 ```
 
 ### Step 2: Define Config Type
@@ -249,8 +249,8 @@ import (
     "strconv"
 
     "github.com/spf13/cobra"
-    "github.com/ivannovak/glide/v3/pkg/config"
-    v1 "github.com/ivannovak/glide/v3/pkg/plugin/sdk/v1"
+    "github.com/glide-cli/glide/v3/pkg/config"
+    v1 "github.com/glide-cli/glide/v3/pkg/plugin/sdk/v1"
 )
 
 type Plugin struct {
@@ -296,7 +296,7 @@ import (
     "fmt"
     "os"
 
-    "github.com/ivannovak/glide/v3/pkg/plugin/sdk/v2"
+    "github.com/glide-cli/glide/v3/pkg/plugin/sdk/v2"
 )
 
 type Config struct {

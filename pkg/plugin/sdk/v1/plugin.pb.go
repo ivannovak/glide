@@ -1181,7 +1181,7 @@ const file_pkg_plugin_sdk_v1_plugin_proto_rawDesc = "" +
 	"\x0eExecuteCommand\x12\x12.v1.ExecuteRequest\x1a\x13.v1.ExecuteResponse\x12<\n" +
 	"\x10StartInteractive\x12\x11.v1.StreamMessage\x1a\x11.v1.StreamMessage(\x010\x01\x12.\n" +
 	"\x0fGetCapabilities\x12\t.v1.Empty\x1a\x10.v1.Capabilities\x122\n" +
-	"\x13GetCustomCategories\x12\t.v1.Empty\x1a\x10.v1.CategoryListB1Z/github.com/ivannovak/glide/v3/pkg/plugin/sdk/v1b\x06proto3"
+	"\x13GetCustomCategories\x12\t.v1.Empty\x1a\x10.v1.CategoryListB1Z/github.com/glide-cli/glide/v3/pkg/plugin/sdk/v1b\x06proto3"
 
 var (
 	file_pkg_plugin_sdk_v1_plugin_proto_rawDescOnce sync.Once

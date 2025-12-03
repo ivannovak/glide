@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ivannovak/glide/v3/internal/context"
+	"github.com/glide-cli/glide/v3/internal/context"
 )
 
 // BenchmarkContextDetection benchmarks basic context detection

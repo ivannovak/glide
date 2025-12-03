@@ -283,4 +283,4 @@ commands:
 
 - Run `glide help` for command reference
 - Check the [guides](../guides/) for specific scenarios
-- Visit [GitHub Issues](https://github.com/ivannovak/glide/issues) for support
+- Visit [GitHub Issues](https://github.com/glide-cli/glide/issues) for support

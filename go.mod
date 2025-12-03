@@ -1,4 +1,4 @@
-module github.com/ivannovak/glide/v3
+module github.com/glide-cli/glide/v3
 
 go 1.24.0
 

@@ -1,7 +1,7 @@
 package plugintest
 
 import (
-	"github.com/ivannovak/glide/v3/pkg/plugin"
+	"github.com/glide-cli/glide/v3/pkg/plugin"
 	"github.com/spf13/cobra"
 )
 

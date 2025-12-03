@@ -199,7 +199,7 @@ func FormatUpdateMessage(info *UpdateInfo) string {
 		info.CurrentVersion, info.LatestVersion))
 	msg.WriteString(fmt.Sprintf("Released: %s\n", info.PublishedAt.Format("2006-01-02")))
 
-	if info.DownloadURL != "" && !strings.Contains(info.DownloadURL, "github.com/ivannovak/glide/v3/releases") {
+	if info.DownloadURL != "" && !strings.Contains(info.DownloadURL, "github.com/glide-cli/glide/v3/releases") {
 		msg.WriteString(fmt.Sprintf("\nDownload: %s\n", info.DownloadURL))
 	} else {
 		msg.WriteString(fmt.Sprintf("\nView release: %s\n", info.ReleaseURL))

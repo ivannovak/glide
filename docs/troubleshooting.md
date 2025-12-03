@@ -34,7 +34,7 @@ glide help             # See available commands
 3. Reinstall Glide:
    ```bash
    # Download latest release
-   curl -L https://github.com/ivannovak/glide/releases/latest/download/glid-$(uname -s)-$(uname -m) -o glid
+   curl -L https://github.com/glide-cli/glide/releases/latest/download/glid-$(uname -s)-$(uname -m) -o glid
    chmod +x glid
    sudo mv glide/usr/local/bin/
    ```
@@ -351,7 +351,7 @@ project/
    ```bash
    # Download specific version
    VERSION=v1.0.0  # Replace with desired version
-   curl -L "https://github.com/ivannovak/glide/releases/download/$VERSION/glid-$(uname -s)-$(uname -m)" -o glid
+   curl -L "https://github.com/glide-cli/glide/releases/download/$VERSION/glid-$(uname -s)-$(uname -m)" -o glid
    chmod +x glid
    sudo mv glide/usr/local/bin/
    ```
@@ -388,7 +388,7 @@ If issues persist:
    ```
 
 2. **Check for known issues:**
-   - Visit: https://github.com/ivannovak/glide/issues
+   - Visit: https://github.com/glide-cli/glide/issues
 
 3. **Report new issue with:**
    - OS and version (`uname -a`)

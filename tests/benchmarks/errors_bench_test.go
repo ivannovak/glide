@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	glideerrors "github.com/ivannovak/glide/v3/pkg/errors"
+	glideerrors "github.com/glide-cli/glide/v3/pkg/errors"
 )
 
 // BenchmarkErrorNew benchmarks creating a basic GlideError

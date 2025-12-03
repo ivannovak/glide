@@ -4,8 +4,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/ivannovak/glide/v3/pkg/plugin"
-	"github.com/ivannovak/glide/v3/pkg/plugin/plugintest"
+	"github.com/glide-cli/glide/v3/pkg/plugin"
+	"github.com/glide-cli/glide/v3/pkg/plugin/plugintest"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
